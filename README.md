@@ -1,3 +1,4 @@
+<pre> 
 jp-shopping-site/
 ├── frontend/
 │   ├── Dockerfile
@@ -26,4 +27,4 @@ jp-shopping-site/
 │       └── secret.yaml   ← 密碼儲存
 │
 └── README.md
-
+</pre>
