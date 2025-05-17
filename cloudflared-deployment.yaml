@@ -1,0 +1,69 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflared-credentials
+  namespace: default
+type: Opaque
+data:
+  credentials.json: eyJBY2NvdW50VGFnIjoiNWQwMmE4NGIyZjkxMDg4OTBkYmFhZjMxMDI3NmY5NjciLCJUdW5uZWxTZWNyZXQiOiJvSUR6MkRwVmJ3dE1qVlozZVo4M1ZFVGZOZHNNK3hpeW84WXhMYlBXOU9zPSIsIlR1bm5lbElEIjoiOWE5NzMxYjUtNGEzZC00NjFkLWJiZjQtMmE1ZjE2NWY5MTQ5IiwiRW5kcG9pbnQiOiIifQ==
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: default
+data:
+  config.yml: |
+    tunnel: 9a9731b5-4a3d-461d-bbf4-2a5f165f9149
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    ingress:
+      - hostname: rancher.wvwwcw.xyz
+        service: https://rancher.cattle-system.svc.cluster.local:443
+        originRequest:
+          noTLSVerify: true
+      - hostname: k8s-deploy.wvwwcw.xyz
+        service: https://kubernetes.default.svc:443
+        originRequest:
+          noTLSVerify: true
+      - service: http_status:404
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --no-autoupdate
+            - --config
+            - /etc/cloudflared/config.yml
+            - run
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudflared/
+            - name: credentials
+              mountPath: /etc/cloudflared/creds
+      volumes:
+        - name: config
+          configMap:
+            name: cloudflared-config
+        - name: credentials
+          secret:
+            secretName: cloudflared-credentials
+
