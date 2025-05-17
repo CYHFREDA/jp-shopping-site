@@ -6,7 +6,7 @@ from threading import Thread
 import uvicorn
 import requests, hmac, hashlib, base64, time, json
 
-# 建立 FastAPI 與 Flask app
+# 建立 FastAPI 與 Flask apptttest
 fastapi_app = FastAPI()
 flask_app = Flask(__name__)
 
