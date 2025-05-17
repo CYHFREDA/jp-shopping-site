@@ -40,5 +40,5 @@ jobs:
           echo "$KUBECONFIG" > kubeconfig.yaml
           export KUBECONFIG=$(pwd)/kubeconfig.yaml
 
-          kubectl set image deployment/app-backend-api app-backend-api=${{ secrets.DOCKER_USERNAME }}/jp-backend:latest
-          kubectl rollout restart deployment app-backend-api
+          kubectl  --insecure-skip-tls-verify set image deployment/app-backend-api app-backend-api=${{ secrets.DOCKER_USERNAME }}/jp-backend:latest
+          kubectl  --insecure-skip-tls-verify rollout restart deployment app-backend-api
