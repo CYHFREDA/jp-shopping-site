@@ -1,4 +1,5 @@
 name: Deploy Frontend to K8S
+
 on:
   push:
     paths:
@@ -7,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,11 +18,15 @@ jobs:
         with:
           version: 'v1.29.0'
 
-      - name: Apply ConfigMap to K8S
+      - name: Redeploy frontend ConfigMap
         working-directory: ./frontend
+        shell: bash
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
         run: |
+          echo "$KUBECONFIG" > kubeconfig.yaml
+          export KUBECONFIG=$(pwd)/kubeconfig.yaml
+
           kubectl create configmap frontend-html \
             --from-file=index.html \
             -o yaml --dry-run=client | kubectl apply -f -
