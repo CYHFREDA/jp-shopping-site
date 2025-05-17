@@ -34,11 +34,9 @@ jobs:
 
       - name: Redeploy to Kubernetes
         shell: bash
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
         run: |
-          echo "$KUBECONFIG" > kubeconfig.yaml
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yaml
           export KUBECONFIG=$(pwd)/kubeconfig.yaml
 
-          kubectl  --insecure-skip-tls-verify set image deployment/app-backend-api app-backend-api=${{ secrets.DOCKER_USERNAME }}/jp-backend:latest
-          kubectl  --insecure-skip-tls-verify rollout restart deployment app-backend-api
+          kubectl --insecure-skip-tls-verify set image deployment/app-backend-api app-backend-api=${{ secrets.DOCKER_USERNAME }}/jp-backend:latest
+          kubectl --insecure-skip-tls-verify rollout restart deployment app-backend-api
