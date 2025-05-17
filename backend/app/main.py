@@ -1,6 +1,7 @@
 # backend/app/main.py
 from fastapi import FastAPI, Request
-from flask import Flask, render_template_string, request as flask_request
+from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, render_template_string, request as flask_request, redirect
 from threading import Thread
 import uvicorn
 import requests, hmac, hashlib, base64, time, json
@@ -9,11 +10,26 @@ import requests, hmac, hashlib, base64, time, json
 fastapi_app = FastAPI()
 flask_app = Flask(__name__)
 
+# CORS 設定
+fastapi_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://shop.wvwwcw.xyz"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # === LINE Pay 設定 ===
 LINE_PAY_CHANNEL_ID = "2006462420"
 LINE_PAY_CHANNEL_SECRET = "8c832c018d09a8be1738b32a3be1ee0a"
 LINE_PAY_BASE_URL = "https://sandbox-api-pay.line.me"
 YOUR_DOMAIN = "https://shop.wvwwcw.xyz"
+
+# 商品資料
+products = [
+    {"id": 1, "name": "UNIQLO 外套", "price": 2990}
+]
+
 # === FastAPI API ===
 @fastapi_app.get("/api/health")
 def health_check():
@@ -21,7 +37,13 @@ def health_check():
 
 @fastapi_app.get("/api/products")
 def get_products():
-    return [{"id": 1, "name": "UNIQLO 外套", "price": 2990}]
+    return products
+
+@fastapi_app.post("/api/products")
+def add_product(product: dict):
+    product["id"] = products[-1]["id"] + 1 if products else 1
+    products.append(product)
+    return {"status": "success", "product": product}
 
 # === Flask 前台頁面 ===
 @flask_app.route("/")
