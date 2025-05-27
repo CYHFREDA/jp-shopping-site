@@ -6,9 +6,9 @@ import uuid
 import os
 
 channel_id = "2006462420"
-channel_secret = "你的 channel secret"
-confirm_url = "https://你的網址/pay/confirm"
-cancel_url = "https://你的網址/pay/cancel"
+channel_secret = "8c832c018d09a8be1738b32a3be1ee0a"
+confirm_url = "https://shop.wvwwcw.xyz/pay/confirm"
+cancel_url = "https://shop.wvwwcw.xyz/pay/cancel"
 
 # 組出 body dict
 body_dict = {
