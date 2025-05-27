@@ -1,61 +1,31 @@
-# backend/app/main.py
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from flask import Flask, render_template_string, request as flask_request, redirect
-from threading import Thread
+from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
 import uvicorn
 import requests, hmac, hashlib, base64, time, json
+import os
 
-# 建立 FastAPI 與 Flask appq
-fastapi_app = FastAPI()
-flask_app = Flask(__name__)
+load_dotenv() 
+app = FastAPI()
 
-# CORS 設定
-fastapi_app.add_middleware(
+# CORS 設定（如果你前端跑在不同來源要允許）
+app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://shop.wvwwcw.xyz"],
+    allow_origins=["https://shop.wvwwcw.xyz"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === LINE Pay 設定 ===
-LINE_PAY_CHANNEL_ID = "2006462420"
-LINE_PAY_CHANNEL_SECRET = "8c832c018d09a8be1738b32a3be1ee0a"
-LINE_PAY_BASE_URL = "https://sandbox-api-pay.line.me"
-YOUR_DOMAIN = "https://shop.wvwwcw.xyz"
+# LINE Pay 設定
+LINE_PAY_CHANNEL_ID = os.getenv("LINE_PAY_CHANNEL_ID")
+LINE_PAY_CHANNEL_SECRET = os.getenv("LINE_PAY_CHANNEL_SECRET")
+YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
+LINE_PAY_BASE_URL = os.getenv("LINE_PAY_BASE_URL")
 
-# 商品資料
-products = [
-    {"id": 1, "name": "UNIQLO 外套", "price": 2990}
-]
-
-# === FastAPI API ===
-@fastapi_app.get("/api/health")
-def health_check():
-    return {"status": "ok"}
-
-@fastapi_app.get("/api/products")
-def get_products():
-    return products
-
-@fastapi_app.post("/api/products")
-def add_product(product: dict):
-    product["id"] = products[-1]["id"] + 1 if products else 1
-    products.append(product)
-    return {"status": "success", "product": product}
-
-# === Flask 前台頁面 ===
-@flask_app.route("/")
-def index():
-    return render_template_string("""
-        <h1>歡迎來到日本代購</h1>
-        <p>UNIQLO 外套 - ¥2990</p>
-        <a href="/pay"><button style='background-color:#00c300;color:white;padding:10px 20px;'>LINE Pay 支付</button></a>
-    """)
-
-@flask_app.route("/pay")
-def pay():
+@app.post("/pay")
+async def pay():
     nonce = str(int(time.time()))
     headers = {
         "Content-Type": "application/json",
@@ -80,7 +50,6 @@ def pay():
         }
     }
 
-    # 簽名
     signature = hmac.new(
         LINE_PAY_CHANNEL_SECRET.encode('utf-8'),
         json.dumps(body, separators=(',', ':')).encode('utf-8'),
@@ -92,46 +61,6 @@ def pay():
     res_data = res.json()
 
     if "info" in res_data:
-        return flask_request.redirect(res_data["info"]["paymentUrl"]["web"])
+        return JSONResponse({"url": res_data["info"]["paymentUrl"]["web"]})
     else:
-        return render_template_string(f"<h2>❌ 發起付款失敗</h2><pre>{json.dumps(res_data, indent=2)}</pre>")
-
-@flask_app.route("/pay/confirm")
-def pay_confirm_page():
-    transaction_id = flask_request.args.get("transactionId")
-    if not transaction_id:
-        return render_template_string("<h2>❌ 缺少交易參數</h2>")
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-LINE-ChannelId": LINE_PAY_CHANNEL_ID,
-        "X-LINE-Authorization-Nonce": str(int(time.time())),
-    }
-    body = {"amount": 100, "currency": "TWD"}
-
-    signature = hmac.new(
-        LINE_PAY_CHANNEL_SECRET.encode("utf-8"),
-        json.dumps(body, separators=(',', ':')).encode("utf-8"),
-        hashlib.sha256
-    ).digest()
-    headers["X-LINE-Authorization"] = base64.b64encode(signature).decode("utf-8")
-
-    res = requests.post(f"{LINE_PAY_BASE_URL}/v3/payments/{transaction_id}/confirm", headers=headers, json=body)
-    res_data = res.json()
-
-    if res_data.get("returnCode") == "0000":
-        return render_template_string("<h2>✅ 支付成功，感謝購買！</h2>")
-    else:
-        return render_template_string(f"<h2>❌ 確認付款失敗</h2><pre>{json.dumps(res_data, indent=2)}</pre>")
-
-@flask_app.route("/pay/cancel")
-def pay_cancel_page():
-    return render_template_string("<h2>❌ 已取消付款，歡迎再來。</h2>")
-
-# === 同時啟動 FastAPI 與 Flask ===
-def run_flask():
-    flask_app.run(host="0.0.0.0", port=8080)
-
-if __name__ == "__main__":
-    Thread(target=run_flask).start()
-    uvicorn.run(fastapi_app, host="0.0.0.0", port=8000)
+        return JSONResponse({"error": res_data}, status_code=400)

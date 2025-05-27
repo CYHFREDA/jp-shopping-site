@@ -1,23 +1,20 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>日本代購商城</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-    .button {
-      padding: 10px 20px;
-      background: #00c300;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-  <h1>歡迎來到日本代購</h1>
-  <p>UNIQLO 外套 - ¥2990</p>
-  <a href="https://api.wvwwcw.xyz/pay" class="button">LINE Pay 支付</a>
-</body>
-</html>
+<button onclick="startPayment()">LINE Pay 支付</button>
+
+<script>
+function startPayment() {
+    fetch("https://api.wvwwcw.xyz/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.url) {
+            window.location.href = data.url; // 自動跳轉到 LINE Pay
+        } else {
+            alert("❌ 發起付款失敗");
+            console.error(data);
+        }
+    });
+}
+</script>
