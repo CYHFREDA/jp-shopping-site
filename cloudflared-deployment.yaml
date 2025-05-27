@@ -21,7 +21,7 @@ data:
     ingress:
       - hostname: shop.wvwwcw.xyz
         service: http://frontend:80
-      - hostname: api.shop.wvwwcw.xyz
+      - hostname: api.wvwwcw.xyz
         service: http://backend-api:80
       - hostname: rancher.wwwwcw.xyz
         service: https://rancher.cattle-system.svc.cluster.local:443
