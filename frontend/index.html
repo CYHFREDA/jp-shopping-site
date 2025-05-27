@@ -127,22 +127,24 @@ function startPayment(event) {
   const rows = document.querySelectorAll("#productTable tr");
   const products = [];
 
-  rows.forEach(row => {
+  rows.forEach((row, idx) => {
     const name = row.cells[0].querySelector("input").value || "未命名商品";
     const quantity = parseInt(row.cells[1].querySelector("input").value) || 1;
     const price = parseInt(row.cells[2].querySelector("input").value) || 0;
+
+    console.log(`第${idx+1}列：名稱=${name}，數量=${quantity}，價格=${price}`);
 
     if (price > 0) {
       products.push({ name, quantity, price });
     }
   });
 
+  console.log("組合後的商品陣列：", products);
+
   if (products.length === 0) {
     alert("❌ 請至少輸入一個有效商品！");
     return;
   }
-
-  console.log("送出商品資料：", products);
 
   fetch("https://api.wvwwcw.xyz/pay", {
     method: "POST",
