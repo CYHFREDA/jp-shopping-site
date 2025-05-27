@@ -4,6 +4,7 @@ import hashlib
 import base64
 import uuid
 import os
+import requests
 
 channel_id = "2006462420"
 channel_secret = "8c832c018d09a8be1738b32a3be1ee0a"
@@ -53,12 +54,18 @@ with open("body.json", "w", encoding="utf-8") as f:
 print("nonce:", nonce)
 print("X-LINE-Authorization:", b64_signature)
 
-# 直接執行 curl
-os.system(f'''
-curl -v -X POST "https://sandbox-api-pay.line.me/v3/payments/request" \
-  -H "Content-Type: application/json" \
-  -H "X-LINE-ChannelId: {channel_id}" \
-  -H "X-LINE-Authorization-Nonce: {nonce}" \
-  -H "X-LINE-Authorization: {b64_signature}" \
-  -d @body.json
-''')
+headers = {
+    "Content-Type": "application/json",
+    "X-LINE-ChannelId": channel_id,
+    "X-LINE-Authorization-Nonce": nonce,
+    "X-LINE-Authorization": b64_signature
+}
+
+response = requests.post(
+    "https://sandbox-api-pay.line.me/v3/payments/request",
+    headers=headers,
+    data=body_str.encode("utf-8")
+)
+
+print(response.status_code)
+print(response.text)
