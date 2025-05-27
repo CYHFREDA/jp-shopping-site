@@ -4,8 +4,11 @@
 DATE_TAG=$(date +"%Y%m%d%H%M")
 IMAGE_NAME="inulifgogo/backend-api:$DATE_TAG"
 
+# 記錄 deploy_backend.sh 檔案所在目錄
+SCRIPT_DIR=$(cd $(dirname $0) && pwd)
+
 echo "========= 建立映像檔: $IMAGE_NAME ========="
-docker build -t $IMAGE_NAME .
+docker build -t $IMAGE_NAME $SCRIPT_DIR
 
 echo "========= 推送映像檔到 Docker Hub ========="
 docker push $IMAGE_NAME
