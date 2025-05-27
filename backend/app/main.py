@@ -30,20 +30,17 @@ async def pay(request: Request):
         data = await request.json()
         print("收到前端資料：", data)
 
-        # 從前端取出 products（必須有傳 products 進來）
         products = data.get("products")
         if not products:
             print("❌ 缺少商品資料！")
             return JSONResponse({"error": "缺少商品資料"}, status_code=400)
 
-        # 印出收到的商品資料
         print("收到的商品列表：", products)
 
         # 計算總金額
         amount = sum(item["price"] * item["quantity"] for item in products)
         print("計算總金額：", amount)
 
-        # 準備 LINE Pay 的請求資料
         nonce = str(int(time.time()))
         headers = {
             "Content-Type": "application/json",
@@ -52,7 +49,7 @@ async def pay(request: Request):
         }
 
         order_id = f"ORDER-{int(time.time())}"
-        body = {
+        body_dict = {
             "amount": amount,
             "currency": "TWD",
             "orderId": order_id,
@@ -60,7 +57,7 @@ async def pay(request: Request):
                 "id": "package-1",
                 "amount": amount,
                 "name": "代購商品",
-                "products": products  # 🔥 直接使用前端傳的商品列表
+                "products": products
             }],
             "redirectUrls": {
                 "confirmUrl": f"{YOUR_DOMAIN}/pay/confirm",
@@ -68,16 +65,24 @@ async def pay(request: Request):
             }
         }
 
-        # 產生簽名
+        # 🔥 產生 JSON 壓縮字串，確保完全相同
+        body_str = json.dumps(body_dict, separators=(',', ':'))
+
+        # 🔥 用 body_str 產生簽名
         signature = hmac.new(
             LINE_PAY_CHANNEL_SECRET.encode('utf-8'),
-            json.dumps(body, separators=(',', ':')).encode('utf-8'),
+            body_str.encode('utf-8'),
             hashlib.sha256
         ).digest()
         headers['X-LINE-Authorization'] = base64.b64encode(signature).decode('utf-8')
 
-        # 呼叫 LINE Pay API
-        res = requests.post(f"{LINE_PAY_BASE_URL}/v3/payments/request", headers=headers, json=body)
+        # 🔥 直接送出這個 body_str，避免 JSON 自動縮排導致簽名不一致
+        res = requests.post(
+            f"{LINE_PAY_BASE_URL}/v3/payments/request",
+            headers=headers,
+            data=body_str  # 注意：用 data（不是 json=）
+        )
+
         res_data = res.json()
         print("LINE Pay 回應：", res_data)
 

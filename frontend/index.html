@@ -1,137 +1,170 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>日本代購商城</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 50px;
-    }
-    h1 {
-      color: #333;
-    }
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
-    }
-    th {
-      background-color: #eee;
-    }
-    input[type="text"], input[type="number"] {
-      width: 80px;
-      text-align: center;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background-color: #00c300;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #00a300;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>日本代購商城</title>
+<style>
+  body {
+    font-family: "Helvetica Neue", sans-serif;
+    text-align: center;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 50px;
+    color: #333;
+  }
+
+  h1 {
+    color: #222;
+    margin-bottom: 30px;
+  }
+
+  table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+  }
+
+  th {
+    background-color: #00c300;
+    color: white;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #00c300;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  button:hover {
+    background-color: #00a300;
+  }
+
+  #addRowBtn {
+    background-color: #007bff;
+  }
+
+  #addRowBtn:hover {
+    background-color: #0056b3;
+  }
+</style>
 </head>
 <body>
-  <h1>日本代購商城 - 動態輸入商品</h1>
 
-  <table>
-    <thead>
-      <tr>
-        <th>商品名稱</th>
-        <th>數量</th>
-        <th>價格</th>
-      </tr>
-    </thead>
-    <tbody id="productTable">
-      <!-- 產生 5 列 -->
-      <tr>
-        <td><input type="text" placeholder="商品 1" /></td>
-        <td><input type="number" value="1" min="1" /></td>
-        <td><input type="number" value="100" min="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="商品 2" /></td>
-        <td><input type="number" value="1" min="1" /></td>
-        <td><input type="number" value="200" min="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="商品 3" /></td>
-        <td><input type="number" value="1" min="1" /></td>
-        <td><input type="number" value="300" min="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="商品 4" /></td>
-        <td><input type="number" value="1" min="1" /></td>
-        <td><input type="number" value="400" min="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="商品 5" /></td>
-        <td><input type="number" value="1" min="1" /></td>
-        <td><input type="number" value="500" min="0" /></td>
-      </tr>
-    </tbody>
-  </table>
+<h1>日本代購商城 - 新增商品</h1>
 
-  <button onclick="startPayment(event)">LINE Pay 支付</button>
+<table>
+  <thead>
+    <tr>
+      <th>商品名稱</th>
+      <th>數量</th>
+      <th>價格</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody id="productTable">
+    <tr>
+      <td><input type="text" placeholder="商品名稱" /></td>
+      <td><input type="number" value="1" min="1" /></td>
+      <td><input type="number" value="100" min="0" /></td>
+      <td><button onclick="removeRow(this)" style="background: #dc3545;">刪除</button></td>
+    </tr>
+  </tbody>
+</table>
 
-  <script>
-    function startPayment(event) {
-      event.preventDefault();
+<button id="addRowBtn" onclick="addRow()">➕ 新增商品</button>
+<button onclick="startPayment(event)">LINE Pay 支付</button>
 
-      const rows = document.querySelectorAll("#productTable tr");
-      const products = [];
+<script>
+function addRow() {
+  const table = document.getElementById("productTable");
+  const newRow = table.rows[0].cloneNode(true);
+  // 清空新列的值
+  newRow.querySelectorAll("input").forEach(input => {
+    if (input.type === "text") input.value = "";
+    if (input.type === "number") input.value = 1;
+  });
+  table.appendChild(newRow);
+}
 
-      rows.forEach(row => {
-        const name = row.cells[0].querySelector("input").value || "未命名商品";
-        const quantity = parseInt(row.cells[1].querySelector("input").value) || 1;
-        const price = parseInt(row.cells[2].querySelector("input").value) || 0;
+function removeRow(button) {
+  const row = button.closest("tr");
+  const table = document.getElementById("productTable");
+  if (table.rows.length > 1) {
+    row.remove();
+  } else {
+    alert("⚠️ 至少要留一筆商品喔！");
+  }
+}
 
-        if (price > 0) {
-          products.push({ name, quantity, price });
-        }
-      });
+function startPayment(event) {
+  event.preventDefault();
 
-      if (products.length === 0) {
-        alert("❌ 請至少輸入一個有效商品！");
-        return;
-      }
+  const rows = document.querySelectorAll("#productTable tr");
+  const products = [];
 
-      console.log("送出商品資料：", products);
+  rows.forEach(row => {
+    const name = row.cells[0].querySelector("input").value || "未命名商品";
+    const quantity = parseInt(row.cells[1].querySelector("input").value) || 1;
+    const price = parseInt(row.cells[2].querySelector("input").value) || 0;
 
-      fetch("https://api.wvwwcw.xyz/pay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ products })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log("後端回傳：", data);
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert("❌ 發起付款失敗！");
-          console.error(data);
-        }
-      })
-      .catch(err => {
-        alert("❌ 發起付款錯誤！");
-        console.error(err);
-      });
+    if (price > 0) {
+      products.push({ name, quantity, price });
     }
-  </script>
+  });
+
+  if (products.length === 0) {
+    alert("❌ 請至少輸入一個有效商品！");
+    return;
+  }
+
+  console.log("送出商品資料：", products);
+
+  fetch("https://api.wvwwcw.xyz/pay", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ products })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("後端回傳：", data);
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("❌ 發起付款失敗！");
+      console.error(data);
+    }
+  })
+  .catch(err => {
+    alert("❌ 發起付款錯誤！");
+    console.error(err);
+  });
+}
+</script>
+
 </body>
 </html>
