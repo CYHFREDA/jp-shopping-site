@@ -2,64 +2,66 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>日本代購商城</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 50px;
-    }
-    h1 {
-      color: #333;
-    }
-    p {
-      font-size: 18px;
-      color: #555;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background-color: #00c300;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #00a300;
-    }
-  </style>
-</head>
-<body>
-  <h1>歡迎來到日本代購商城</h1>
-  <p>商品：UNIQLO 外套 - ¥2990</p>
-  <button onclick="startPayment()">LINE Pay 支付</button>
+    <title>日本代購商城</title>
+	  <style>
+	      body {
+		        font-family: Arial, sans-serif;
+				      text-align: center;
+					        background-color: #f9f9f9;
+							      margin: 0;
+								        padding: 50px;
+										    }
+											    h1 {
+												      color: #333;
+													      }
+														      p {
+															        font-size: 18px;
+																	      color: #555;
+																		      }
+																			      button {
+																				        margin-top: 20px;
+																						      padding: 12px 24px;
+																							        background-color: #00c300;
+																									      color: white;
+																										        border: none;
+																												      border-radius: 5px;
+																													        cursor: pointer;
+																															      font-size: 16px;
+																																        transition: background-color 0.3s;
+																																		    }
+																																			    button:hover {
+																																				      background-color: #00a300;
+																																					      }
+																																						    </style>
+																																							</head>
+																																							<body>
+																																							  <h1>歡迎來到日本代購商城</h1>
+																																							    <p>商品：UNIQLO 外套 - ¥2990</p>
+																																								  <button onclick="startPayment(event)">LINE Pay 支付</button>
 
-  <script>
-    function startPayment() {
-      fetch("https://api.wvwwcw.xyz/pay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert("❌ 發起付款失敗");
-          console.error(data);
-        }
-      })
-      .catch(err => {
-        alert("❌ 發起付款錯誤");
-        console.error(err);
-      });
-    }
-  </script>
-</body>
-</html>
+																																								    <script>
+																																									    function startPayment(event) {
+																																										      event.preventDefault();
+																																											        fetch("https://api.wvwwcw.xyz/pay", {
+																																													        method: "POST",
+																																															        headers: { "Content-Type": "application/json" },
+																																																	        body: JSON.stringify({})
+																																																			      })
+																																																				        .then(res => res.json())
+																																																						      .then(data => {
+																																																							          if (data.url) {
+																																																									            window.location.href = data.url;
+																																																												        } else {
+																																																														          alert("❌ 發起付款失敗");
+																																																																            console.error(data);
+																																																																			        }
+																																																																					      })
+																																																																						        .catch(err => {
+																																																																								        alert("❌ 發起付款錯誤");
+																																																																										        console.error(err);
+																																																																												      });
+																																																																													      }
+																																																																														    </script>
+																																																																															</body>
+																																																																															</html>
+
