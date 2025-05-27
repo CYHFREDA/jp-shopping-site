@@ -38,7 +38,7 @@ body_dict = {
 body_str = json.dumps(body_dict, separators=(',', ':'), ensure_ascii=False)
 
 nonce = str(uuid.uuid4())
-message = nonce + body_str + channel_secret
+message = nonce + body_str + channel_id
 
 signature = hmac.new(
     channel_secret.encode("utf-8"),
