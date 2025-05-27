@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#  產生日期時間標籤（格式：YYYYMMDD-HHMM）
-DATE_TAG=$(date +"%Y%m%d-%H%M")
+#  產生日期時間標籤（格式：YYYYMMDDHHMM）
+DATE_TAG=$(date +"%Y%m%d%H%M")
 IMAGE_NAME="inulifgogo/backend-api:$DATE_TAG"
 
 echo "🔨 建立映像檔: $IMAGE_NAME"
