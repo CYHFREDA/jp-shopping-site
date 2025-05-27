@@ -21,13 +21,13 @@ data:
     ingress:
       - hostname: shop.wvwwcw.xyz
         service: http://frontend:80
-      - hostname: api.shop.wvwwcw.xyz
+      - hostname: api.wvwwcw.xyz
         service: http://backend-api:80
-      - hostname: rancher.wwwwcw.xyz
+      - hostname: rancher.wvwwcw.xyz
         service: https://rancher.cattle-system.svc.cluster.local:443
         originRequest:
           noTLSVerify: true
-      - hostname: k8s-deploy.wwwwcw.xyz
+      - hostname: k8s-deploy.wvwwcw.xyz
         service: https://kubernetes.default.svc:443
         originRequest:
           noTLSVerify: true
