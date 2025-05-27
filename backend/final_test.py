@@ -55,7 +55,7 @@ print("X-LINE-Authorization:", b64_signature)
 
 # 直接執行 curl
 os.system(f'''
-curl -v -X POST "https://sandbox-api-pay.line.me/v3/payments/request" \
+curl -v -X POST "https://api-pay.line.me/v3/payments/request" \
   -H "Content-Type: application/json" \
   -H "X-LINE-ChannelId: {channel_id}" \
   -H "X-LINE-Authorization-Nonce: {nonce}" \
