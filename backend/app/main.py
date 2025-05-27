@@ -23,6 +23,10 @@ LINE_PAY_CHANNEL_SECRET = os.getenv("LINE_PAY_CHANNEL_SECRET")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 LINE_PAY_BASE_URL = os.getenv("LINE_PAY_BASE_URL")
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.post("/pay")
 async def pay(request: Request):
     try:
