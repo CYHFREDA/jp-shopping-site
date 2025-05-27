@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import uvicorn
 import requests, hmac, hashlib, base64, time, json
 import os
+import uuid
 
 load_dotenv()
 app = FastAPI()
@@ -45,7 +46,7 @@ async def pay(request: Request):
         amount = sum(item["price"] * item["quantity"] for item in products)
         print("計算總金額：", amount)
 
-        nonce = str(int(time.time()))
+        nonce = str(uuid.uuid4())
         headers = {
             "Content-Type": "application/json",
             "X-LINE-ChannelId": LINE_PAY_CHANNEL_ID,
