@@ -19,16 +19,19 @@ data:
     tunnel: 9a9731b5-4a3d-461d-bbf4-2a5f165f9149
     credentials-file: /etc/cloudflared/creds/credentials.json
     ingress:
-      - hostname: rancher.wvwwcw.xyz
+      - hostname: shop.wvwwcw.xyz
+        service: http://frontend:80
+      - hostname: api.shop.wvwwcw.xyz
+        service: http://backend-api:80
+      - hostname: rancher.wwwwcw.xyz
         service: https://rancher.cattle-system.svc.cluster.local:443
         originRequest:
           noTLSVerify: true
-      - hostname: k8s-deploy.wvwwcw.xyz
+      - hostname: k8s-deploy.wwwwcw.xyz
         service: https://kubernetes.default.svc:443
         originRequest:
           noTLSVerify: true
       - service: http_status:404
-
 ---
 apiVersion: apps/v1
 kind: Deployment
