@@ -46,12 +46,6 @@ async def pay(request: Request):
         print("計算總金額：", amount)
 
         nonce = str(uuid.uuid4())
-        headers = {
-            "Content-Type": "application/json",
-            "X-LINE-ChannelId": LINE_PAY_CHANNEL_ID,
-            "X-LINE-Authorization-Nonce": nonce,
-        }
-
         order_id = f"ORDER-{int(time.time())}"
         body_dict = {
             "amount": amount,
@@ -69,18 +63,26 @@ async def pay(request: Request):
             }
         }
 
-        # ✅ 用 json.dumps 產生沒有多餘空白的 JSON 字串
+        # ✅ 產生沒有多餘空白的 JSON
         body_str = json.dumps(body_dict, separators=(',', ':'))
 
-        # ✅ 用 body_str 產生簽名
+        # ✅ LINE Pay 文件要求簽名串接方式
+        message = nonce + body_str + LINE_PAY_CHANNEL_ID
+
         signature = hmac.new(
             LINE_PAY_CHANNEL_SECRET.encode('utf-8'),
-            body_str.encode('utf-8'),
+            message.encode('utf-8'),
             hashlib.sha256
         ).digest()
-        headers['X-LINE-Authorization'] = base64.b64encode(signature).decode('utf-8')
 
-        # ✅ 送出時也直接用 body_str，確保和簽名一致
+        headers = {
+            "Content-Type": "application/json",
+            "X-LINE-ChannelId": LINE_PAY_CHANNEL_ID,
+            "X-LINE-Authorization-Nonce": nonce,
+            "X-LINE-Authorization": base64.b64encode(signature).decode('utf-8')
+        }
+
+        # ✅ 送出
         res = requests.post(
             f"{LINE_PAY_BASE_URL}/v3/payments/request",
             headers=headers,
