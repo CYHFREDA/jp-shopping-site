@@ -31,7 +31,6 @@ async def health():
 @app.post("/pay")
 async def pay(request: Request):
     try:
-        # 從前端拿到 JSON
         data = await request.json()
         print("收到前端資料：", data)
 
@@ -70,10 +69,10 @@ async def pay(request: Request):
             }
         }
 
-        # 🔥 產生 JSON 壓縮字串，確保完全相同
+        # ✅ 用 json.dumps 產生沒有多餘空白的 JSON 字串
         body_str = json.dumps(body_dict, separators=(',', ':'))
 
-        # 🔥 用 body_str 產生簽名
+        # ✅ 用 body_str 產生簽名
         signature = hmac.new(
             LINE_PAY_CHANNEL_SECRET.encode('utf-8'),
             body_str.encode('utf-8'),
@@ -81,11 +80,11 @@ async def pay(request: Request):
         ).digest()
         headers['X-LINE-Authorization'] = base64.b64encode(signature).decode('utf-8')
 
-        # 🔥 直接送出這個 body_str，避免 JSON 自動縮排導致簽名不一致
+        # ✅ 送出時也直接用 body_str，確保和簽名一致
         res = requests.post(
             f"{LINE_PAY_BASE_URL}/v3/payments/request",
             headers=headers,
-            data=body_str  # 注意：用 data（不是 json=）
+            data=body_str
         )
 
         res_data = res.json()
