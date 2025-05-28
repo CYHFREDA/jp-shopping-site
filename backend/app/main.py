@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from dotenv import load_dotenv
+from datetime import datetime
+import random
 import uvicorn
 import hashlib
 import urllib.parse
@@ -62,7 +64,12 @@ async def pay(request: Request):
         if not products:
             return JSONResponse({"error": "❌ 缺少商品資料"}, status_code=400)
 
-        order_id = f"ORDER{int(time.time())}"
+        now = datetime.now()
+        date_time_str = now.strftime("%Y%m%d%H%M%S")
+        serial_number = f"{random.randint(0, 999999):06d}"
+        order_id = f"{date_time_str}{serial_number}"
+        #print(order_id)
+
         amount = sum(item["price"] * item["quantity"] for item in products)
         item_names = "#".join([f"{item['name']} x {item['quantity']}" for item in products])
         trade_date = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
