@@ -9,7 +9,6 @@ import hashlib
 import urllib.parse
 import os
 import uuid
-import datetime
 import time
 import psycopg2
 
@@ -72,7 +71,7 @@ async def pay(request: Request):
 
         amount = sum(item["price"] * item["quantity"] for item in products)
         item_names = "#".join([f"{item['name']} x {item['quantity']}" for item in products])
-        trade_date = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        trade_date = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
         # ✅ 寫入資料庫，狀態為 pending
         conn = psycopg2.connect(
