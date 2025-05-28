@@ -159,5 +159,89 @@ async def admin_update_status(request: Request, auth=Depends(verify_basic_auth))
     conn.close()
     return JSONResponse({"message": "狀態已更新！"})
 
+# 取得所有商品
+@app.get("/products")
+async def get_products():
+    conn = psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port="5432"
+    )
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, price, description, image_url FROM products ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    products = [{"id": r[0], "name": r[1], "price": r[2], "description": r[3], "image_url": r[4]} for r in rows]
+    return JSONResponse(products)
+# 後台新增商品
+@app.post("/admin/products")
+async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    name = data.get("name")
+    price = data.get("price")
+    description = data.get("description", "")
+    image_url = data.get("image_url", "")
+
+    conn = psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port="5432"
+    )
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO products (name, price, description, image_url)
+        VALUES (%s, %s, %s, %s)
+    """, (name, price, description, image_url))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "商品已新增"})
+#後台編輯商品
+@app.put("/admin/products/{id}")
+async def admin_update_product(id: int, request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    name = data.get("name")
+    price = data.get("price")
+    description = data.get("description", "")
+    image_url = data.get("image_url", "")
+
+    conn = psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port="5432"
+    )
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE products SET name=%s, price=%s, description=%s, image_url=%s WHERE id=%s
+    """, (name, price, description, image_url, id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "商品已更新"})
+
+#後台刪除商品
+@app.delete("/admin/products/{id}")
+async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
+    conn = psycopg2.connect(
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port="5432"
+    )
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM products WHERE id=%s", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "商品已刪除"})
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

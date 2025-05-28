@@ -2,22 +2,22 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8" />
-<title>後台訂單管理</title>
+<title>後台管理</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
-<!-- 導覽列 -->
+<!-- 🔹 導覽列 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
   <div class="container-fluid">
     <a class="navbar-brand" href="/index.html">🔙 回到商城首頁</a>
-    <span class="navbar-text text-white">｜後台訂單管理</span>
+    <span class="navbar-text text-white">｜後台管理</span>
   </div>
 </nav>
 
 <div class="container py-4">
-  <!-- 登入區塊 -->
+  <!-- 🔸 登入區塊 -->
   <div id="loginArea" class="mb-4">
     <h4>請輸入後台帳號密碼：</h4>
     <input id="username" class="form-control mb-2" placeholder="Username" />
@@ -25,99 +25,172 @@
     <button class="btn btn-primary" onclick="login()">登入</button>
   </div>
 
-  <!-- 訂單管理區塊 -->
-  <div id="ordersArea" class="d-none">
+  <!-- 🔸 訂單管理 -->
+  <div id="ordersArea" class="d-none mb-5">
+    <h4>訂單管理</h4>
     <div id="ordersTable" class="table-responsive"></div>
+  </div>
+
+  <!-- 🔸 商品管理 -->
+  <div id="productsArea" class="d-none">
+    <h4>商品管理</h4>
+    <div class="mb-3">
+      <input id="productName" class="form-control mb-2" placeholder="商品名稱">
+      <input id="productPrice" type="number" class="form-control mb-2" placeholder="價格">
+      <textarea id="productDesc" class="form-control mb-2" placeholder="商品描述"></textarea>
+      <input id="productImage" class="form-control mb-2" placeholder="圖片網址 (可空)">
+      <button class="btn btn-success" onclick="addProduct()">新增商品</button>
+    </div>
+    <div id="productsTable" class="table-responsive"></div>
   </div>
 </div>
 
 <script>
-  let token = "";
+let token = "";
 
-  function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
 
-    if (!username || !password) {
-      alert("請輸入完整帳號密碼");
-      return;
-    }
-
-    token = btoa(`${username}:${password}`);
-    loadOrders();
+  if (!username || !password) {
+    alert("請輸入完整帳號密碼");
+    return;
   }
 
-  async function loadOrders() {
-    const res = await fetch("/admin/orders", {
-      headers: { "Authorization": "Basic " + token }
-    });
-    if (!res.ok) {
-      alert("❌ 帳號或密碼錯誤！");
-      return;
-    }
-    const orders = await res.json();
+  token = btoa(`${username}:${password}`);
+  loadOrders();
+  loadProducts();
+}
 
-    let html = `
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>訂單編號</th>
-            <th>商品內容</th>
-            <th>金額</th>
-            <th>狀態</th>
-            <th>建立時間</th>
-            <th>付款時間</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+async function loadOrders() {
+  const res = await fetch("/admin/orders", { headers: { "Authorization": "Basic " + token } });
+  if (!res.ok) {
+    alert("❌ 帳號或密碼錯誤！");
+    return;
+  }
+  const orders = await res.json();
 
-    orders.forEach(o => {
-      html += `
-        <tr>
-          <td>${o.order_id}</td>
-          <td>${o.item_names}</td>
-          <td>${o.amount}</td>
-          <td>${o.status}</td>
-          <td>${o.created_at}</td>
-          <td>${o.paid_at || '-'}</td>
-          <td>
-            <select onchange="updateStatus('${o.order_id}', this.value)" class="form-select form-select-sm">
-              <option value="">--修改狀態--</option>
-              <option value="pending">pending</option>
-              <option value="success">success</option>
-              <option value="fail">fail</option>
-            </select>
-          </td>
-        </tr>
-      `;
-    });
+  let html = `<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>訂單編號</th>
+        <th>商品內容</th>
+        <th>金額</th>
+        <th>狀態</th>
+        <th>建立時間</th>
+        <th>付款時間</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  orders.forEach(o => {
+    html += `<tr>
+      <td>${o.order_id}</td>
+      <td>${o.item_names}</td>
+      <td>${o.amount}</td>
+      <td>${o.status}</td>
+      <td>${o.created_at}</td>
+      <td>${o.paid_at || '-'}</td>
+      <td>
+        <select onchange="updateOrderStatus('${o.order_id}', this.value)" class="form-select form-select-sm">
+          <option value="">--修改狀態--</option>
+          <option value="pending">pending</option>
+          <option value="success">success</option>
+          <option value="fail">fail</option>
+        </select>
+      </td>
+    </tr>`;
+  });
+  html += "</tbody></table>";
+  document.getElementById("ordersTable").innerHTML = html;
+  document.getElementById("loginArea").classList.add("d-none");
+  document.getElementById("ordersArea").classList.remove("d-none");
+  document.getElementById("productsArea").classList.remove("d-none");
+}
 
-    html += "</tbody></table>";
-    document.getElementById("ordersTable").innerHTML = html;
+async function updateOrderStatus(orderId, newStatus) {
+  if (!newStatus) return;
+  const res = await fetch("/admin/update_order_status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ order_id: orderId, status: newStatus })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadOrders();
+}
 
-    // 切換畫面：隱藏登入、顯示訂單
-    document.getElementById("loginArea").classList.add("d-none");
-    document.getElementById("ordersArea").classList.remove("d-none");
+async function loadProducts() {
+  const res = await fetch("/products");
+  const products = await res.json();
+
+  let html = `<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>名稱</th>
+        <th>價格</th>
+        <th>描述</th>
+        <th>圖片</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  products.forEach(p => {
+    html += `<tr>
+      <td><input class="form-control form-control-sm" value="${p.name}" onchange="updateProductField(${p.id}, 'name', this.value)"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${p.price}" onchange="updateProductField(${p.id}, 'price', this.value)"></td>
+      <td><input class="form-control form-control-sm" value="${p.description || ''}" onchange="updateProductField(${p.id}, 'description', this.value)"></td>
+      <td><input class="form-control form-control-sm" value="${p.image_url || ''}" onchange="updateProductField(${p.id}, 'image_url', this.value)"></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">刪除</button></td>
+    </tr>`;
+  });
+  html += "</tbody></table>";
+  document.getElementById("productsTable").innerHTML = html;
+}
+
+async function addProduct() {
+  const name = document.getElementById("productName").value;
+  const price = parseInt(document.getElementById("productPrice").value);
+  const description = document.getElementById("productDesc").value;
+  const image_url = document.getElementById("productImage").value;
+
+  if (!name || !price) {
+    alert("請填寫完整的商品名稱與價格！");
+    return;
   }
 
-  async function updateStatus(orderId, newStatus) {
-    if (!newStatus) return;
+  const res = await fetch("/admin/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ name, price, description, image_url })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadProducts();
+}
 
-    const res = await fetch("/admin/update_order_status", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Basic " + token
-      },
-      body: JSON.stringify({ order_id: orderId, status: newStatus })
-    });
-    const result = await res.json();
-    alert(result.message || result.error);
-    loadOrders();
-  }
+async function updateProductField(id, field, value) {
+  const res = await fetch(`/admin/products/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ [field]: value })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+}
+
+async function deleteProduct(id) {
+  if (!confirm("確定要刪除這個商品？")) return;
+  const res = await fetch(`/admin/products/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": "Basic " + token }
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadProducts();
+}
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

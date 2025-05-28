@@ -8,18 +8,13 @@
 </head>
 <body class="bg-light">
 
-<!-- 🔹 導覽列 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">日本代購商城</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航">
-      <span class="navbar-toggler-icon"></span>
-    </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="/">首頁</a>
+          <a class="nav-link active" href="/">首頁</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/admin.html">後台管理</a>
@@ -29,53 +24,15 @@
   </div>
 </nav>
 
-<!-- 🔹 商品展示 -->
 <div class="container py-4">
   <h1 class="text-center mb-4">精選商品</h1>
-  <div class="row" id="productList">
-    <!-- 商品 1 -->
-    <div class="col-md-4">
-      <div class="card mb-4 shadow-sm">
-        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="日本零食">
-        <div class="card-body">
-          <h5 class="card-title">日本零食</h5>
-          <p class="card-text">美味日本零食，價格：100 元</p>
-          <button class="btn btn-primary" onclick="addToCart('日本零食', 100)">加入購物車</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 商品 2 -->
-    <div class="col-md-4">
-      <div class="card mb-4 shadow-sm">
-        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="日本藥妝">
-        <div class="card-body">
-          <h5 class="card-title">日本藥妝</h5>
-          <p class="card-text">正宗日本藥妝，價格：200 元</p>
-          <button class="btn btn-primary" onclick="addToCart('日本藥妝', 200)">加入購物車</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 商品 3 -->
-    <div class="col-md-4">
-      <div class="card mb-4 shadow-sm">
-        <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="日本保健品">
-        <div class="card-body">
-          <h5 class="card-title">日本保健品</h5>
-          <p class="card-text">健康守護，價格：300 元</p>
-          <button class="btn btn-primary" onclick="addToCart('日本保健品', 300)">加入購物車</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="row" id="productList"></div>
 
   <div class="text-center mt-4">
     <a href="/cart.html" class="btn btn-success btn-lg">前往購物車</a>
   </div>
 </div>
 
-<!-- 🔹 JavaScript 功能 -->
 <script>
   function addToCart(name, price) {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -88,9 +45,34 @@
     localStorage.setItem("cart", JSON.stringify(cart));
     alert("✅ 已加入購物車！");
   }
+
+  async function loadProducts() {
+    const res = await fetch("/products");
+    const products = await res.json();
+    const productList = document.getElementById("productList");
+    productList.innerHTML = "";
+
+    products.forEach(product => {
+      const html = `
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <img src="${product.image_url || 'https://via.placeholder.com/300x200'}" class="card-img-top" alt="${product.name}">
+            <div class="card-body">
+              <h5 class="card-title">${product.name}</h5>
+              <p class="card-text">${product.description || ''}</p>
+              <p class="card-text">價格：${product.price} 元</p>
+              <button class="btn btn-primary" onclick="addToCart('${product.name}', ${product.price})">加入購物車</button>
+            </div>
+          </div>
+        </div>
+      `;
+      productList.insertAdjacentHTML("beforeend", html);
+    });
+  }
+
+  loadProducts();
 </script>
 
-<!-- 🔹 Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

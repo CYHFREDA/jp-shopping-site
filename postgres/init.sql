@@ -7,3 +7,12 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 建立時間
     paid_at TIMESTAMP NULL             -- 付款時間
 );
+
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
