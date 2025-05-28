@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from dotenv import load_dotenv
 from datetime import datetime
 import random
@@ -8,12 +9,17 @@ import uvicorn
 import hashlib
 import urllib.parse
 import os
-import uuid
-import time
 import psycopg2
 
 load_dotenv()
 app = FastAPI()
+
+# Basic Auth 設定
+security = HTTPBasic()
+def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    if credentials.username != "admin" or credentials.password != "1234":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    return True
 
 # CORS 設定
 app.add_middleware(
@@ -25,8 +31,8 @@ app.add_middleware(
 )
 
 # 綠界測試環境設定
-ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID") 
-ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")        
+ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
+ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")
 ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 ECPAY_API_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
@@ -41,9 +47,7 @@ DB_PORT = "5432"
 # 產生 CheckMacValue
 def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
     sorted_params = sorted(params.items())
-    encode_str = f"HashKey={hash_key}&"
-    encode_str += '&'.join([f"{k}={v}" for k, v in sorted_params])
-    encode_str += f"&HashIV={hash_iv}"
+    encode_str = f"HashKey={hash_key}&" + '&'.join([f"{k}={v}" for k, v in sorted_params]) + f"&HashIV={hash_iv}"
     encode_str = urllib.parse.quote_plus(encode_str).lower()
     sha256 = hashlib.sha256()
     sha256.update(encode_str.encode('utf-8'))
@@ -67,20 +71,13 @@ async def pay(request: Request):
         date_time_str = now.strftime("%Y%m%d%H%M%S")
         serial_number = f"{random.randint(0, 999999):06d}"
         order_id = f"{date_time_str}{serial_number}"
-        #print(order_id)
 
         amount = sum(item["price"] * item["quantity"] for item in products)
         item_names = "#".join([f"{item['name']} x {item['quantity']}" for item in products])
-        trade_date = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        trade_date = now.strftime("%Y/%m/%d %H:%M:%S")
 
-        # ✅ 寫入資料庫，狀態為 pending
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+        # ✅ 寫入資料庫
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO orders (order_id, amount, item_names, status, created_at)
@@ -91,7 +88,7 @@ async def pay(request: Request):
         conn.close()
         print("✅ 訂單已寫入資料庫！")
 
-        # ✅ 組合綠界參數
+        # ✅ 綠界參數
         params = {
             "MerchantID": ECPAY_MERCHANT_ID,
             "MerchantTradeNo": order_id,
@@ -108,10 +105,7 @@ async def pay(request: Request):
         params["CheckMacValue"] = generate_check_mac_value(params, ECPAY_HASH_KEY, ECPAY_HASH_IV)
         print("✅ 送出的參數：", params)
 
-        return JSONResponse({
-            "ecpay_url": ECPAY_API_URL,
-            "params": params
-        })
+        return JSONResponse({"ecpay_url": ECPAY_API_URL, "params": params})
 
     except Exception as e:
         print("❌ 後端錯誤：", str(e))
@@ -126,29 +120,17 @@ async def ecpay_notify(request: Request):
         order_id = data.get("MerchantTradeNo")
         rtn_code = data.get("RtnCode")
         payment_date = data.get("PaymentDate", None)
+        status_ = "success" if rtn_code == "1" else "fail"
 
-        status = "success" if rtn_code == "1" else "fail"
-
-        # ✅ 更新資料庫訂單狀態與付款時間
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT
-        )
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE orders SET status=%s, paid_at=%s WHERE order_id=%s
-        """, (status, payment_date, order_id))
+        cursor.execute("UPDATE orders SET status=%s, paid_at=%s WHERE order_id=%s", (status_, payment_date, order_id))
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"✅ 訂單 {order_id} 狀態已更新為：{status}")
+        print(f"✅ 訂單 {order_id} 狀態已更新為：{status_}")
 
-        # 綠界要求一定要回傳 "1|OK"
         return HTMLResponse("1|OK")
-
     except Exception as e:
         print("❌ /ecpay/notify 發生錯誤：", str(e))
         return HTMLResponse("0|Error")
