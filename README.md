@@ -1,30 +1,33 @@
 <pre> 
 jp-shopping-site/
-├── frontend/
+├── README.md
+├── backend
 │   ├── Dockerfile
-│   ├── index.html
-│   └── k8s/
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       └── ingress.yaml  ← 指向 shop.wvwwcw.xyz
-│
-├── backend/
-│   ├── app/              ← Flask + FastAPI 程式碼
+│   ├── app              ← FastAPI 程式碼
 │   │   ├── main.py
 │   │   └── requirements.txt
+│   ├── body.json
+│   ├── deploy_backend.sh
+│   └── k8s
+│       ├── deployment.yaml
+│       ├── ingress.yaml     ← 指向 api.wvwwcw.xyz
+│       └── service.yaml
+├── clean_dockerhub_old_images.sh
+├── cloudflared-deployment.yaml
+├── frontend
 │   ├── Dockerfile
-│   └── k8s/
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       └── ingress.yaml  ← api.wvwwcw.xyz
-│
-├── postgres/
-│   ├── init.sql          ← 資料表建立語法
-│   └── k8s/
-│       ├── deployment.yaml
-│       ├── service.yaml
-│       ├── pvc.yaml
-│       └── secret.yaml   ← 密碼儲存
-│
-└── README.md
+│   ├── deploy_frontend.sh
+│   ├── html
+│   ├── k8s
+│   │   ├── deployment.yaml
+│   │   ├── ingress.yaml     ← 指向 shop.wvwwcw.xyz
+│   │   └── service.yaml
+│   └── nginx
+└── postgres
+    ├── init.sql   ← 資料表建立語法
+    └── k8s
+        ├── deployment.yaml
+        ├── pvc.yaml
+        ├── secret.yaml
+        └── service.yaml ← 密碼儲存
 </pre>
