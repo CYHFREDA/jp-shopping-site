@@ -17,7 +17,6 @@
 <div class="container py-4">
   <h1 class="text-center mb-4">🛒 購物車</h1>
 
-  <!-- 🔹 購物車表格 -->
   <table class="table table-bordered bg-white shadow-sm" id="cartTable">
     <thead class="table-success">
       <tr>
@@ -31,10 +30,8 @@
     <tbody></tbody>
   </table>
 
-  <!-- 🔹 總金額顯示 -->
   <div class="text-end fw-bold mb-3" id="totalAmount">總金額：0 元</div>
 
-  <!-- 🔹 結帳按鈕 -->
   <div class="text-center">
     <button class="btn btn-success" onclick="checkout()">結帳</button>
   </div>
@@ -94,7 +91,7 @@
     .then(res => res.json())
     .then(data => {
       if (data.ecpay_url && data.params) {
-        localStorage.removeItem("cart"); // 結帳後清空購物車
+        localStorage.removeItem("cart"); // 清空購物車
         const form = document.createElement("form");
         form.action = data.ecpay_url;
         form.method = "post";
