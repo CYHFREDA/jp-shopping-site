@@ -8,24 +8,53 @@
 </head>
 <body class="bg-light">
 
-<div class="container py-4">
-  <h1 class="mb-4 text-center">後台訂單管理</h1>
+<!-- 導覽列 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/index.html">🔙 回到商城首頁</a>
+    <span class="navbar-text text-white">｜後台訂單管理</span>
+  </div>
+</nav>
 
-    <!-- 返回前台按鈕 -->
-    <div class="mb-4 text-center">
-      <a href="/index.html" class="btn btn-primary">返回前台</a>
-    </div>
-    
-  <div id="ordersTable" class="table-responsive"></div>
+<div class="container py-4">
+  <!-- 登入區塊 -->
+  <div id="loginArea" class="mb-4">
+    <h4>請輸入後台帳號密碼：</h4>
+    <input id="username" class="form-control mb-2" placeholder="Username" />
+    <input id="password" type="password" class="form-control mb-2" placeholder="Password" />
+    <button class="btn btn-primary" onclick="login()">登入</button>
+  </div>
+
+  <!-- 訂單管理區塊 -->
+  <div id="ordersArea" class="d-none">
+    <div id="ordersTable" class="table-responsive"></div>
+  </div>
 </div>
 
 <script>
+  let token = "";
+
+  function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      alert("請輸入完整帳號密碼");
+      return;
+    }
+
+    token = btoa(`${username}:${password}`);
+    loadOrders();
+  }
+
   async function loadOrders() {
     const res = await fetch("/admin/orders", {
-      headers: {
-        "Authorization": "Basic " + btoa("admin:1234") // 這裡是示範，真實可換成 login token
-      }
+      headers: { "Authorization": "Basic " + token }
     });
+    if (!res.ok) {
+      alert("❌ 帳號或密碼錯誤！");
+      return;
+    }
     const orders = await res.json();
 
     let html = `
@@ -67,6 +96,10 @@
 
     html += "</tbody></table>";
     document.getElementById("ordersTable").innerHTML = html;
+
+    // 切換畫面：隱藏登入、顯示訂單
+    document.getElementById("loginArea").classList.add("d-none");
+    document.getElementById("ordersArea").classList.remove("d-none");
   }
 
   async function updateStatus(orderId, newStatus) {
@@ -76,7 +109,7 @@
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Basic " + btoa("admin:1234")
+        "Authorization": "Basic " + token
       },
       body: JSON.stringify({ order_id: orderId, status: newStatus })
     });
@@ -84,8 +117,7 @@
     alert(result.message || result.error);
     loadOrders();
   }
-
-  loadOrders();
 </script>
+
 </body>
 </html>
