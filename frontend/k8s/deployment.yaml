@@ -17,15 +17,3 @@ spec:
           image: nginx:1.25
           ports:
             - containerPort: 80
-          volumeMounts:
-            - name: html-volume
-              mountPath: /usr/share/nginx/html
-            - name: nginx-volume
-              mountPath: /etc/nginx
-      volumes:
-        - name: html-volume
-          hostPath:
-            path: /opt/jp-shopping-site/frontend/html
-        - name: nginx-volume
-          hostPath:
-            path: /opt/jp-shopping-site/frontend/nginx
