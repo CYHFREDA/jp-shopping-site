@@ -17,8 +17,8 @@ docker push $FULL_IMAGE_NAME
 echo "🚀 使用 kubectl set image 更新 Deployment"
 kubectl set image deployment frontend frontend=$FULL_IMAGE_NAME
 
-echo "⏳ 等待 10 秒讓 Pod 滾動更新..."
-sleep 10
+echo "⏳ 等待 20 秒讓 Pod 滾動更新..."
+sleep 20
 
 echo "✅ 目前使用的映像檔："
 kubectl get deployment frontend -o jsonpath="{.spec.template.spec.containers[*].image}"; echo
