@@ -97,7 +97,7 @@
 </table>
 
 <button id="addRowBtn" onclick="addRow()">➕ 新增商品</button>
-<button onclick="startPayment(event)">LINE Pay 支付</button>
+<button onclick="startPayment(event)">綠界支付</button>
 
 <script>
   function addRow() {
@@ -110,7 +110,7 @@
     });
     table.appendChild(newRow);
   }
-  
+
   function removeRow(button) {
     const row = button.closest("tr");
     const table = document.getElementById("productTable");
@@ -120,54 +120,63 @@
       alert("⚠️ 至少要留一筆商品喔！");
     }
   }
-  
+
   function startPayment(event) {
     event.preventDefault();
-  
+
     const rows = document.querySelectorAll("#productTable tr");
     const products = [];
-  
+
     rows.forEach((row, idx) => {
       const name = row.cells[0].querySelector("input").value || "未命名商品";
       const quantity = parseInt(row.cells[1].querySelector("input").value) || 1;
       const price = parseInt(row.cells[2].querySelector("input").value) || 0;
-  
+
       console.log(`第${idx+1}列：名稱=${name}，數量=${quantity}，價格=${price}`);
-  
-      // ✅ 只把價格>0的商品推進去
+
       if (price > 0) {
         products.push({ name, quantity, price });
       }
     });
-  
+
     console.log("組合後的商品陣列：", products);
-  
+
     if (products.length === 0) {
       alert("❌ 請至少輸入一個有效商品！");
       return;
     }
-  
-    // 🔥 修正 fetch：確保請求 header 和 body 正確
+
+    // 🔥 改成請求後端 /pay，拿到 ecpay_url 和 params
     fetch("https://api.wvwwcw.xyz/pay", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      // 🔥 把 body 改成 JSON.stringify
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ products })
     })
     .then(res => {
       if (!res.ok) {
-        // 顯示錯誤
         return res.json().then(err => { throw err; });
       }
       return res.json();
     })
     .then(data => {
       console.log("後端回傳：", data);
-      if (data.url) {
-        // ✅ 如果後端有回傳付款連結，直接跳轉
-        window.location.href = data.url;
+
+      if (data.ecpay_url && data.params) {
+        // ✅ 產生 form 並送出到綠界
+        const form = document.createElement("form");
+        form.action = data.ecpay_url;
+        form.method = "post";
+
+        Object.entries(data.params).forEach(([key, value]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
       } else {
         alert("❌ 發起付款失敗！");
         console.error(data);
@@ -178,8 +187,7 @@
       console.error(err);
     });
   }
-  </script>
-  
+</script>
 
 </body>
 </html>
