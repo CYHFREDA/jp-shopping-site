@@ -2,11 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  labels:
+    app: postgres
 spec:
   selector:
     app: postgres
+  type: NodePort
   ports:
     - protocol: TCP
-      port: 5432
-      targetPort: 5432
-  type: ClusterIP
+      port: 5432         # Service 內部 port
+      targetPort: 5432   # Pod container port
+      nodePort: 31543    # 對外暴露 port（可改你想要的 30000-32767）
