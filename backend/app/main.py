@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
@@ -104,6 +105,49 @@ async def pay(request: Request):
     except Exception as e:
         print("❌ 後端錯誤：", str(e))
         return JSONResponse({"error": "後端發生錯誤"}, status_code=500)
+
+@app.get("/pay/return", response_class=HTMLResponse)
+async def pay_return():
+    return """
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>付款完成</title>
+        <style>
+          body {
+            font-family: sans-serif;
+            background: #f0f4f8;
+            text-align: center;
+            padding: 50px;
+            color: #333;
+          }
+          h1 {
+            color: #00c300;
+          }
+          button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, transform 0.2s;
+          }
+          button:hover {
+            background-color: #0056b3;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>付款已完成</h1>
+        <p>感謝您的訂購！訂單已經送出。</p>
+        <button onclick="window.location.href='/'">返回商城首頁</button>
+      </body>
+    </html>
+    """
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
