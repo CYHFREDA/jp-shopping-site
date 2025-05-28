@@ -1,19 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-<title>Error</title>
+<meta charset="UTF-8" />
+<title>發生錯誤</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- Bootstrap 5 CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
-html { color-scheme: light dark; }
-body { width: 35em; margin: 0 auto;
-font-family: Tahoma, Verdana, Arial, sans-serif; }
+  body {
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .card {
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+  }
+
+  h1 {
+    font-size: 32px;
+    color: #dc3545;
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: #555;
+    margin-bottom: 20px;
+  }
+
+  em {
+    color: #888;
+  }
+
+  .btn-primary {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+  }
 </style>
 </head>
 <body>
-<h1>An error occurred.</h1>
-<p>Sorry, the page you are looking for is currently unavailable.<br/>
-Please try again later.</p>
-<p>If you are the system administrator of this resource then you should check
-the error log for details.</p>
-<p><em>Faithfully yours, nginx.</em></p>
+
+<div class="card bg-white">
+  <h1>發生錯誤</h1>
+  <p>抱歉，您要查看的頁面目前無法使用。<br/>請稍後再試一次。</p>
+  <p>如果您是系統管理員，請查看錯誤日誌以獲取詳細資訊。</p>
+  <p><em>Faithfully yours, nginx.</em></p>
+  <a href="/" class="btn btn-primary mt-3">返回首頁</a>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
