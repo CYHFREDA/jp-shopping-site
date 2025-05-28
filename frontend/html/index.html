@@ -1,96 +1,44 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8" />
 <title>日本代購商城</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<!-- Bootstrap 5 CDN -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-  body {
-    background-color: #f8f9fa;
-    padding: 40px;
-  }
-
-  h1 {
-    margin-bottom: 30px;
-  }
-
-  table {
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  table th {
-    background-color: #198754; /* Bootstrap 綠色 */
-    color: #fff;
-  }
-
-  .btn-add {
-    background-color: #0d6efd;
-    color: #fff;
-  }
-
-  .btn-add:hover {
-    background-color: #0b5ed7;
-  }
-
-  .btn-delete {
-    background-color: #dc3545;
-    color: #fff;
-  }
-
-  .btn-delete:hover {
-    background-color: #bb2d3b;
-  }
-
-  #buttonContainer {
-    margin-top: 20px;
-    text-align: center;
-  }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
-<div class="container">
-  <h1 class="text-center">日本代購商城 - 新增商品</h1>
+<div class="container py-5">
+  <h1 class="text-center mb-4">日本代購商城 - 新增商品</h1>
 
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered text-center align-middle">
-      <thead>
-        <tr>
-          <th>商品名稱</th>
-          <th>數量</th>
-          <th>價格</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="productTable">
-        <tr>
-          <td><input type="text" class="form-control" placeholder="商品名稱" /></td>
-          <td><input type="number" class="form-control" value="1" min="1" /></td>
-          <td><input type="number" class="form-control" value="100" min="0" /></td>
-          <td><button onclick="removeRow(this)" class="btn btn-sm btn-delete">刪除</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <table class="table table-bordered bg-white shadow-sm" id="productTable">
+    <thead class="table-success">
+      <tr>
+        <th>商品名稱</th>
+        <th>數量</th>
+        <th>價格</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" class="form-control" placeholder="商品名稱"></td>
+        <td><input type="number" class="form-control" value="1" min="1"></td>
+        <td><input type="number" class="form-control" value="100" min="0"></td>
+        <td><button class="btn btn-danger" onclick="removeRow(this)">刪除</button></td>
+      </tr>
+    </tbody>
+  </table>
 
-  <div id="buttonContainer" class="mt-4">
-    <button id="addRowBtn" onclick="addRow()" class="btn btn-add me-2">➕ 新增商品</button>
-    <button onclick="startPayment(event)" class="btn btn-success">綠界支付</button>
+  <div class="text-center mt-3">
+    <button class="btn btn-primary me-2" onclick="addRow()">➕ 新增商品</button>
+    <button class="btn btn-success" onclick="startPayment(event)">綠界支付</button>
   </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
   function addRow() {
-    const table = document.getElementById("productTable");
+    const table = document.getElementById("productTable").getElementsByTagName('tbody')[0];
     const newRow = table.rows[0].cloneNode(true);
     newRow.querySelectorAll("input").forEach(input => {
       if (input.type === "text") input.value = "";
@@ -101,7 +49,7 @@
 
   function removeRow(button) {
     const row = button.closest("tr");
-    const table = document.getElementById("productTable");
+    const table = document.getElementById("productTable").getElementsByTagName('tbody')[0];
     if (table.rows.length > 1) {
       row.remove();
     } else {
@@ -112,10 +60,10 @@
   function startPayment(event) {
     event.preventDefault();
 
-    const rows = document.querySelectorAll("#productTable tr");
+    const rows = document.querySelectorAll("#productTable tbody tr");
     const products = [];
 
-    rows.forEach((row, idx) => {
+    rows.forEach((row) => {
       const name = row.cells[0].querySelector("input").value || "未命名商品";
       const quantity = parseInt(row.cells[1].querySelector("input").value) || 1;
       const price = parseInt(row.cells[2].querySelector("input").value) || 0;
@@ -135,17 +83,15 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ products })
     })
-    .then(res => {
-      if (!res.ok) {
-        return res.json().then(err => { throw err; });
-      }
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
+      console.log("後端回傳：", data);
+
       if (data.ecpay_url && data.params) {
         const form = document.createElement("form");
         form.action = data.ecpay_url;
         form.method = "post";
+
         Object.entries(data.params).forEach(([key, value]) => {
           const input = document.createElement("input");
           input.type = "hidden";
@@ -153,6 +99,7 @@
           input.value = value;
           form.appendChild(input);
         });
+
         document.body.appendChild(form);
         form.submit();
       } else {
