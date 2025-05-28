@@ -17,6 +17,9 @@ docker push $FULL_IMAGE_NAME
 echo "🚀 使用 kubectl set image 更新 Deployment"
 kubectl set image deployment frontend frontend=$FULL_IMAGE_NAME
 
+echo "========= 清理 Docker 映像檔 ========="
+docker image prune -a -f
+
 echo "⏳ 等待 20 秒讓 Pod 滾動更新..."
 sleep 20
 
