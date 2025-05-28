@@ -205,44 +205,22 @@ async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
 @app.put("/admin/products/{id}")
 async def admin_update_product(id: int, request: Request, auth=Depends(verify_basic_auth)):
     data = await request.json()
+    name = data.get("name")
+    price = data.get("price")
+    description = data.get("description", "")
+    image_url = data.get("image_url", "")
 
-    # 先從 DB 撈出目前資料
     conn = psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port="5432"
     )
     cursor = conn.cursor()
-    cursor.execute("SELECT name, price, description, image_url FROM products WHERE id=%s", (id,))
-    row = cursor.fetchone()
-    if not row:
-        cursor.close()
-        conn.close()
-        raise HTTPException(status_code=404, detail="商品不存在！")
-
-    current_data = {
-        "name": row[0],
-        "price": row[1],
-        "description": row[2],
-        "image_url": row[3]
-    }
-
-    # 只更新前端有傳的欄位
-    new_data = {
-        "name": data.get("name", current_data["name"]),
-        "price": data.get("price", current_data["price"]),
-        "description": data.get("description", current_data["description"]),
-        "image_url": data.get("image_url", current_data["image_url"])
-    }
-
-    # 更新資料庫
     cursor.execute("""
-        UPDATE products
-        SET name=%s, price=%s, description=%s, image_url=%s
-        WHERE id=%s
-    """, (new_data["name"], new_data["price"], new_data["description"], new_data["image_url"], id))
+        UPDATE products SET name=%s, price=%s, description=%s, image_url=%s WHERE id=%s
+    """, (name, price, description, image_url, id))
     conn.commit()
     cursor.close()
     conn.close()
