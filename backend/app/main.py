@@ -1,16 +1,15 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from dotenv import load_dotenv
 import uvicorn
-import requests
 import hashlib
 import urllib.parse
 import os
 import uuid
 import datetime
 import time
+import psycopg2
 
 load_dotenv()
 app = FastAPI()
@@ -31,22 +30,23 @@ ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 ECPAY_API_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
 
-# 產生檢查碼
+# PostgreSQL 連線參數
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_PORT = "5432"
+
+# 產生 CheckMacValue
 def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
     sorted_params = sorted(params.items())
     encode_str = f"HashKey={hash_key}&"
     encode_str += '&'.join([f"{k}={v}" for k, v in sorted_params])
     encode_str += f"&HashIV={hash_iv}"
-
-    # URL encode 並轉成小寫
     encode_str = urllib.parse.quote_plus(encode_str).lower()
-
-    # SHA256 加密
     sha256 = hashlib.sha256()
     sha256.update(encode_str.encode('utf-8'))
-    check_mac_value = sha256.hexdigest().upper()
-
-    return check_mac_value
+    return sha256.hexdigest().upper()
 
 @app.get("/health")
 async def health():
@@ -56,27 +56,36 @@ async def health():
 async def pay(request: Request):
     try:
         data = await request.json()
-        print("收到前端資料：", data)
+        print("✅ 收到前端資料：", data)
 
         products = data.get("products")
         if not products:
-            return JSONResponse({"error": "缺少商品資料"}, status_code=400)
+            return JSONResponse({"error": "❌ 缺少商品資料"}, status_code=400)
 
-        # 產生訂單編號
         order_id = f"ORDER{int(time.time())}"
-        print("訂單編號：", order_id)
-
-        # 計算總金額
         amount = sum(item["price"] * item["quantity"] for item in products)
-        print("總金額：", amount)
-
-        # 商品名稱
         item_names = "#".join([f"{item['name']} x {item['quantity']}" for item in products])
-
-        # 付款時間
         trade_date = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
-        # 綠界必填參數
+        # ✅ 寫入資料庫，狀態為 pending
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO orders (order_id, amount, item_names, status, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (order_id, amount, item_names, 'pending', trade_date))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ 訂單已寫入資料庫！")
+
+        # ✅ 組合綠界參數
         params = {
             "MerchantID": ECPAY_MERCHANT_ID,
             "MerchantTradeNo": order_id,
@@ -85,18 +94,14 @@ async def pay(request: Request):
             "TotalAmount": amount,
             "TradeDesc": "綠界平台商測試",
             "ItemName": item_names,
-            "ReturnURL": f"{YOUR_DOMAIN}/ecpay/notify",   # 綠界會呼叫此 URL 通知付款結果
+            "ReturnURL": f"{YOUR_DOMAIN}/ecpay/notify",
             "ChoosePayment": "Credit",
             "ClientBackURL": f"{YOUR_DOMAIN}/pay/return",
-            "PlatformID": ECPAY_MERCHANT_ID   # 平台商模式必填：填入「特店編號」
+            "PlatformID": ECPAY_MERCHANT_ID
         }
-
-        # 產生檢查碼
         params["CheckMacValue"] = generate_check_mac_value(params, ECPAY_HASH_KEY, ECPAY_HASH_IV)
+        print("✅ 送出的參數：", params)
 
-        print("送出的參數：", params)
-
-        # 這邊後端直接回傳參數，讓前端產生 <form> 並自動 submit
         return JSONResponse({
             "ecpay_url": ECPAY_API_URL,
             "params": params
@@ -105,5 +110,42 @@ async def pay(request: Request):
     except Exception as e:
         print("❌ 後端錯誤：", str(e))
         return JSONResponse({"error": "後端發生錯誤"}, status_code=500)
+
+@app.post("/ecpay/notify")
+async def ecpay_notify(request: Request):
+    try:
+        data = await request.form()
+        print("✅ 收到綠界通知：", data)
+
+        order_id = data.get("MerchantTradeNo")
+        rtn_code = data.get("RtnCode")
+        payment_date = data.get("PaymentDate", None)
+
+        status = "success" if rtn_code == "1" else "fail"
+
+        # ✅ 更新資料庫訂單狀態與付款時間
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE orders SET status=%s, paid_at=%s WHERE order_id=%s
+        """, (status, payment_date, order_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"✅ 訂單 {order_id} 狀態已更新為：{status}")
+
+        # 綠界要求一定要回傳 "1|OK"
+        return HTMLResponse("1|OK")
+
+    except Exception as e:
+        print("❌ /ecpay/notify 發生錯誤：", str(e))
+        return HTMLResponse("0|Error")
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
