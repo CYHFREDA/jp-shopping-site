@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<title>後台訂單管理</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+  <h1 class="mb-4 text-center">後台訂單管理</h1>
+  <div id="ordersTable" class="table-responsive"></div>
+</div>
+
+<script>
+  async function loadOrders() {
+    const res = await fetch("/admin/orders", {
+      headers: {
+        "Authorization": "Basic " + btoa("admin:1234") // 這裡是示範，真實可換成 login token
+      }
+    });
+    const orders = await res.json();
+
+    let html = `
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>訂單編號</th>
+            <th>商品內容</th>
+            <th>金額</th>
+            <th>狀態</th>
+            <th>建立時間</th>
+            <th>付款時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    orders.forEach(o => {
+      html += `
+        <tr>
+          <td>${o.order_id}</td>
+          <td>${o.item_names}</td>
+          <td>${o.amount}</td>
+          <td>${o.status}</td>
+          <td>${o.created_at}</td>
+          <td>${o.paid_at || '-'}</td>
+          <td>
+            <select onchange="updateStatus('${o.order_id}', this.value)" class="form-select form-select-sm">
+              <option value="">--修改狀態--</option>
+              <option value="pending">pending</option>
+              <option value="success">success</option>
+              <option value="fail">fail</option>
+            </select>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += "</tbody></table>";
+    document.getElementById("ordersTable").innerHTML = html;
+  }
+
+  async function updateStatus(orderId, newStatus) {
+    if (!newStatus) return;
+
+    const res = await fetch("/admin/update_order_status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + btoa("admin:1234")
+      },
+      body: JSON.stringify({ order_id: orderId, status: newStatus })
+    });
+    const result = await res.json();
+    alert(result.message || result.error);
+    loadOrders();
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>

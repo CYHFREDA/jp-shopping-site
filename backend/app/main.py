@@ -153,5 +153,29 @@ async def ecpay_notify(request: Request):
         print("❌ /ecpay/notify 發生錯誤：", str(e))
         return HTMLResponse("0|Error")
 
+@app.get("/admin/orders")
+async def admin_get_orders(auth=Depends(verify_basic_auth)):
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, order_id, item_names, amount, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    orders = [{"id": r[0], "order_id": r[1], "item_names": r[2], "amount": r[3], "status": r[4], "created_at": str(r[5]), "paid_at": str(r[6]) if r[6] else None} for r in rows]
+    return JSONResponse(orders)
+
+@app.post("/admin/update_order_status")
+async def admin_update_status(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    order_id = data.get("order_id")
+    new_status = data.get("status")
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE orders SET status=%s WHERE order_id=%s", (new_status, order_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "狀態已更新！"})
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
