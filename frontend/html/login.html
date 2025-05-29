@@ -15,10 +15,15 @@
     flex-direction: column;
     background: linear-gradient(to right, #f8f9fa, #e9ecef);
   }
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .auth-card {
     max-width: 400px;
     width: 90%;
-    margin: 60px auto;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-radius: 12px;
     background-color: #fff;
@@ -33,7 +38,10 @@
     margin-right: 8px;
   }
   footer {
-    margin-top: auto;
+    background: #212529;
+    color: #adb5bd;
+    padding: 1rem 0;
+    font-size: 0.9rem;
   }
   @media (max-width: 576px) {
     .auth-card {
@@ -45,7 +53,7 @@
 </head>
 <body>
 
-<!-- 🔹 導覽列 -->
+<!-- 導覽列 -->
 <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
@@ -61,55 +69,57 @@
   </div>
 </nav>
 
-<!-- 🔹 登入 / 註冊卡片 -->
-<div class="card auth-card">
-  <h3 class="text-center mb-4">會員登入 / 註冊</h3>
+<main>
+  <!-- 登入 / 註冊卡片 -->
+  <div class="card auth-card">
+    <h3 class="text-center mb-4">會員登入 / 註冊</h3>
 
-  <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">登入</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">註冊</button>
-    </li>
-  </ul>
+    <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">登入</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">註冊</button>
+      </li>
+    </ul>
 
-  <div class="tab-content">
-    <!-- 登入 -->
-    <div class="tab-pane fade show active" id="login" role="tabpanel">
-      <div class="mb-3">
-        <input id="memberEmailLogin" type="email" class="form-control" placeholder="Email">
+    <div class="tab-content">
+      <!-- 登入 -->
+      <div class="tab-pane fade show active" id="login" role="tabpanel">
+        <div class="mb-3">
+          <input id="memberEmailLogin" type="email" class="form-control" placeholder="Email">
+        </div>
+        <div class="mb-3">
+          <input id="memberPasswordLogin" type="password" class="form-control" placeholder="密碼">
+        </div>
+        <div class="d-grid">
+          <button class="btn btn-success" onclick="login()">登入</button>
+        </div>
       </div>
-      <div class="mb-3">
-        <input id="memberPasswordLogin" type="password" class="form-control" placeholder="密碼">
-      </div>
-      <div class="d-grid">
-        <button class="btn btn-success" onclick="login()">登入</button>
-      </div>
-    </div>
 
-    <!-- 註冊 -->
-    <div class="tab-pane fade" id="register" role="tabpanel">
-      <div class="mb-3">
-        <input id="memberName" type="text" class="form-control" placeholder="姓名">
-      </div>
-      <div class="mb-3">
-        <input id="memberEmail" type="email" class="form-control" placeholder="Email">
-      </div>
-      <div class="mb-3">
-        <input id="memberPhone" type="text" class="form-control" placeholder="電話（可空）">
-      </div>
-      <div class="mb-3">
-        <input id="memberPassword" type="password" class="form-control" placeholder="密碼">
-      </div>
-      <div class="d-grid">
-        <button class="btn btn-primary" onclick="register()">註冊</button>
+      <!-- 註冊 -->
+      <div class="tab-pane fade" id="register" role="tabpanel">
+        <div class="mb-3">
+          <input id="memberName" type="text" class="form-control" placeholder="姓名">
+        </div>
+        <div class="mb-3">
+          <input id="memberEmail" type="email" class="form-control" placeholder="Email">
+        </div>
+        <div class="mb-3">
+          <input id="memberPhone" type="text" class="form-control" placeholder="電話（可空）">
+        </div>
+        <div class="mb-3">
+          <input id="memberPassword" type="password" class="form-control" placeholder="密碼">
+        </div>
+        <div class="d-grid">
+          <button class="btn btn-primary" onclick="register()">註冊</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</main>
 
-<footer class="bg-dark text-white text-center py-3">
+<footer class="text-center">
   <div class="container">
     &copy; 2025 日本代購商城 | 聯絡我們: inulifegogo@gmail.com
   </div>
