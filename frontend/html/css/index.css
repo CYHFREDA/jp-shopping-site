@@ -1,0 +1,79 @@
+body {
+    background-color: #f8f9fa;
+  }
+  
+  .product-list-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .product-list-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+  }
+  
+  .product-list-img {
+    flex: 0 0 150px;
+    max-width: 150px;
+    margin-right: 1rem;
+  }
+  
+  .product-list-img img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  .product-list-content {
+    flex: 1 1 auto;
+  }
+  
+  .product-list-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .product-list-desc {
+    font-size: 0.9rem;
+    color: #555555;
+    margin-bottom: 0.5rem;
+  }
+  
+  .product-list-price {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #d63384;
+    margin-bottom: 0.5rem;
+  }
+  
+  .btn-primary {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+  
+  .btn-primary:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+  }
+  
+  /* RWD: 手機時，圖片與內容上下排列 */
+  @media (max-width: 576px) {
+    .product-list-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .product-list-img {
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+  }
+  
