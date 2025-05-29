@@ -16,6 +16,11 @@ body.bg-light {
     height: auto;
     object-fit: contain;
     border-radius: 0.25rem;
+    transition: transform 0.3s ease; /* ⭐ 加上過渡動畫 */
+  }
+  
+  .product-list-img img:hover {
+    transform: scale(1.1); /* ⭐ 滑過放大 */
   }
   
   .product-list-title {
@@ -43,6 +48,20 @@ body.bg-light {
   .btn-success:hover {
     background-color: #218838;
     border-color: #1e7e34;
+  }
+  
+  /* 讓搜尋框變小 */
+  #searchInput {
+    width: 120px;
+  }
+  
+  /* 分類選單背景色 */
+  .bg-white {
+    background-color: #ffffff;
+  }
+  
+  footer {
+    font-size: 0.9rem;
   }
   
   @media (max-width: 576px) {
