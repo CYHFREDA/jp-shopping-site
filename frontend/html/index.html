@@ -13,10 +13,10 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom mb-3">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-      <img src="images/LOGO.png" alt="LOGO" style="height:40px;" class="me-2">
+      <img src="images/LOGO.png" alt="LOGO" style="height:40px;" class="me-2">日本代購商城
     </a>
-    <form class="d-flex ms-auto me-3">
-      <input class="form-control me-2" type="search" placeholder="搜尋" aria-label="Search">
+    <form id="searchForm" class="d-flex ms-auto me-3">
+      <input id="searchInput" class="form-control me-2" type="search" placeholder="搜尋" aria-label="Search">
       <button class="btn btn-outline-dark" type="submit">搜尋</button>
     </form>
     <div class="d-flex align-items-center">
@@ -25,13 +25,6 @@
     </div>
   </div>
 </nav>
-
-<!-- 🔹 商品條列 -->
-<div class="container py-2">
-  <h1 class="mb-4 fw-bold text-center">日本代購商城</h1>
-  <div id="productList"></div>
-</div>
-
 <!-- 🔹 分類選單 -->
 <div class="container mb-3">
   <nav class="nav justify-content-center">
@@ -44,6 +37,8 @@
 </div>
 
 <script>
+  let allProducts = [];
+
   function addToCart(name, price) {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     const existingItem = cart.find(item => item.name === name);
@@ -59,8 +54,18 @@
   async function loadProducts() {
     const res = await fetch("/products");
     const products = await res.json();
+    allProducts = products; // 存到全域變數
+    renderProducts(products);
+  }
+
+  function renderProducts(products) {
     const productList = document.getElementById("productList");
     productList.innerHTML = "";
+
+    if (products.length === 0) {
+      productList.innerHTML = "<p class='text-center text-muted'>找不到符合條件的商品</p>";
+      return;
+    }
 
     products.forEach(product => {
       const html = `
@@ -79,6 +84,17 @@
       productList.insertAdjacentHTML("beforeend", html);
     });
   }
+
+  document.getElementById("searchForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+    if (!keyword) {
+      renderProducts(allProducts);
+      return;
+    }
+    const filteredProducts = allProducts.filter(product => product.name.toLowerCase().includes(keyword));
+    renderProducts(filteredProducts);
+  });
 
   loadProducts();
 </script>
