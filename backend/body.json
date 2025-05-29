@@ -1,1 +1,0 @@
-{"amount":100,"currency":"TWD","orderId":"ORDER-123456","packages":[{"id":"package-1","amount":100,"name":"代購商品","products":[{"name":"測試商品","quantity":1,"price":100}]}],"redirectUrls":{"confirmUrl":"https://shop.wvwwcw.xyz/pay/confirm","cancelUrl":"https://shop.wvwwcw.xyz/pay/cancel"}}

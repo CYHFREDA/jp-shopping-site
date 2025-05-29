@@ -16,3 +16,21 @@ CREATE TABLE products (
   image_url TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE customers (
+  customer_id SERIAL PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  phone VARCHAR(20),
+  password VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE shipments (
+  shipment_id SERIAL PRIMARY KEY,
+  order_id VARCHAR(50),
+  recipient_name VARCHAR(50),
+  address VARCHAR(200),
+  status VARCHAR(20),
+  created_at TIMESTAMP DEFAULT NOW()
+);
