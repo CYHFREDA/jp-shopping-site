@@ -142,7 +142,10 @@ function login() {
     if (data.message) {
       alert("✅ 登入成功！");
       localStorage.setItem("customer", JSON.stringify({ id: data.customer_id, name: data.name }));
-      window.location.href = "/"; 
+      // 🔹 取得「登入前要回去的網址」
+      const redirectURL = localStorage.getItem("redirectAfterLogin") || "/";
+      localStorage.removeItem("redirectAfterLogin");
+      window.location.href = redirectURL;
     } else {
       alert(data.error);
     }
