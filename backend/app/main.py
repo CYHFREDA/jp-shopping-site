@@ -225,7 +225,6 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ba
     cursor.close()
     conn.close()
     return JSONResponse({"message": "商品已更新"})
-
 #後台刪除商品
 @app.delete("/admin/products/{id}")
 async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
@@ -242,6 +241,64 @@ async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
     cursor.close()
     conn.close()
     return JSONResponse({"message": "商品已刪除"})
+#出貨管理（後台）
+@app.get("/admin/shipments")
+async def admin_get_shipments(auth=Depends(verify_basic_auth)):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT shipment_id, order_id, recipient_name, address, status, created_at FROM shipments ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
+    return JSONResponse(shipments)
 
+#客戶管理（後台）
+@app.get("/admin/customers")
+async def admin_get_customers(auth=Depends(verify_basic_auth)):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT customer_id, name, email, phone, created_at FROM customers ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    customers = [{"customer_id": r[0], "name": r[1], "email": r[2], "phone": r[3], "created_at": str(r[4])} for r in rows]
+    return JSONResponse(customers)
+
+#客戶註冊（前台用）
+@app.post("/customers/register")
+async def customer_register(request: Request):
+    data = await request.json()
+    name = data.get("name")
+    email = data.get("email")
+    phone = data.get("phone")
+    password = data.get("password")
+    if not (name and email and password):
+        return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
+
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO customers (name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, NOW())", (name, email, phone, password))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "註冊成功"})
+
+#客戶登入（前台用）
+@app.post("/customers/login")
+async def customer_login(request: Request):
+    data = await request.json()
+    email = data.get("email")
+    password = data.get("password")
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT customer_id, name FROM customers WHERE email=%s AND password=%s", (email, password))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if row:
+        return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
+    else:
+        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
