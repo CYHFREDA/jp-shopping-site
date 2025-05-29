@@ -14,14 +14,14 @@ import psycopg2
 load_dotenv()
 app = FastAPI()
 
-# Basic Auth 設定
+#Basic Auth 設定
 security = HTTPBasic()
 def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
     if credentials.username != "admin" or credentials.password != "1234":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return True
 
-# CORS 設定
+#CORS 設定
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://shop.wvwwcw.xyz"],
@@ -30,19 +30,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 綠界測試環境設定
+#綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
 ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")
 ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 ECPAY_API_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
 
-# PostgreSQL 連線參數
+#PostgreSQL 連線參數
 DB_NAME = os.getenv("POSTGRES_DB")
 DB_USER = os.getenv("POSTGRES_USER")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 DB_HOST = os.getenv("POSTGRES_HOST")
 DB_PORT = "5432"
+
+#共用資料庫連線
+def get_db_conn():
+    return psycopg2.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
+    )
 
 # 產生 CheckMacValue
 def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
@@ -76,8 +86,8 @@ async def pay(request: Request):
         item_names = "#".join([f"{item['name']} x {item['quantity']}" for item in products])
         trade_date = now.strftime("%Y/%m/%d %H:%M:%S")
 
-        # ✅ 寫入資料庫
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        #寫入資料庫
+        conn = get_db_conn()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO orders (order_id, amount, item_names, status, created_at)
@@ -88,7 +98,7 @@ async def pay(request: Request):
         conn.close()
         print("✅ 訂單已寫入資料庫！")
 
-        # ✅ 綠界參數
+        # 綠界參數
         params = {
             "MerchantID": ECPAY_MERCHANT_ID,
             "MerchantTradeNo": order_id,
@@ -122,7 +132,7 @@ async def ecpay_notify(request: Request):
         payment_date = data.get("PaymentDate", None)
         status_ = "success" if rtn_code == "1" else "fail"
 
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        conn = get_db_conn()
         cursor = conn.cursor()
         cursor.execute("UPDATE orders SET status=%s, paid_at=%s WHERE order_id=%s", (status_, payment_date, order_id))
         conn.commit()
@@ -137,7 +147,7 @@ async def ecpay_notify(request: Request):
 
 @app.get("/admin/orders")
 async def admin_get_orders(auth=Depends(verify_basic_auth)):
-    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT id, order_id, item_names, amount, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
     rows = cursor.fetchall()
@@ -151,24 +161,17 @@ async def admin_update_status(request: Request, auth=Depends(verify_basic_auth))
     data = await request.json()
     order_id = data.get("order_id")
     new_status = data.get("status")
-    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("UPDATE orders SET status=%s WHERE order_id=%s", (new_status, order_id))
     conn.commit()
     cursor.close()
     conn.close()
     return JSONResponse({"message": "狀態已更新！"})
-
 # 取得所有商品
 @app.get("/products")
 async def get_products():
-    conn = psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host=os.getenv("POSTGRES_HOST"),
-        port="5432"
-    )
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, price, description, image_url FROM products ORDER BY created_at DESC")
     rows = cursor.fetchall()
@@ -176,7 +179,7 @@ async def get_products():
     conn.close()
     products = [{"id": r[0], "name": r[1], "price": r[2], "description": r[3], "image_url": r[4]} for r in rows]
     return JSONResponse(products)
-# 後台新增商品
+#後台新增商品
 @app.post("/admin/products")
 async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
     data = await request.json()
@@ -185,13 +188,7 @@ async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
     description = data.get("description", "")
     image_url = data.get("image_url", "")
 
-    conn = psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host=os.getenv("POSTGRES_HOST"),
-        port="5432"
-    )
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO products (name, price, description, image_url)
@@ -210,13 +207,7 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ba
     description = data.get("description", "")
     image_url = data.get("image_url", "")
 
-    conn = psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host=os.getenv("POSTGRES_HOST"),
-        port="5432"
-    )
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE products SET name=%s, price=%s, description=%s, image_url=%s WHERE id=%s
@@ -228,13 +219,7 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ba
 #後台刪除商品
 @app.delete("/admin/products/{id}")
 async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
-    conn = psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host=os.getenv("POSTGRES_HOST"),
-        port="5432"
-    )
+    conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM products WHERE id=%s", (id,))
     conn.commit()
@@ -258,7 +243,6 @@ async def admin_get_shipments(auth=Depends(verify_basic_auth)):
         conn.close()
     shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
     return JSONResponse(shipments)
-
 #客戶管理（後台）
 @app.get("/admin/customers")
 async def admin_get_customers(auth=Depends(verify_basic_auth)):
@@ -270,7 +254,6 @@ async def admin_get_customers(auth=Depends(verify_basic_auth)):
     conn.close()
     customers = [{"customer_id": r[0], "name": r[1], "email": r[2], "phone": r[3], "created_at": str(r[4])} for r in rows]
     return JSONResponse(customers)
-
 #客戶註冊（前台用）
 @app.post("/customers/register")
 async def customer_register(request: Request):
@@ -289,7 +272,6 @@ async def customer_register(request: Request):
     cursor.close()
     conn.close()
     return JSONResponse({"message": "註冊成功"})
-
 #客戶登入（前台用）
 @app.post("/customers/login")
 async def customer_login(request: Request):
@@ -306,5 +288,6 @@ async def customer_login(request: Request):
         return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
     else:
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
