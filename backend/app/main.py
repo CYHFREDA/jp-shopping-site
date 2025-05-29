@@ -254,6 +254,28 @@ async def admin_get_shipments(auth=Depends(verify_basic_auth)):
         conn.close()
     shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
     return JSONResponse(shipments)
+# 出貨管理（更新出貨單資料）
+@app.post("/admin/update_shipment")
+async def admin_update_shipment(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    shipment_id = data.get("shipment_id")
+    recipient_name = data.get("recipient_name")
+    address = data.get("address")
+    status_ = data.get("status")
+
+    if not shipment_id or not recipient_name or not address or not status_:
+        return JSONResponse({"error": "❌ 缺少必要欄位"}, status_code=400)
+
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE shipments SET recipient_name=%s, address=%s, status=%s
+        WHERE shipment_id=%s
+    """, (recipient_name, address, status_, shipment_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "✅ 出貨資料已更新！"})
 #客戶管理（後台）
 @app.get("/admin/customers")
 async def admin_get_customers(auth=Depends(verify_basic_auth)):

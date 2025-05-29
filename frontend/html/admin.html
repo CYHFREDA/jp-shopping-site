@@ -228,7 +228,25 @@ async function loadShipments() {
   html += "</tbody></table>";
   document.getElementById("shippingTable").innerHTML = html;
 }
-function editShipment(id) { alert("準備編輯出貨：" + id); }
+async function editShipment(id) {
+  const recipient_name = prompt("請輸入收件人姓名：");
+  if (!recipient_name) { alert("❌ 請輸入收件人姓名！"); return; }
+
+  const address = prompt("請輸入收件人地址：");
+  if (!address) { alert("❌ 請輸入收件人地址！"); return; }
+
+  const status = prompt("請輸入狀態（pending, shipped, completed）：", "shipped");
+  if (!status) { alert("❌ 請輸入狀態！"); return; }
+
+  const res = await fetch("/admin/update_shipment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ shipment_id: id, recipient_name, address, status })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadShipments();
+}
 
 // 客戶管理
 async function loadCustomers() {
