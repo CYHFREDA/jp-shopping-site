@@ -1,5 +1,5 @@
-body {
-    background-color: #f8f9fa;
+body.bg-yellow {
+    background-color: #ffcc66; /* 黃底 */
   }
   
   .product-list-item {
@@ -65,7 +65,6 @@ body {
     border-color: #1e7e34;
   }
   
-  /* RWD: 手機時，圖片與內容上下排列 */
   @media (max-width: 576px) {
     .product-list-item {
       flex-direction: column;

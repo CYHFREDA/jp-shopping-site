@@ -2,23 +2,50 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8" />
-<title>商品條列式排版</title>
+<title>日本代購商城</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- 改成引入 index.css -->
 <link href="css/index.css" rel="stylesheet">
 </head>
 
-<body>
-<div class="container py-4">
-  <h1 class="text-center mb-4">所有商品（條列式）</h1>
-  <div id="productList"></div>
-
-  <div class="text-center mt-4">
-    <a href="/cart.html" class="btn btn-success btn-lg">前往購物車</a>
+<body class="bg-yellow text-dark">
+<nav class="navbar navbar-expand-lg navbar-light bg-yellow border-bottom mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/">
+      <img src="" alt="LOGO" style="height:40px;">
+      TOKYO HOT-LINE
+    </a>
+    <form class="d-flex ms-auto me-3">
+      <input class="form-control me-2" type="search" placeholder="搜尋" aria-label="Search">
+      <button class="btn btn-outline-dark" type="submit">搜尋</button>
+    </form>
+    <div class="d-flex align-items-center">
+      <a href="/login.html" class="me-3 text-dark text-decoration-none">登入</a>
+      <a href="/cart.html" class="text-dark text-decoration-none">購物車</a>
+    </div>
   </div>
+</nav>
+
+<!-- 🔹 分類選單 -->
+<div class="container mb-3">
+  <nav class="nav justify-content-center">
+    <a class="nav-link text-dark" href="/">首頁</a>
+    <a class="nav-link text-dark" href="#">所有商品</a>
+    <a class="nav-link text-dark" href="#">日本嗜酸小點心</a>
+    <a class="nav-link text-dark" href="#">夏天必備</a>
+    <a class="nav-link text-dark" href="#">玩具</a>
+    <a class="nav-link text-dark" href="#">生活流行小物嚴選</a>
+    <a class="nav-link text-dark" href="#">情趣商品</a>
+    <a class="nav-link text-dark" href="#">人物分類</a>
+  </nav>
+</div>
+
+<!-- 🔹 商品條列 -->
+<div class="container py-2">
+  <h1 class="mb-4 fw-bold">日本代購商城</h1>
+  <div id="productList"></div>
 </div>
 
 <script>
@@ -42,7 +69,7 @@
 
     products.forEach(product => {
       const html = `
-        <div class="product-list-item">
+        <div class="product-list-item bg-white text-dark">
           <div class="product-list-img">
             <img src="${product.image_url || 'https://via.placeholder.com/150'}" alt="${product.name}">
           </div>
