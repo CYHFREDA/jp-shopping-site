@@ -80,7 +80,7 @@
 
       document.getElementById("totalAmount").textContent = `總金額：${total} 元`;
 
-      // 檢查登入狀態來更新結帳按鈕
+      // 檢查登入狀態，更新結帳按鈕
       const customer = JSON.parse(localStorage.getItem("customer"));
       const checkoutBtn = document.getElementById("checkoutBtn");
       if (!customer) {
@@ -191,7 +191,6 @@
           const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
           authModal.hide();
           loadCart(); // 更新按鈕狀態
-          checkout(); // 再執行一次結帳
         } else {
           alert(data.error);
         }
