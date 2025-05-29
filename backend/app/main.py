@@ -244,12 +244,18 @@ async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
 #出貨管理（後台）
 @app.get("/admin/shipments")
 async def admin_get_shipments(auth=Depends(verify_basic_auth)):
+    print("🚚 準備查詢出貨資料")
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT shipment_id, order_id, recipient_name, address, status, created_at FROM shipments ORDER BY created_at DESC")
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    try:
+        cursor.execute("SELECT shipment_id, order_id, recipient_name, address, status, created_at FROM shipments ORDER BY created_at DESC")
+        rows = cursor.fetchall()
+        print("✅ 查詢結果：", rows)
+    except Exception as e:
+        print("❌ 出錯：", e)
+    finally:
+        cursor.close()
+        conn.close()
     shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
     return JSONResponse(shipments)
 
