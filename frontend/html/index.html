@@ -26,12 +26,12 @@
       </button>
     </form>
     <div class="d-flex align-items-center">
+      <a href="#" id="memberLoginBtn" class="me-3 text-dark text-decoration-none">會員登入</a>
       <a href="/admin.html" class="me-3 text-dark text-decoration-none">管理員登入</a>
       <a href="/cart.html" class="text-dark text-decoration-none position-relative">
         <i class="fas fa-shopping-cart"></i>
         <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
       </a>
-      <a href="#" id="memberLoginBtn" class="me-3 text-dark text-decoration-none">會員登入</a>
     </div>
   </div>
 </nav>
@@ -123,6 +123,71 @@
     });
   }
 
+  function updateMemberStatus() {
+    const customer = JSON.parse(localStorage.getItem("customer"));
+    const btn = document.getElementById("memberLoginBtn");
+    if (customer) {
+      btn.textContent = `歡迎，${customer.name}`;
+      btn.href = "#";
+      btn.onclick = () => {
+        if (confirm("要登出嗎？")) {
+          localStorage.removeItem("customer");
+          location.reload();
+        }
+      };
+    } else {
+      btn.textContent = "會員登入";
+      btn.href = "#";
+      btn.onclick = () => {
+        const memberModal = new bootstrap.Modal(document.getElementById('memberModal'));
+        memberModal.show();
+      };
+    }
+  }
+
+  function register() {
+  const name = document.getElementById("memberName").value;
+  const email = document.getElementById("memberEmail").value;
+  const phone = document.getElementById("memberPhone").value;
+  const password = document.getElementById("memberPassword").value;
+
+  fetch("/customers/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, phone, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message) {
+      alert("✅ 註冊成功！請再點一次登入");
+    } else {
+      alert(data.error);
+    }
+  });
+}
+
+function login() {
+  const email = document.getElementById("memberEmail").value;
+  const password = document.getElementById("memberPassword").value;
+
+  fetch("/customers/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message) {
+      alert("✅ 登入成功！");
+      localStorage.setItem("customer", JSON.stringify({ id: data.customer_id, name: data.name }));
+      const memberModal = bootstrap.Modal.getInstance(document.getElementById('memberModal'));
+      memberModal.hide();
+      updateMemberStatus();
+    } else {
+      alert(data.error);
+    }
+  });
+}
   document.getElementById("searchForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
