@@ -87,11 +87,25 @@
 let token = "";
 
 // 登入
-function login() {
+async function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
   if (!username || !password) { alert("請輸入完整帳號密碼！"); return; }
+
   token = btoa(`${username}:${password}`);
+
+  // 🔴 驗證登入可否成功
+  const res = await fetch("/admin/orders", {
+    headers: { "Authorization": "Basic " + token }
+  });
+
+  if (!res.ok) {
+    alert("❌ 帳號或密碼錯誤！");
+    token = "";
+    return;
+  }
+
+  // ✅ 驗證成功後才顯示後台介面
   document.getElementById("loginArea").classList.add("d-none");
   document.getElementById("adminArea").classList.remove("d-none");
   loadOrders();
