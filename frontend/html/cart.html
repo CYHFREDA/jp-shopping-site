@@ -27,7 +27,7 @@
     <div class="text-end mb-3 fs-4 fw-bold" id="totalAmount"></div>
 
     <div class="text-center">
-      <button class="btn btn-success btn-lg px-5" onclick="checkout()">
+      <button id="checkoutBtn" class="btn btn-success btn-lg px-5" onclick="checkout()">
         <i class="fas fa-credit-card"></i> 結帳
       </button>
     </div>
@@ -79,6 +79,17 @@
       });
 
       document.getElementById("totalAmount").textContent = `總金額：${total} 元`;
+
+      // 檢查登入狀態來更新結帳按鈕
+      const customer = JSON.parse(localStorage.getItem("customer"));
+      const checkoutBtn = document.getElementById("checkoutBtn");
+      if (!customer) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = "請先登入";
+      } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = "結帳";
+      }
     }
 
     function updateQuantity(index, newQuantity) {
@@ -104,6 +115,7 @@
 
       const customer = JSON.parse(localStorage.getItem("customer"));
       if (!customer) {
+        alert("⚠️ 請先登入才能結帳！");
         const authModal = new bootstrap.Modal(document.getElementById('authModal'));
         authModal.show();
         return;
@@ -178,7 +190,8 @@
           localStorage.setItem("customer", JSON.stringify({ id: data.customer_id, name: data.name }));
           const authModal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
           authModal.hide();
-          checkout();  // 再執行一次結帳
+          loadCart(); // 更新按鈕狀態
+          checkout(); // 再執行一次結帳
         } else {
           alert(data.error);
         }
