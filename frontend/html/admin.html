@@ -6,38 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-  body { background-color: #f1f3f5; }
-  .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  .card { border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-  .card-title { font-weight: 600; color: #343a40; }
-  .table th, .table td { vertical-align: middle; }
-  footer { background-color: #212529; color: #adb5bd; padding: 1rem 0; font-size: 0.9rem; text-align: center; }
-  .navbar-brand i { margin-right: 0.5rem; }
-  .btn-primary { background-color: #4a69bd; border-color: #4a69bd; }
-  .btn-primary:hover { background-color: #3b5b99; border-color: #3b5b99; }
-  .btn-success { background-color: #38ada9; border-color: #38ada9; }
-  .btn-success:hover { background-color: #218c87; border-color: #218c87; }
-  .btn-danger { background-color: #b71540; border-color: #b71540; }
-  .btn-danger:hover { background-color: #a11235; border-color: #a11235; }
-  .table-dark th { background-color: #343a40; color: #fff; }
-</style>
+<link rel="stylesheet" href="css/admin.css">
 </head>
 
 <body>
 <!-- 🔹 導航列 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/index.html">
-      <i class="fas fa-store"></i>商城首頁
+      <i class="fas fa-store"></i> 商城首頁
     </a>
     <span class="navbar-text text-light">｜後台管理系統</span>
   </div>
 </nav>
 
-<div class="container">
-  <!-- 🔹 登入畫面 -->
-  <div id="loginArea" class="card p-4 text-center mb-4">
+<!-- 🔹 登入畫面 -->
+<div id="loginArea" class="container mt-5">
+  <div class="card p-4 text-center">
     <h4 class="card-title mb-3">後台登入</h4>
     <p class="text-muted mb-4">請輸入您的帳號與密碼以登入後台</p>
     <div class="row justify-content-center mb-2">
@@ -56,36 +41,77 @@
       </div>
     </div>
   </div>
+</div>
 
-  <!-- 🔹 訂單管理 -->
-  <div id="ordersArea" class="d-none card p-4 mb-4">
-    <h5 class="card-title mb-3">📦 訂單管理</h5>
-    <div id="ordersTable" class="table-responsive"></div>
-  </div>
-
-  <!-- 🔹 商品管理 -->
-  <div id="productsArea" class="d-none card p-4">
-    <h5 class="card-title mb-3">🛍️ 商品管理</h5>
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <input id="productName" class="form-control" placeholder="商品名稱">
-      </div>
-      <div class="col-md-2">
-        <input id="productPrice" type="number" class="form-control" placeholder="價格">
-      </div>
-      <div class="col-md-4">
-        <input id="productDesc" class="form-control" placeholder="商品描述">
-      </div>
-      <div class="col-md-3">
-        <input id="productImage" class="form-control" placeholder="圖片網址 (可空)">
+<!-- 🔹 主畫面 -->
+<div id="adminArea" class="d-none container-fluid mt-4">
+  <div class="row">
+    <!-- 側邊導覽列 -->
+    <div class="col-md-2 mb-3">
+      <div class="list-group" id="sidebarMenu">
+        <button class="list-group-item list-group-item-action active" data-target="ordersArea">訂單管理</button>
+        <button class="list-group-item list-group-item-action" data-target="shippingArea">出貨管理</button>
+        <button class="list-group-item list-group-item-action" data-target="customersArea">客戶管理</button>
+        <button class="list-group-item list-group-item-action" data-target="productsArea">商品管理</button>
+        <button class="list-group-item list-group-item-action" data-target="usersArea">後台使用者管理</button>
       </div>
     </div>
-    <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
-    <div id="productsTable" class="table-responsive"></div>
+
+    <!-- 右側主要內容 -->
+    <div class="col-md-10">
+      <!-- 🔹 訂單管理 -->
+      <div id="ordersArea" class="card p-4">
+        <h5 class="card-title mb-3">📦 訂單管理</h5>
+        <div id="ordersTable" class="table-responsive"></div>
+      </div>
+
+      <!-- 🔹 出貨管理 -->
+      <div id="shippingArea" class="card p-4 d-none">
+        <h5 class="card-title mb-3">🚚 出貨管理</h5>
+        <p>（出貨管理內容可在這裡加入）</p>
+      </div>
+
+      <!-- 🔹 客戶管理 -->
+      <div id="customersArea" class="card p-4 d-none">
+        <h5 class="card-title mb-3">👥 客戶管理</h5>
+        <p>（客戶管理內容可在這裡加入）</p>
+      </div>
+
+      <!-- 🔹 商品管理 -->
+      <div id="productsArea" class="card p-4 d-none">
+        <h5 class="card-title mb-3">🛍️ 商品管理</h5>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <input id="productName" class="form-control" placeholder="商品名稱">
+          </div>
+          <div class="col-md-2">
+            <input id="productPrice" type="number" class="form-control" placeholder="價格">
+          </div>
+          <div class="col-md-4">
+            <input id="productDesc" class="form-control" placeholder="商品描述">
+          </div>
+          <div class="col-md-3">
+            <input id="productImage" class="form-control" placeholder="圖片網址 (可空)">
+          </div>
+        </div>
+        <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
+        <div id="productsTable" class="table-responsive"></div>
+      </div>
+
+      <!-- 🔹 後台使用者管理 -->
+      <div id="usersArea" class="card p-4 d-none">
+        <h5 class="card-title mb-3">🔑 後台使用者管理</h5>
+        <p>（後台使用者管理內容可在這裡加入）</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <footer class="mt-5">&copy; 2025 日本代購商城管理系統</footer>
+
+<footer class="mt-5">&copy; 2025 日本代購商城管理系統  | 聯絡我們: inulifegogo@gmail.com</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 let token = "";
@@ -94,10 +120,12 @@ function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
   if (!username || !password) {
-    alert("請輸入完整帳號密碼");
+    alert("請輸入完整帳號密碼！");
     return;
   }
   token = btoa(`${username}:${password}`);
+  document.getElementById("loginArea").classList.add("d-none");
+  document.getElementById("adminArea").classList.remove("d-none");
   loadOrders();
   loadProducts();
 }
@@ -148,18 +176,6 @@ async function loadOrders() {
   document.getElementById("productsArea").classList.remove("d-none");
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-  if (!newStatus) return;
-  const res = await fetch("/admin/update_order_status", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ order_id: orderId, status: newStatus })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-  loadOrders();
-}
-
 async function loadProducts() {
   const res = await fetch("/products");
   const products = await res.json();
@@ -187,6 +203,18 @@ async function loadProducts() {
   });
   html += "</tbody></table>";
   document.getElementById("productsTable").innerHTML = html;
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  if (!newStatus) return;
+  const res = await fetch("/admin/update_order_status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ order_id: orderId, status: newStatus })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadOrders();
 }
 
 async function addProduct() {
@@ -234,8 +262,19 @@ async function deleteProduct(id) {
   alert(result.message || result.error);
   loadProducts();
 }
+
+// 側邊欄點擊切換
+document.querySelectorAll("#sidebarMenu button").forEach(btn => {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll("#sidebarMenu button").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    const target = this.getAttribute("data-target");
+    document.querySelectorAll(".col-md-10 > div").forEach(area => area.classList.add("d-none"));
+    document.getElementById(target).classList.remove("d-none");
+  });
+});
+
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
