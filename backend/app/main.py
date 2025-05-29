@@ -10,6 +10,7 @@ import hashlib
 import urllib.parse
 import os
 import psycopg2
+import bcrypt
 
 load_dotenv()
 app = FastAPI()
@@ -298,9 +299,13 @@ async def customer_register(request: Request):
     if not (name and email and password):
         return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
 
+    # bcrypt 雜湊密碼
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO customers (name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, NOW())", (name, email, phone, password))
+    cursor.execute("INSERT INTO customers (name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, NOW())",
+                   (name, email, phone, hashed_password))
     conn.commit()
     cursor.close()
     conn.close()
@@ -313,14 +318,37 @@ async def customer_login(request: Request):
     password = data.get("password")
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT customer_id, name FROM customers WHERE email=%s AND password=%s", (email, password))
+    # 先撈出該 email 的 bcrypt 雜湊密碼
+    cursor.execute("SELECT customer_id, name, password FROM customers WHERE email=%s", (email,))
     row = cursor.fetchone()
     cursor.close()
     conn.close()
-    if row:
-        return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
-    else:
-        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
 
+    if row:
+        hashed_password = row[2]
+        # 用 bcrypt 驗證密碼是否相符
+        if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+            return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
+    return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+#客戶重置密碼
+@app.post("/admin/reset_customer_password")
+async def admin_reset_customer_password(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    customer_id = data.get("customer_id")
+    new_password = data.get("new_password")
+
+    if not customer_id or not new_password:
+        return JSONResponse({"error": "❌ 缺少必要欄位"}, status_code=400)
+
+    # bcrypt 雜湊
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE customers SET password=%s WHERE customer_id=%s", (hashed_password, customer_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "✅ 密碼已重置（bcrypt 加密）"})
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

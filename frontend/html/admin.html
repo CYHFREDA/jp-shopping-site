@@ -257,13 +257,30 @@ async function loadCustomers() {
   <tr><th>客戶編號</th><th>姓名</th><th>Email</th><th>電話</th><th>建立時間</th><th>操作</th></tr></thead><tbody>`;
   customers.forEach(c => {
     html += `<tr>
-      <td>${c.customer_id}</td><td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.created_at}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="editCustomer('${c.customer_id}')">修改</button></td>
-    </tr>`;
+    <td>${c.customer_id}</td><td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.created_at}</td>
+    <td>
+      <button class="btn btn-primary btn-sm" onclick="editCustomer('${c.customer_id}')">修改</button>
+      <button class="btn btn-warning btn-sm" onclick="resetPassword('${c.customer_id}')">重置密碼</button>
+    </td>
+  </tr>`;
   });
   html += "</tbody></table>";
   document.getElementById("customersTable").innerHTML = html;
+  
+}// 後台介面新增按鈕呼叫重置密碼
+async function resetPassword(customer_id) {
+  const new_password = prompt("請輸入新密碼：");
+  if (!new_password) { alert("❌ 請輸入新密碼！"); return; }
+
+  const res = await fetch("/admin/reset_customer_password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ customer_id, new_password })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
 }
+
 function editCustomer(id) { alert("準備編輯客戶：" + id); }
 </script>
 </body>
