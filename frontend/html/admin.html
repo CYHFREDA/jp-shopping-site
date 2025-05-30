@@ -74,6 +74,7 @@
       <div class="col-md-2"><input id="productPrice" type="number" class="form-control" placeholder="價格"></div>
       <div class="col-md-4"><input id="productDesc" class="form-control" placeholder="商品描述"></div>
       <div class="col-md-3"><input id="productImage" class="form-control" placeholder="圖片網址 (可空)"></div>
+      <div class="col-md-3"><input id="productCategory" class="form-control" placeholder="分類"></div>
     </div>
     <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
     <div id="productsTable" class="table-responsive"></div>
@@ -189,16 +190,17 @@ async function addProduct() {
   const price = parseInt(document.getElementById("productPrice").value);
   const description = document.getElementById("productDesc").value;
   const image_url = document.getElementById("productImage").value;
+  const category = document.getElementById("productCategory").value;
   if (!name || !price) { alert("請填寫完整商品名稱與價格！"); return; }
   const res = await fetch("/admin/products", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ name, price, description, image_url })
+    body: JSON.stringify({ name, price, description, image_url, category })
   });
   const result = await res.json();
   alert(result.message || result.error);
   loadProducts();
-}
+}Products();
 
 async function saveProduct(id) {
   const inputs = document.querySelectorAll(`[data-id='${id}']`);

@@ -199,13 +199,14 @@ async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
     price = data.get("price")
     description = data.get("description", "")
     image_url = data.get("image_url", "")
+    category = data.get("category", "")
 
     conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO products (name, price, description, image_url)
-        VALUES (%s, %s, %s, %s)
-    """, (name, price, description, image_url))
+        INSERT INTO products (name, price, description, image_url, category)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (name, price, description, image_url, category))
     conn.commit()
     cursor.close()
     conn.close()
