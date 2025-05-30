@@ -90,16 +90,17 @@
     }
 
     async function loadProducts() {
-      try {
-        const res = await fetch("/products");
-        const products = await res.json();
-        allProducts = products;
-        renderProducts(products);
-      } catch (error) {
-        console.error("無法載入商品：", error);
-        document.getElementById("productList").innerHTML = "<p class='text-center text-muted'>無法載入商品資料，請稍後再試。</p>";
-      }
-    }
+  try {
+    const res = await fetch("/products");
+    const products = await res.json();
+    console.log("收到的商品資料：", products); // 👉 加這行印出來看看
+    allProducts = products;
+    renderProducts(products);
+  } catch (error) {
+    console.error("無法載入商品：", error);
+    document.getElementById("productList").innerHTML = "<p class='text-center text-muted'>無法載入商品資料，請稍後再試。</p>";
+  }
+}
 
     function renderProducts(products) {
       const productList = document.getElementById("productList");
