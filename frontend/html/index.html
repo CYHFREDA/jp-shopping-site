@@ -127,14 +127,17 @@
     }
 
     function filterProducts(category) {
-      let filtered = [];
-      if (category === "all") {
-        filtered = allProducts;
-      } else {
-        filtered = allProducts.filter(product => product.category === category);
-      }
-      renderProducts(filtered);
-    }
+  let filtered = [];
+  if (category === "all") {
+    filtered = allProducts;
+  } else {
+    filtered = allProducts.filter(product => {
+      const productCategory = product.category || "flashsale";
+      return productCategory === category;
+    });
+  }
+  renderProducts(filtered);
+}
 
     document.getElementById("searchForm").addEventListener("submit", function (e) {
       e.preventDefault();

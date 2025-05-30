@@ -4,13 +4,13 @@
 <meta charset="UTF-8" />
 <title>後台管理</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" data-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" data-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/admin.css" data-href="css/admin.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/admin.css">
 </head>
 
 <body>
-<!-- 🔹 頁首導覽列 -->
+<!-- 🔹 導覽列 -->
 <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/index.html"><i class="fas fa-store"></i> 商城首頁</a>
@@ -43,7 +43,7 @@
 
 <!-- 🔹 主畫面 -->
 <div id="adminArea" class="d-none container mt-4">
-  <!-- 上方橫向選單 -->
+  <!-- 導覽列 -->
   <ul class="nav nav-tabs mb-3" id="adminNav">
     <li class="nav-item"><a class="nav-link active" data-target="ordersArea" href="#">📦 訂單管理</a></li>
     <li class="nav-item"><a class="nav-link" data-target="shippingArea" href="#">🚚 出貨管理</a></li>
@@ -51,22 +51,7 @@
     <li class="nav-item"><a class="nav-link" data-target="productsArea" href="#">🛍️ 商品管理</a></li>
   </ul>
 
-  <!-- 🔹 各區塊 -->
-  <div id="ordersArea" class="card p-4">
-    <h5 class="card-title mb-3">📦 訂單管理</h5>
-    <div id="ordersTable" class="table-responsive"></div>
-  </div>
-
-  <div id="shippingArea" class="card p-4 d-none">
-    <h5 class="card-title mb-3">🚚 出貨管理</h5>
-    <div id="shippingTable" class="table-responsive"></div>
-  </div>
-
-  <div id="customersArea" class="card p-4 d-none">
-    <h5 class="card-title mb-3">👥 客戶管理</h5>
-    <div id="customersTable" class="table-responsive"></div>
-  </div>
-
+  <!-- 商品管理 -->
   <div id="productsArea" class="card p-4 d-none">
     <h5 class="card-title mb-3">🛍️ 商品管理</h5>
     <div class="row g-2 mb-3">
@@ -94,9 +79,7 @@
 </div>
 
 <footer class="mt-5">&copy; 2025 日本代購商城管理系統</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 let token = "";
 
@@ -105,85 +88,22 @@ async function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
   if (!username || !password) { alert("請輸入完整帳號密碼！"); return; }
-
   token = btoa(`${username}:${password}`);
-
-  // 🔴 驗證登入可否成功
-  const res = await fetch("/admin/orders", {
-    headers: { "Authorization": "Basic " + token }
-  });
-
-  if (!res.ok) {
-    alert("❌ 帳號或密碼錯誤！");
-    token = "";
-    return;
-  }
-
-  // ✅ 驗證成功後才顯示後台介面
+  const res = await fetch("/admin/orders", { headers: { "Authorization": "Basic " + token } });
+  if (!res.ok) { alert("❌ 帳號或密碼錯誤！"); token = ""; return; }
   document.getElementById("loginArea").classList.add("d-none");
   document.getElementById("adminArea").classList.remove("d-none");
-  loadOrders();
-  loadProducts();
+  loadOrders(); loadProducts();
 }
 
-// 切換導覽並動態載入
-document.querySelectorAll("#adminNav .nav-link").forEach(link => {
-  link.addEventListener("click", function() {
-    document.querySelectorAll("#adminNav .nav-link").forEach(l => l.classList.remove("active"));
-    this.classList.add("active");
-    const target = this.getAttribute("data-target");
-    document.querySelectorAll("#adminArea > div").forEach(area => area.classList.add("d-none"));
-    document.getElementById(target).classList.remove("d-none");
-
-    if (target === "ordersArea") loadOrders();
-    if (target === "productsArea") loadProducts();
-    if (target === "shippingArea") loadShipments();
-    if (target === "customersArea") loadCustomers();
-  });
-});
-
-// 訂單管理
-async function loadOrders() {
-  const res = await fetch("/admin/orders", { headers: { "Authorization": "Basic " + token } });
-  if (!res.ok) { alert("❌ 無法載入訂單！"); return; }
-  const orders = await res.json();
-  let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
-  <tr><th>訂單編號</th><th>商品內容</th><th>金額</th><th>狀態</th><th>建立時間</th><th>付款時間</th><th>操作</th></tr></thead><tbody>`;
-  orders.forEach(o => {
-    html += `<tr>
-      <td>${o.order_id}</td><td>${o.item_names}</td><td>${o.amount}</td><td>${o.status}</td>
-      <td>${o.created_at}</td><td>${o.paid_at || '-'}</td>
-      <td><select onchange="updateOrderStatus('${o.order_id}', this.value)" class="form-select form-select-sm">
-        <option value="">--修改狀態--</option>
-        <option value="pending">pending</option>
-        <option value="success">success</option>
-        <option value="fail">fail</option>
-      </select></td>
-    </tr>`;
-  });
-  html += "</tbody></table>";
-  document.getElementById("ordersTable").innerHTML = html;
-}
-
-async function updateOrderStatus(orderId, newStatus) {
-  if (!newStatus) return;
-  const res = await fetch("/admin/update_order_status", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ order_id: orderId, status: newStatus })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-  loadOrders();
-}
-
-// 商品管理
+// 載入商品
 async function loadProducts() {
   const res = await fetch("/products");
   const products = await res.json();
   let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
-  <tr><th>名稱</th><th>價格</th><th>描述</th><th>圖片</th><th>操作</th></tr></thead><tbody>`;
+  <tr><th>名稱</th><th>價格</th><th>描述</th><th>圖片</th><th>分類</th><th>操作</th></tr></thead><tbody>`;
   products.forEach(p => {
+    const category = p.category || "flashsale"; // ⭐ 預設 flashsale
     html += `<tr>
       <td><input class="form-control form-control-sm" value="${p.name}" data-id="${p.id}" data-field="name"></td>
       <td><input type="number" class="form-control form-control-sm" value="${p.price}" data-id="${p.id}" data-field="price"></td>
@@ -191,14 +111,14 @@ async function loadProducts() {
       <td><input class="form-control form-control-sm" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url"></td>
       <td>
         <select class="form-select form-select-sm" data-id="${p.id}" data-field="category">
-          <option value="flashsale" ${(!p.category || p.category === 'flashsale') ? 'selected' : ''}>限時搶購</option>
-          <option value="sale" ${p.category === 'sale' ? 'selected' : ''}>限定SALE</option>
-          <option value="japan_medicine" ${p.category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
-          <option value="food_drink" ${p.category === 'food_drink' ? 'selected' : ''}>食品/飲料/酒</option>
-          <option value="beauty" ${p.category === 'beauty' ? 'selected' : ''}>美妝/美髮/肌膚護理</option>
-          <option value="men" ${p.category === 'men' ? 'selected' : ''}>男士用品</option>
-          <option value="home" ${p.category === 'home' ? 'selected' : ''}>生活家用/沐浴&身體</option>
-          <option value="baby" ${p.category === 'baby' ? 'selected' : ''}>親子育兒</option>
+          <option value="flashsale" ${category === 'flashsale' ? 'selected' : ''}>限時搶購</option>
+          <option value="sale" ${category === 'sale' ? 'selected' : ''}>限定SALE</option>
+          <option value="japan_medicine" ${category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
+          <option value="food_drink" ${category === 'food_drink' ? 'selected' : ''}>食品/飲料/酒</option>
+          <option value="beauty" ${category === 'beauty' ? 'selected' : ''}>美妝/美髮/肌膚護理</option>
+          <option value="men" ${category === 'men' ? 'selected' : ''}>男士用品</option>
+          <option value="home" ${category === 'home' ? 'selected' : ''}>生活家用/沐浴&身體</option>
+          <option value="baby" ${category === 'baby' ? 'selected' : ''}>親子育兒</option>
         </select>
       </td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">刪除</button>
@@ -224,7 +144,7 @@ async function addProduct() {
   const result = await res.json();
   alert(result.message || result.error);
   loadProducts();
-}Products();
+}
 
 async function saveProduct(id) {
   const inputs = document.querySelectorAll(`[data-id='${id}']`);
@@ -252,94 +172,6 @@ async function deleteProduct(id) {
   alert(result.message || result.error);
   loadProducts();
 }
-
-// 出貨管理
-async function loadShipments() {
-  const res = await fetch("/admin/shipments", { headers: { "Authorization": "Basic " + token } });
-  if (!res.ok) { alert("無法載入出貨資料！"); return; }
-  const shipments = await res.json();
-  let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
-  <tr><th>出貨編號</th><th>訂單編號</th><th>收件人</th><th>地址</th><th>狀態</th><th>操作</th></tr></thead><tbody>`;
-  shipments.forEach(s => {
-    html += `<tr>
-      <td>${s.shipment_id}</td><td>${s.order_id}</td><td>${s.recipient_name}</td><td>${s.address}</td><td>${s.status}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="editShipment('${s.shipment_id}')">修改</button></td>
-    </tr>`;
-  });
-  html += "</tbody></table>";
-  document.getElementById("shippingTable").innerHTML = html;
-}
-async function editShipment(id) {
-  const recipient_name = prompt("請輸入收件人姓名：");
-  if (!recipient_name) { alert("❌ 請輸入收件人姓名！"); return; }
-
-  const address = prompt("請輸入收件人地址：");
-  if (!address) { alert("❌ 請輸入收件人地址！"); return; }
-
-  const status = prompt("請輸入狀態（pending, shipped, completed）：", "shipped");
-  if (!status) { alert("❌ 請輸入狀態！"); return; }
-
-  const res = await fetch("/admin/update_shipment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ shipment_id: id, recipient_name, address, status })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-  loadShipments();
-}
-
-// 客戶管理
-async function loadCustomers() {
-  const res = await fetch("/admin/customers", { headers: { "Authorization": "Basic " + token } });
-  if (!res.ok) { alert("無法載入客戶資料！"); return; }
-  const customers = await res.json();
-  let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
-  <tr><th>客戶編號</th><th>姓名</th><th>Email</th><th>電話</th><th>建立時間</th><th>操作</th></tr></thead><tbody>`;
-  customers.forEach(c => {
-    html += `<tr>
-    <td>${c.customer_id}</td><td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.created_at}</td>
-    <td>
-      <button class="btn btn-primary btn-sm" onclick="editCustomer('${c.customer_id}')">修改</button>
-      <button class="btn btn-warning btn-sm" onclick="resetPassword('${c.customer_id}')">重置密碼</button>
-    </td>
-  </tr>`;
-  });
-  html += "</tbody></table>";
-  document.getElementById("customersTable").innerHTML = html;
-
-}// 後台介面新增按鈕呼叫重置密碼
-async function resetPassword(customer_id) {
-  const new_password = prompt("請輸入新密碼：");
-  if (!new_password) { alert("❌ 請輸入新密碼！"); return; }
-
-  const res = await fetch("/admin/reset_customer_password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ customer_id, new_password })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-}
-
-async function editCustomer(customer_id) {
-  const name = prompt("請輸入新姓名：");
-  if (!name) { alert("❌ 請輸入新姓名！"); return; }
-  
-  const phone = prompt("請輸入新電話：");
-  if (!phone) { alert("❌ 請輸入新電話！"); return; }
-
-  const res = await fetch("/admin/update_customer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ customer_id, name, phone })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-  loadCustomers();
-}
 </script>
-<script src="js/cache-busting.js"></script>
-
 </body>
 </html>
