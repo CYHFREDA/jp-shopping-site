@@ -219,12 +219,15 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ba
     price = data.get("price")
     description = data.get("description", "")
     image_url = data.get("image_url", "")
+    category = data.get("category", "")
 
     conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("""
-        UPDATE products SET name=%s, price=%s, description=%s, image_url=%s WHERE id=%s
-    """, (name, price, description, image_url, id))
+        UPDATE products
+        SET name=%s, price=%s, description=%s, image_url=%s, category=%s
+        WHERE id=%s
+    """, (name, price, description, image_url, category, id))
     conn.commit()
     cursor.close()
     conn.close()

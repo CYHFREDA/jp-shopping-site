@@ -76,6 +76,7 @@
       <div class="col-md-3"><input id="productImage" class="form-control" placeholder="圖片網址 (可空)"></div>
       <div class="col-md-3">
         <select id="productCategory" class="form-control">
+          <option value="" disabled selected>選擇分類</option>
           <option value="flashsale">限時搶購</option>
           <option value="sale">限定SALE</option>
           <option value="japan_medicine">日本藥品</option>
@@ -188,6 +189,18 @@ async function loadProducts() {
       <td><input type="number" class="form-control form-control-sm" value="${p.price}" data-id="${p.id}" data-field="price"></td>
       <td><input class="form-control form-control-sm" value="${p.description || ''}" data-id="${p.id}" data-field="description"></td>
       <td><input class="form-control form-control-sm" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url"></td>
+      <td>
+        <select class="form-select form-select-sm" data-id="${p.id}" data-field="category">
+          <option value="flashsale" ${p.category === 'flashsale' ? 'selected' : ''}>限時搶購</option>
+          <option value="sale" ${p.category === 'sale' ? 'selected' : ''}>限定SALE</option>
+          <option value="japan_medicine" ${p.category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
+          <option value="food_drink" ${p.category === 'food_drink' ? 'selected' : ''}>食品/飲料/酒</option>
+          <option value="beauty" ${p.category === 'beauty' ? 'selected' : ''}>美妝/美髮/肌膚護理</option>
+          <option value="men" ${p.category === 'men' ? 'selected' : ''}>男士用品</option>
+          <option value="home" ${p.category === 'home' ? 'selected' : ''}>生活家用/沐浴&身體</option>
+          <option value="baby" ${p.category === 'baby' ? 'selected' : ''}>親子育兒</option>
+        </select>
+      </td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">刪除</button>
       <button class="btn btn-primary btn-sm" onclick="saveProduct(${p.id})">保存</button></td>
     </tr>`;
