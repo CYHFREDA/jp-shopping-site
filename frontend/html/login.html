@@ -87,7 +87,7 @@
       <!-- 登入 -->
       <div class="tab-pane fade show active" id="login" role="tabpanel">
         <div class="mb-3">
-          <input id="memberEmailLogin" type="email" class="form-control" placeholder="Email">
+          <input id="memberUsernameLogin" type="text" class="form-control" placeholder="使用者名稱">
         </div>
         <div class="mb-3">
           <input id="memberPasswordLogin" type="password" class="form-control" placeholder="密碼">
@@ -100,13 +100,16 @@
       <!-- 註冊 -->
       <div class="tab-pane fade" id="register" role="tabpanel">
         <div class="mb-3">
+          <input id="memberUsername" type="text" class="form-control" placeholder="使用者名稱">
+        </div>
+        <div class="mb-3">
           <input id="memberName" type="text" class="form-control" placeholder="姓名">
         </div>
         <div class="mb-3">
-          <input id="memberEmail" type="email" class="form-control" placeholder="Email">
+          <input id="memberEmail" type="email" class="form-control" placeholder="Email（選填）">
         </div>
         <div class="mb-3">
-          <input id="memberPhone" type="text" class="form-control" placeholder="電話（可空）">
+          <input id="memberPhone" type="text" class="form-control" placeholder="電話（選填）">
         </div>
         <div class="mb-3">
           <input id="memberPassword" type="password" class="form-control" placeholder="密碼">
@@ -127,6 +130,7 @@
 
 <script>
 function register() {
+  const username = document.getElementById("memberUsername").value;
   const name = document.getElementById("memberName").value;
   const email = document.getElementById("memberEmail").value;
   const phone = document.getElementById("memberPhone").value;
@@ -135,7 +139,7 @@ function register() {
   fetch("/customers/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, phone, password })
+    body: JSON.stringify({ username, name, email, phone, password })
   })
   .then(res => res.json())
   .then(data => {
@@ -149,13 +153,13 @@ function register() {
 }
 
 function login() {
-  const email = document.getElementById("memberEmailLogin").value;
+  const username = document.getElementById("memberUsernameLogin").value;
   const password = document.getElementById("memberPasswordLogin").value;
 
   fetch("/customers/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ username, password })
   })
   .then(res => res.json())
   .then(data => {

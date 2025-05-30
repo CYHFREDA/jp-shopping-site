@@ -292,11 +292,12 @@ async def admin_get_customers(auth=Depends(verify_basic_auth)):
 @app.post("/customers/register")
 async def customer_register(request: Request):
     data = await request.json()
+    username = data.get("username")
     name = data.get("name")
     email = data.get("email")
     phone = data.get("phone")
     password = data.get("password")
-    if not (name and email and password):
+    if not (username and name and password):
         return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
 
     # bcrypt 雜湊密碼
@@ -304,22 +305,27 @@ async def customer_register(request: Request):
 
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO customers (name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, NOW())",
-                   (name, email, phone, hashed_password))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return JSONResponse({"message": "註冊成功"})
+    try:
+        cursor.execute("INSERT INTO customers (username, name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, %s, NOW())",
+                      (username, name, email, phone, hashed_password))
+        conn.commit()
+        return JSONResponse({"message": "註冊成功"})
+    except psycopg2.IntegrityError:
+        return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+    finally:
+        cursor.close()
+        conn.close()
+
 #客戶登入（前台用）
 @app.post("/customers/login")
 async def customer_login(request: Request):
     data = await request.json()
-    email = data.get("email")
+    username = data.get("username")
     password = data.get("password")
     conn = get_db_conn()
     cursor = conn.cursor()
-    # 先撈出該 email 的 bcrypt 雜湊密碼
-    cursor.execute("SELECT customer_id, name, password FROM customers WHERE email=%s", (email,))
+    # 先撈出該 username 的 bcrypt 雜湊密碼
+    cursor.execute("SELECT customer_id, name, password FROM customers WHERE username=%s", (username,))
     row = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -330,6 +336,7 @@ async def customer_login(request: Request):
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
             return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
     return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+
 #客戶重置密碼
 @app.post("/admin/reset_customer_password")
 async def admin_reset_customer_password(request: Request, auth=Depends(verify_basic_auth)):
