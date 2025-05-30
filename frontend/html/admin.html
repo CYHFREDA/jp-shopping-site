@@ -191,7 +191,7 @@ async function loadProducts() {
       <td><input class="form-control form-control-sm" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url"></td>
       <td>
         <select class="form-select form-select-sm" data-id="${p.id}" data-field="category">
-          <option value="flashsale" ${!p.category || p.category === 'flashsale' ? 'selected' : ''}>限時搶購</option>
+          <option value="flashsale" ${(!p.category || p.category === 'flashsale') ? 'selected' : ''}>限時搶購</option>
           <option value="sale" ${p.category === 'sale' ? 'selected' : ''}>限定SALE</option>
           <option value="japan_medicine" ${p.category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
           <option value="food_drink" ${p.category === 'food_drink' ? 'selected' : ''}>食品/飲料/酒</option>
