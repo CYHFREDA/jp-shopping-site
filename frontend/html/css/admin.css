@@ -5,7 +5,7 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
-  background-color: #f1f3f5;
+  background-color: #f8f9fa; /* 跟 index.html 一樣黃色背景 */
 }
 
 #loginArea, #adminArea {
@@ -14,6 +14,12 @@ body {
 
 .navbar {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: #ffc107 !important; /* 跟 index.html 一樣黃色 navbar */
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-text {
+  color: #000 !important; /* 黑色字體，跟 index.html 一樣 */
 }
 
 .nav-tabs .nav-link {
@@ -28,6 +34,7 @@ body {
 .card {
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background-color: #fff; /* 白色卡片底，統一乾淨 */
 }
 .card-title {
   font-weight: 600;
