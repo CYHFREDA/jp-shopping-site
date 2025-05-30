@@ -184,13 +184,15 @@ async def admin_update_status(request: Request, auth=Depends(verify_basic_auth))
 @app.get("/products")
 async def get_products():
     conn = get_db_conn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, price, description, image_url FROM products ORDER BY created_at DESC")
-    rows = cursor.fetchall()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cursor.execute("""
+        SELECT id, name, price, description, image_url, created_at, category
+        FROM products
+    """)
+    products = cursor.fetchall()
     cursor.close()
     conn.close()
-    products = [{"id": r[0], "name": r[1], "price": r[2], "description": r[3], "image_url": r[4]} for r in rows]
-    return JSONResponse(products)
+    return products
 #後台新增商品
 @app.post("/admin/products")
 async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
