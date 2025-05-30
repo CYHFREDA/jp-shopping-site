@@ -74,7 +74,18 @@
       <div class="col-md-2"><input id="productPrice" type="number" class="form-control" placeholder="價格"></div>
       <div class="col-md-4"><input id="productDesc" class="form-control" placeholder="商品描述"></div>
       <div class="col-md-3"><input id="productImage" class="form-control" placeholder="圖片網址 (可空)"></div>
-      <div class="col-md-3"><input id="productCategory" class="form-control" placeholder="分類"></div>
+      <div class="col-md-3">
+        <select id="productCategory" class="form-control">
+          <option value="flashsale">限時搶購</option>
+          <option value="sale">限定SALE</option>
+          <option value="japan_medicine">日本藥品</option>
+          <option value="food_drink">食品/飲料/酒</option>
+          <option value="beauty">美妝/美髮/肌膚護理</option>
+          <option value="men">男士用品</option>
+          <option value="home">生活家用/沐浴&身體</option>
+          <option value="baby">親子育兒</option>
+        </select>
+      </div>
     </div>
     <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
     <div id="productsTable" class="table-responsive"></div>
