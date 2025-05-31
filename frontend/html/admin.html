@@ -13,11 +13,14 @@
 <!-- 🔹 頁首導覽列 -->
 <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
   <div class="container-fluid">
+    <!-- 左邊 -->
     <a class="navbar-brand fw-bold" href="/index.html"><i class="fas fa-store"></i> 商城首頁</a>
-      <div class="ms-auto d-none" id="adminHeader">
-        <span class="navbar-text text-light me-3">後台管理系統｜</span>
-        <button id="logoutBtn" class="btn btn-danger btn-sm">登出</button>
-      </div>
+
+    <!-- 右邊 -->
+    <div class="ms-auto d-none" id="adminHeader">
+      <span class="navbar-text text-light me-3">後台管理系統</span>
+      <button id="logoutBtn" class="btn btn-danger btn-sm">登出</button>
+    </div>
   </div>
 </nav>
 
@@ -125,6 +128,7 @@ async function login() {
 
   document.getElementById("loginArea").classList.add("d-none");
   document.getElementById("adminArea").classList.remove("d-none");
+  document.getElementById("adminHeader").classList.remove("d-none");
   loadOrders();
 }
 // 頁面載入時檢查
