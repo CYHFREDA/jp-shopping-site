@@ -1,80 +1,99 @@
 body.bg-light {
-    background-color: #f8f9fa;
+  background-color: #f8f9fa;
+}
+
+.navbar-brand img {
+  height: 40px;
+}
+
+.product-list-item {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.product-list-img {
+  flex: 0 0 150px;
+  max-width: 150px;
+}
+
+.product-list-img img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.25rem;
+  transition: transform 0.3s ease;
+}
+
+.product-list-img img:hover {
+  transform: scale(1.1);
+}
+
+.product-list-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.product-list-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.product-list-desc {
+  font-size: 0.95rem;
+  color: #555;
+  flex-grow: 1; 
+}
+
+.product-list-price {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #d63384;
+  margin-bottom: 0.5rem;
+}
+
+.product-list-content button {
+  width: fit-content;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+#searchInput {
+  width: 120px;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+footer {
+  font-size: 0.9rem;
+}
+
+#categoryFilters label {
+  display: inline-flex;
+  align-items: center;
+}
+/*RWD*/
+@media (max-width: 576px) {
+  .product-list-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .navbar-brand img {
-    height: 40px;
-  }
-  
   .product-list-img {
-    flex: 0 0 150px;
-    max-width: 150px;
+    margin-right: 0;
+    margin-bottom: 1rem;
   }
-  
-  .product-list-img img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    border-radius: 0.25rem;
-    transition: transform 0.3s ease; /* ⭐ 加上過渡動畫 */
-  }
-  
-  .product-list-img img:hover {
-    transform: scale(1.1); /* ⭐ 滑過放大 */
-  }
-  
-  .product-list-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .product-list-desc {
-    font-size: 0.95rem;
-    color: #555;
-  }
-  
-  .product-list-price {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #d63384;
-  }
-  
-  .btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-  }
-  
-  .btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-  }
-  
-  /* 讓搜尋框變小 */
-  #searchInput {
-    width: 120px;
-  }
-  
-  /* 分類選單背景色 */
-  .bg-white {
-    background-color: #ffffff;
-  }
-  
-  footer {
-    font-size: 0.9rem;
-  }
-  
-  @media (max-width: 576px) {
-    .product-list-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .product-list-img {
-      margin-right: 0;
-      margin-bottom: 1rem;
-    }
-  }
-  #categoryFilters label {
-    display: inline-flex;
-    align-items: center;
-  }
+}
