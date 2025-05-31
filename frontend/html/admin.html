@@ -375,8 +375,7 @@ async function editCustomer(customer_id) {
   phoneCell.innerHTML = "";
   phoneCell.appendChild(phoneInput);
 
-  const addressInput = document.createElement("input");
-  addressInput.type = "text";
+  const addressInput = document.createElement("textarea");
   addressInput.value = addressCell.textContent.trim();
   addressInput.classList.add("form-control", "form-control-sm");
   addressCell.innerHTML = "";
