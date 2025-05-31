@@ -371,15 +371,20 @@ async def admin_update_customer(request: Request, auth=Depends(verify_basic_auth
     customer_id = data.get("customer_id")
     name = data.get("name")
     phone = data.get("phone")
+    address = data.get("address", "")
     if not customer_id or not name or not phone:
         return JSONResponse({"error": "❌ 缺少必要欄位"}, status_code=400)
-    
+
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("UPDATE customers SET name=%s, phone=%s WHERE customer_id=%s", (name, phone, customer_id))
+    cursor.execute("""
+        UPDATE customers
+        SET name=%s, phone=%s, address=%s
+        WHERE customer_id=%s
+    """, (name, phone, address, customer_id))
+
     conn.commit()
     cursor.close()
     conn.close()
+
     return JSONResponse({"message": "✅ 客戶資料已更新！"})
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
