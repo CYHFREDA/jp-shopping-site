@@ -5,11 +5,13 @@
   <title>日本代購商城</title>
   <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Bootstrap -->
+
+  <!-- Bootstrap & Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link data-href="css/index.css" rel="stylesheet" />
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/index.css" />
 </head>
 
 <body class="bg-light text-dark">
@@ -19,12 +21,12 @@
       <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
         <img src="images/LOGO.png" alt="LOGO" style="height:40px;" class="me-2" />
       </a>
+
       <form id="searchForm" class="d-flex ms-auto me-3">
-        <input id="searchInput" class="form-control form-control-sm me-2" type="search" placeholder="搜尋" aria-label="Search" />
-        <button class="btn btn-outline-dark btn-sm" type="submit">
-          <i class="fas fa-search"></i>
-        </button>
+        <input id="searchInput" class="form-control form-control-sm me-2" type="search" placeholder="搜尋" />
+        <button class="btn btn-outline-dark btn-sm" type="submit"><i class="fas fa-search"></i></button>
       </form>
+
       <div class="d-flex align-items-center">
         <a href="/login.html" class="me-3 text-dark text-decoration-none">會員登入</a>
         <a href="/admin.html" class="me-3 text-dark text-decoration-none">管理員登入</a>
@@ -40,14 +42,15 @@
   <div class="bg-white border-bottom">
     <div class="container py-2">
       <div id="categoryFilters" class="d-flex flex-wrap gap-2">
-        <label><input class="category-checkbox" value="flashsale" onchange="filterProductsMulti()"> 限時搶購</label>
-        <label><input class="category-checkbox" value="sale" onchange="filterProductsMulti()"> 限定SALE</label>
-        <label><input class="category-checkbox" value="japan_medicine" onchange="filterProductsMulti()"> 日本藥品</label>
-        <label><input class="category-checkbox" value="food_drink" onchange="filterProductsMulti()"> 食品/飲料/酒</label>
-        <label><input class="category-checkbox" value="beauty" onchange="filterProductsMulti()"> 美妝/美髮/肌膚護理</label>
-        <label><input class="category-checkbox" value="men" onchange="filterProductsMulti()"> 男士用品</label>
-        <label><input class="category-checkbox" value="home" onchange="filterProductsMulti()"> 生活家用/沐浴&身體</label>
-        <label><input class="category-checkbox" value="baby" onchange="filterProductsMulti()"> 親子育兒</label>
+        <!-- 動態產生的分類 -->
+        <label><input class="category-checkbox" type="checkbox" value="flashsale" onchange="filterProductsMulti()"> 限時搶購</label>
+        <label><input class="category-checkbox" type="checkbox" value="sale" onchange="filterProductsMulti()"> 限定SALE</label>
+        <label><input class="category-checkbox" type="checkbox" value="japan_medicine" onchange="filterProductsMulti()"> 日本藥品</label>
+        <label><input class="category-checkbox" type="checkbox" value="food_drink" onchange="filterProductsMulti()"> 食品/飲料/酒</label>
+        <label><input class="category-checkbox" type="checkbox" value="beauty" onchange="filterProductsMulti()"> 美妝/美髮/肌膚護理</label>
+        <label><input class="category-checkbox" type="checkbox" value="men" onchange="filterProductsMulti()"> 男士用品</label>
+        <label><input class="category-checkbox" type="checkbox" value="home" onchange="filterProductsMulti()"> 生活家用/沐浴&身體</label>
+        <label><input class="category-checkbox" type="checkbox" value="baby" onchange="filterProductsMulti()"> 親子育兒</label>
       </div>
     </div>
   </div>
@@ -69,17 +72,19 @@
   <script>
     let allProducts = [];
 
+    // 更新購物車數量
     function updateCartCount() {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const count = cart.reduce((sum, item) => sum + item.quantity, 0);
       document.getElementById("cartCount").textContent = count;
     }
 
+    // 加入購物車
     function addToCart(name, price) {
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const existingItem = cart.find(item => item.name === name);
-      if (existingItem) {
-        existingItem.quantity += 1;
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const item = cart.find(i => i.name === name);
+      if (item) {
+        item.quantity += 1;
       } else {
         cart.push({ name, price, quantity: 1 });
       }
@@ -88,26 +93,30 @@
       updateCartCount();
     }
 
+    // 載入商品
     async function loadProducts() {
-  try {
-    const res = await fetch("/products");
-    const products = await res.json();
-    console.log("收到的商品資料：", products); // 👉 加這行印出來看看
-    allProducts = products;
-    renderProducts(products);
-  } catch (error) {
-    console.error("無法載入商品：", error);
-    document.getElementById("productList").innerHTML = "<p class='text-center text-muted'>無法載入商品資料，請稍後再試。</p>";
-  }
-}
+      try {
+        const res = await fetch("/products");
+        const products = await res.json();
+        console.log("收到的商品資料：", products);
+        allProducts = products;
+        renderProducts(products);
+      } catch (error) {
+        console.error("無法載入商品：", error);
+        document.getElementById("productList").innerHTML = "<p class='text-center text-muted'>無法載入商品資料，請稍後再試。</p>";
+      }
+    }
 
+    // 渲染商品
     function renderProducts(products) {
       const productList = document.getElementById("productList");
       productList.innerHTML = "";
+
       if (products.length === 0) {
         productList.innerHTML = "<p class='text-center text-muted'>找不到符合條件的商品</p>";
         return;
       }
+
       products.forEach(product => {
         const html = `
           <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white d-flex flex-wrap align-items-center">
@@ -120,49 +129,48 @@
               <div class="product-list-price mb-3">NT$ ${product.price}</div>
               <button class="btn btn-success" onclick="addToCart('${product.name}', ${product.price})">加入購物車</button>
             </div>
-          </div>
-        `;
+          </div>`;
         productList.insertAdjacentHTML("beforeend", html);
       });
     }
 
+    // 多重分類篩選
     function filterProductsMulti() {
-  // 取得所有被選取的分類
-  const selectedCategories = [];
-  document.querySelectorAll(".category-checkbox:checked").forEach(checkbox => {
-    selectedCategories.push(checkbox.value);
-  });
+      const selected = Array.from(document.querySelectorAll(".category-checkbox:checked")).map(cb => cb.value);
+      if (selected.length === 0) {
+        renderProducts(allProducts);
+        return;
+      }
+      const filtered = allProducts.filter(p => {
+        const categories = (p.category || "").split("#");
+        return selected.some(cat => categories.includes(cat));
+      });
+      renderProducts(filtered);
+    }
 
-  // 沒有勾選 → 顯示所有商品
-  if (selectedCategories.length === 0) {
-    renderProducts(allProducts);
-    return;
-  }
-
-  // 過濾符合多個分類的商品
-  const filtered = allProducts.filter(product => {
-    const productCategories = (product.category || "flashsale").split("#");
-    return selectedCategories.some(cat => productCategories.includes(cat));
-  });
-  renderProducts(filtered);
-}
-
-    document.getElementById("searchForm").addEventListener("submit", function (e) {
+    // 搜尋
+    document.getElementById("searchForm").addEventListener("submit", e => {
       e.preventDefault();
       const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
       if (!keyword) {
         renderProducts(allProducts);
         return;
       }
-      const filteredProducts = allProducts.filter(product => product.name.toLowerCase().includes(keyword));
-      renderProducts(filteredProducts);
+      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(keyword));
+      renderProducts(filtered);
     });
 
     // 初始化
     updateCartCount();
     loadProducts();
+
+    // ⭐️ 確保預設 checkbox 都是沒勾選
+    window.addEventListener("load", () => {
+      document.querySelectorAll(".category-checkbox").forEach(cb => cb.checked = false);
+    });
   </script>
 
+  <!-- Bootstrap Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/cache-busting.js"></script>
 </body>
