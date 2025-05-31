@@ -342,7 +342,7 @@ async function resetPassword(customer_id) {
 
 // 修改客戶資訊
 async function editCustomer(customer_id) {
-  const row = document.querySelector(`tr td[data-id='${customer_id}']`).parentNode;
+  const row = document.querySelector(`tr[data-id='${customer_id}']`);
   const nameCell = row.querySelector("td[data-field='name']");
   const phoneCell = row.querySelector("td[data-field='phone']");
   const editButton = row.querySelector("button[onclick^='editCustomer']");
