@@ -321,21 +321,22 @@ async function loadCustomers() {
         </tr>
       </thead>
       <tbody>`;
-  customers.forEach(c => {
-    html += `<tr data-id="${c.customer_id}">
-      <td>${c.customer_id}</td>
-      <td data-field="name">${c.name}</td>
-      <td>${c.email}</td>
-      <td data-field="phone">${c.phone}</td>
-      <td data-field="address">${c.address || ''}</td> 
-      <td>${c.created_at}</td>
-      <td>
-        <button class="btn btn-primary btn-sm" onclick="editCustomer(${c.customer_id})">修改</button>
-        <button class="btn btn-warning btn-sm" onclick="resetPassword(${c.customer_id})">重置密碼</button>
-      </td>
-    </tr>`;
-  });
-  html += "</tbody></table>";
+    customers.forEach(c => {
+      html += `
+      <tr data-id="${c.customer_id}">
+        <td>${c.customer_id}</td>
+        <td data-field="name">${c.name}</td>
+        <td>${c.email}</td>
+        <td data-field="phone">${c.phone}</td>
+        <td data-field="address">${c.address || ''}</td>
+        <td>${c.created_at}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editCustomer(${c.customer_id})">修改</button>
+          <button class="btn btn-warning btn-sm" onclick="resetPassword(${c.customer_id})">重置密碼</button>
+        </td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
   document.getElementById("customersTable").innerHTML = html;
 }
 
