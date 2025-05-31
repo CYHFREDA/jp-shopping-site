@@ -104,8 +104,8 @@ async function login() {
   if (!username || !password) { alert("請輸入完整帳號密碼！"); return; }
 
   token = btoa(`${username}:${password}`);
+  localStorage.setItem("basic_token", token);
 
-  // 🔴 驗證登入可否成功
   const res = await fetch("/admin/orders", {
     headers: { "Authorization": "Basic " + token }
   });
@@ -113,15 +113,23 @@ async function login() {
   if (!res.ok) {
     alert("❌ 帳號或密碼錯誤！");
     token = "";
+    localStorage.removeItem("basic_token");
     return;
   }
 
-  // ✅ 驗證成功後才顯示後台介面
   document.getElementById("loginArea").classList.add("d-none");
   document.getElementById("adminArea").classList.remove("d-none");
   loadOrders();
-  loadProducts();
 }
+window.onload = () => {
+  const savedToken = localStorage.getItem("basic_token");
+  if (savedToken) {
+    token = savedToken;
+    document.getElementById("loginArea").classList.add("d-none");
+    document.getElementById("adminArea").classList.remove("d-none");
+    loadOrders(); // 預設先載入訂單管理
+  }
+};
 
 // 切換導覽並動態載入
 document.querySelectorAll("#adminNav .nav-link").forEach(link => {
@@ -176,6 +184,10 @@ async function updateOrderStatus(orderId, newStatus) {
 
 // 商品管理
 async function loadProducts() {
+  if (!token) {
+    alert("請先登入！");
+    return;
+  }
   const res = await fetch("/products");
   const products = await res.json();
   let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
@@ -268,6 +280,10 @@ async function deleteProduct(id) {
 
 // 出貨管理
 async function loadShipments() {
+  if (!token) {
+    alert("請先登入！");
+    return;
+  }
   const res = await fetch("/admin/shipments", { headers: { "Authorization": "Basic " + token } });
   if (!res.ok) { alert("無法載入出貨資料！"); return; }
   const shipments = await res.json();
@@ -304,6 +320,10 @@ async function editShipment(id) {
 
 // 客戶管理
 async function loadCustomers() {
+  if (!token) {
+    alert("請先登入！");
+    return;
+  }
   const res = await fetch("/admin/customers", { headers: { "Authorization": "Basic " + token } });
   if (!res.ok) { alert("無法載入客戶資料！"); return; }
   const customers = await res.json();
