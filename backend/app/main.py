@@ -11,6 +11,7 @@ import urllib.parse
 import os
 import psycopg2
 import bcrypt
+import psycopg2.extras
 
 load_dotenv()
 app = FastAPI()

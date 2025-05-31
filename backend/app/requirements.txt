@@ -1,5 +1,4 @@
 fastapi
-flask
 uvicorn
 psycopg2-binary
 requests
@@ -7,4 +6,3 @@ python-dotenv
 gunicorn
 python-multipart
 bcrypt
-psycopg2.extras
