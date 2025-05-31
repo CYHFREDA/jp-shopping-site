@@ -289,11 +289,21 @@ async def admin_update_shipment(request: Request, auth=Depends(verify_basic_auth
 async def admin_get_customers(auth=Depends(verify_basic_auth)):
     conn = get_db_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT customer_id, name, email, phone, created_at FROM customers ORDER BY created_at DESC")
+    cursor.execute("SELECT customer_id, name, email, phone, address, created_at FROM customers ORDER BY created_at DESC")
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
-    customers = [{"customer_id": r[0], "name": r[1], "email": r[2], "phone": r[3], "created_at": str(r[4])} for r in rows]
+    customers = [
+        {
+            "customer_id": r[0],
+            "name": r[1],
+            "email": r[2],
+            "phone": r[3],
+            "address": r[4],
+            "created_at": str(r[5])
+        }
+        for r in rows
+    ]
     return JSONResponse(customers)
 #客戶註冊（前台用）
 @app.post("/customers/register")
