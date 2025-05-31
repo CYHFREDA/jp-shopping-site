@@ -74,4 +74,7 @@ body.bg-light {
       margin-bottom: 1rem;
     }
   }
-  
+  #categoryFilters label {
+    display: inline-flex;
+    align-items: center;
+  }
