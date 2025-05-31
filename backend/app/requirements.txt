@@ -7,3 +7,4 @@ python-dotenv
 gunicorn
 python-multipart
 bcrypt
+psycopg2.extras
