@@ -34,7 +34,6 @@ body.bg-light {
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: space-between;
 }
 
 .product-list-title {
@@ -46,18 +45,20 @@ body.bg-light {
 .product-list-desc {
   font-size: 0.95rem;
   color: #555;
-  flex-grow: 1; 
+  flex-grow: 1;
+}
+
+.product-list-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
 }
 
 .product-list-price {
   font-size: 1rem;
   font-weight: bold;
   color: #d63384;
-  margin-bottom: 0.5rem;
-}
-
-.product-list-content button {
-  width: fit-content;
 }
 
 .btn-success {
@@ -86,7 +87,8 @@ footer {
   display: inline-flex;
   align-items: center;
 }
-/*RWD*/
+
+/* RWD */
 @media (max-width: 576px) {
   .product-list-item {
     flex-direction: column;

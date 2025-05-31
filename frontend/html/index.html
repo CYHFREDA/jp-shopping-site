@@ -99,28 +99,32 @@
     }
 
     function renderProducts(products) {
-      const productList = document.getElementById("productList");
-      productList.innerHTML = "";
-      if (products.length === 0) {
-        productList.innerHTML = "<p class='text-center text-muted'>找不到符合條件的商品</p>";
-        return;
-      }
-      products.forEach(product => {
-        const html = `
-          <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white d-flex flex-wrap align-items-center">
-            <div class="product-list-img me-3 mb-3 mb-md-0">
-              <img src="${product.image_url || 'https://via.placeholder.com/150'}" alt="${product.name}" />
-            </div>
-            <div class="product-list-content flex-fill">
-              <h5 class="product-list-title mb-2">${product.name}</h5>
-              <p class="product-list-desc mb-2">${product.description || ''}</p>
-              <div class="product-list-price mb-3">NT$ ${product.price}</div>
-              <button class="btn btn-success" onclick="addToCart('${product.name}', ${product.price})">加入購物車</button>
-            </div>
-          </div>`;
-        productList.insertAdjacentHTML("beforeend", html);
-      });
-    }
+  const productList = document.getElementById("productList");
+  productList.innerHTML = "";
+
+  if (products.length === 0) {
+    productList.innerHTML = "<p class='text-center text-muted'>找不到符合條件的商品</p>";
+    return;
+  }
+
+  products.forEach(product => {
+    const html = `
+      <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
+        <div class="product-list-img me-3 mb-3 mb-md-0">
+          <img src="${product.image_url || 'https://via.placeholder.com/150'}" alt="${product.name}" />
+        </div>
+        <div class="product-list-content">
+          <h5 class="product-list-title mb-2">${product.name}</h5>
+          <p class="product-list-desc mb-2">${product.description || ''}</p>
+          <div class="product-list-bottom">
+            <div class="product-list-price">NT$ ${product.price}</div>
+            <button class="btn btn-success btn-sm" onclick="addToCart('${product.name}', ${product.price})">加入購物車</button>
+          </div>
+        </div>
+      </div>`;
+    productList.insertAdjacentHTML("beforeend", html);
+  });
+}
 
     document.querySelectorAll(".category-btn").forEach(btn => {
       btn.addEventListener("click", function () {
