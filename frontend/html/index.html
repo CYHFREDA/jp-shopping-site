@@ -38,19 +38,19 @@
     </div>
   </nav>
 
-  <!-- 🔹 分類選單 -->
+  <!-- 🔹 分類選單（點擊式） -->
   <div class="bg-white border-bottom">
     <div class="container py-2">
       <div id="categoryFilters" class="d-flex flex-wrap gap-2">
-        <!-- 動態產生的分類 -->
-        <label><input class="category-checkbox" type="checkbox" value="flashsale" onchange="filterProductsMulti()"> 限時搶購</label>
-        <label><input class="category-checkbox" type="checkbox" value="sale" onchange="filterProductsMulti()"> 限定SALE</label>
-        <label><input class="category-checkbox" type="checkbox" value="japan_medicine" onchange="filterProductsMulti()"> 日本藥品</label>
-        <label><input class="category-checkbox" type="checkbox" value="food_drink" onchange="filterProductsMulti()"> 食品/飲料/酒</label>
-        <label><input class="category-checkbox" type="checkbox" value="beauty" onchange="filterProductsMulti()"> 美妝/美髮/肌膚護理</label>
-        <label><input class="category-checkbox" type="checkbox" value="men" onchange="filterProductsMulti()"> 男士用品</label>
-        <label><input class="category-checkbox" type="checkbox" value="home" onchange="filterProductsMulti()"> 生活家用/沐浴&身體</label>
-        <label><input class="category-checkbox" type="checkbox" value="baby" onchange="filterProductsMulti()"> 親子育兒</label>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="flashsale">限時搶購</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="sale">限定SALE</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="japan_medicine">日本藥品</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="food_drink">食品/飲料/酒</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="beauty">美妝/美髮/肌膚護理</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="men">男士用品</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="home">生活家用/沐浴&身體</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="baby">親子育兒</button>
+        <button class="btn btn-outline-secondary btn-sm category-btn active" data-category="">全部商品</button>
       </div>
     </div>
   </div>
@@ -72,14 +72,12 @@
   <script>
     let allProducts = [];
 
-    // 更新購物車數量
     function updateCartCount() {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const count = cart.reduce((sum, item) => sum + item.quantity, 0);
       document.getElementById("cartCount").textContent = count;
     }
 
-    // 加入購物車
     function addToCart(name, price) {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const item = cart.find(i => i.name === name);
@@ -93,7 +91,6 @@
       updateCartCount();
     }
 
-    // 載入商品
     async function loadProducts() {
       try {
         const res = await fetch("/products");
@@ -107,7 +104,6 @@
       }
     }
 
-    // 渲染商品
     function renderProducts(products) {
       const productList = document.getElementById("productList");
       productList.innerHTML = "";
@@ -134,19 +130,23 @@
       });
     }
 
-    // 多重分類篩選
-    function filterProductsMulti() {
-      const selected = Array.from(document.querySelectorAll(".category-checkbox:checked")).map(cb => cb.value);
-      if (selected.length === 0) {
-        renderProducts(allProducts);
-        return;
+    // ⭐️ 分類按鈕點擊事件
+    document.getElementById("categoryFilters").addEventListener("click", e => {
+      if (e.target.classList.contains("category-btn")) {
+        document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+        e.target.classList.add("active");
+        const category = e.target.getAttribute("data-category");
+        if (!category) {
+          renderProducts(allProducts);
+          return;
+        }
+        const filtered = allProducts.filter(p => {
+          const categories = (p.category || "").split("#");
+          return categories.includes(category);
+        });
+        renderProducts(filtered);
       }
-      const filtered = allProducts.filter(p => {
-        const categories = (p.category || "").split("#");
-        return selected.some(cat => categories.includes(cat));
-      });
-      renderProducts(filtered);
-    }
+    });
 
     // 搜尋
     document.getElementById("searchForm").addEventListener("submit", e => {
@@ -163,11 +163,6 @@
     // 初始化
     updateCartCount();
     loadProducts();
-
-    // ⭐️ 確保預設 checkbox 都是沒勾選
-    window.addEventListener("load", () => {
-      document.querySelectorAll(".category-checkbox").forEach(cb => cb.checked = false);
-    });
   </script>
 
   <!-- Bootstrap Bundle -->
