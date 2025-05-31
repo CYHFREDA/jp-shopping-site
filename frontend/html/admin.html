@@ -313,8 +313,8 @@ async function loadCustomers() {
     html += `<tr>
     <td>${c.customer_id}</td><td>${c.name}</td><td>${c.email}</td><td>${c.phone}</td><td>${c.created_at}</td>
     <td>
-      <button class="btn btn-primary btn-sm" onclick="editCustomer('${c.customer_id}')">修改</button>
-      <button class="btn btn-warning btn-sm" onclick="resetPassword('${c.customer_id}')">重置密碼</button>
+      <td data-id="${c.customer_id}" data-field="name">${c.name}</td>
+      <td data-id="${c.customer_id}" data-field="phone">${c.phone}</td>
     </td>
   </tr>`;
   });
@@ -335,12 +335,39 @@ async function resetPassword(customer_id) {
   alert(result.message || result.error);
 }
 
+// 修改客戶資訊
 async function editCustomer(customer_id) {
-  const name = prompt("請輸入新姓名：");
-  if (!name) { alert("❌ 請輸入新姓名！"); return; }
-  
-  const phone = prompt("請輸入新電話：");
-  if (!phone) { alert("❌ 請輸入新電話！"); return; }
+  const row = document.querySelector(`tr td[data-id='${customer_id}']`).parentNode;
+  const nameCell = row.querySelector("td[data-field='name']");
+  const phoneCell = row.querySelector("td[data-field='phone']");
+  const editButton = row.querySelector("button[onclick^='editCustomer']");
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.value = nameCell.textContent.trim();
+  nameInput.classList.add("form-control", "form-control-sm");
+  nameCell.innerHTML = "";
+  nameCell.appendChild(nameInput);
+
+  const phoneInput = document.createElement("input");
+  phoneInput.type = "text";
+  phoneInput.value = phoneCell.textContent.trim();
+  phoneInput.classList.add("form-control", "form-control-sm");
+  phoneCell.innerHTML = "";
+  phoneCell.appendChild(phoneInput);
+
+  editButton.textContent = "儲存";
+  editButton.classList.remove("btn-primary");
+  editButton.classList.add("btn-success");
+  editButton.onclick = () => saveCustomer(customer_id, nameInput.value, phoneInput.value);
+}
+
+async function saveCustomer(customer_id, name, phone) {
+  if (!name.trim() || !phone.trim()) {
+    alert("❌ 請輸入完整資料！");
+    loadCustomers();
+    return;
+  }
 
   const res = await fetch("/admin/update_customer", {
     method: "POST",
