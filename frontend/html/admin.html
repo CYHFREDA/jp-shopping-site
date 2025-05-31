@@ -74,18 +74,15 @@
       <div class="col-md-2"><input id="productPrice" type="number" class="form-control" placeholder="價格"></div>
       <div class="col-md-4"><input id="productDesc" class="form-control" placeholder="商品描述"></div>
       <div class="col-md-3"><input id="productImage" class="form-control" placeholder="圖片網址 (可空)"></div>
-      <div class="col-md-3">
-        <select id="productCategory" class="form-control" multiple>
-          <option value="" disabled selected>選擇分類</option>
-          <option value="flashsale">限時搶購</option>
-          <option value="sale">限定SALE</option>
-          <option value="japan_medicine">日本藥品</option>
-          <option value="food_drink">食品/飲料/酒</option>
-          <option value="beauty">美妝/美髮/肌膚護理</option>
-          <option value="men">男士用品</option>
-          <option value="home">生活家用/沐浴&身體</option>
-          <option value="baby">親子育兒</option>
-        </select>
+      <div class="category-checkboxes mb-3">
+        <label><input type="checkbox" value="flashsale" class="category-checkbox"> 限時搶購</label>
+        <label><input type="checkbox" value="sale" class="category-checkbox"> 限定SALE</label>
+        <label><input type="checkbox" value="japan_medicine" class="category-checkbox"> 日本藥品</label>
+        <label><input type="checkbox" value="food_drink" class="category-checkbox"> 食品/飲料/酒</label>
+        <label><input type="checkbox" value="beauty" class="category-checkbox"> 美妝/美髮/肌膚護理</label>
+        <label><input type="checkbox" value="men" class="category-checkbox"> 男士用品</label>
+        <label><input type="checkbox" value="home" class="category-checkbox"> 生活家用/沐浴&身體</label>
+        <label><input type="checkbox" value="baby" class="category-checkbox"> 親子育兒</label>
       </div>
     </div>
     <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
@@ -189,18 +186,18 @@ async function loadProducts() {
       <td><input type="number" class="form-control form-control-sm" value="${p.price}" data-id="${p.id}" data-field="price"></td>
       <td><input class="form-control form-control-sm" value="${p.description || ''}" data-id="${p.id}" data-field="description"></td>
       <td><input class="form-control form-control-sm" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url"></td>
-      <td>
-        <select class="form-select form-select-sm" multiple data-id="${p.id}" data-field="category">
-          <option value="flashsale" ${(!p.category || p.category === 'flashsale') ? 'selected' : ''}>限時搶購</option>
-          <option value="sale" ${p.category === 'sale' ? 'selected' : ''}>限定SALE</option>
-          <option value="japan_medicine" ${p.category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
-          <option value="food_drink" ${p.category === 'food_drink' ? 'selected' : ''}>食品/飲料/酒</option>
-          <option value="beauty" ${p.category === 'beauty' ? 'selected' : ''}>美妝/美髮/肌膚護理</option>
-          <option value="men" ${p.category === 'men' ? 'selected' : ''}>男士用品</option>
-          <option value="home" ${p.category === 'home' ? 'selected' : ''}>生活家用/沐浴&身體</option>
-          <option value="baby" ${p.category === 'baby' ? 'selected' : ''}>親子育兒</option>
-        </select>
-      </td>
+        <td>
+          <div class="category-checkboxes" data-id="${p.id}" data-field="category">
+            <label><input type="checkbox" value="flashsale" ${categories.includes("flashsale") ? "checked" : ""}> 限時搶購</label>
+            <label><input type="checkbox" value="sale" ${categories.includes("sale") ? "checked" : ""}> 限定SALE</label>
+            <label><input type="checkbox" value="japan_medicine" ${categories.includes("japan_medicine") ? "checked" : ""}> 日本藥品</label>
+            <label><input type="checkbox" value="food_drink" ${categories.includes("food_drink") ? "checked" : ""}> 食品/飲料/酒</label>
+            <label><input type="checkbox" value="beauty" ${categories.includes("beauty") ? "checked" : ""}> 美妝/美髮/肌膚護理</label>
+            <label><input type="checkbox" value="men" ${categories.includes("men") ? "checked" : ""}> 男士用品</label>
+            <label><input type="checkbox" value="home" ${categories.includes("home") ? "checked" : ""}> 生活家用/沐浴&身體</label>
+            <label><input type="checkbox" value="baby" ${categories.includes("baby") ? "checked" : ""}> 親子育兒</label>
+          </div>
+        </td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">刪除</button>
       <button class="btn btn-primary btn-sm" onclick="saveProduct(${p.id})">保存</button></td>
     </tr>`;
@@ -214,8 +211,13 @@ async function addProduct() {
   const price = parseInt(document.getElementById("productPrice").value);
   const description = document.getElementById("productDesc").value;
   const image_url = document.getElementById("productImage").value;
-  const categorySelect = document.getElementById("productCategory");
-  const categories = Array.from(categorySelect.selectedOptions).map(opt => opt.value).join("#");
+  
+  const checkedCategories = [];
+  document.querySelectorAll(".category-checkboxes input[type=checkbox]:checked").forEach(cb => {
+    checkedCategories.push(cb.value);
+  });
+  const category = checkedCategories.join("#");
+  
   if (!name || !price) { alert("請填寫完整商品名稱與價格！"); return; }
   const res = await fetch("/admin/products", {
     method: "POST",
@@ -232,12 +234,15 @@ async function saveProduct(id) {
   const data = {};
   inputs.forEach(input => {
     if (input.getAttribute("data-field") === "category") {
-      // ⭐ 多選分類處理
-      const selectedCategories = Array.from(input.selectedOptions).map(opt => opt.value);
-      data["category"] = selectedCategories.join("#");
+      const checkedCategories = [];
+      input.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
+        checkedCategories.push(cb.value);
+      });
+      data["category"] = checkedCategories.join("#");
     } else {
       data[input.getAttribute("data-field")] = input.value;
     }
+
   });
   const res = await fetch(`/admin/products/${id}`, {
     method: "PUT",
