@@ -181,6 +181,7 @@ async function loadProducts() {
   let html = `<table class="table table-striped table-bordered"><thead class="table-dark">
   <tr><th>名稱</th><th>價格</th><th>描述</th><th>圖片</th><th>操作</th></tr></thead><tbody>`;
   products.forEach(p => {
+    const categories = (p.category || "").split("#");
     html += `<tr>
       <td><input class="form-control form-control-sm" value="${p.name}" data-id="${p.id}" data-field="name"></td>
       <td><input type="number" class="form-control form-control-sm" value="${p.price}" data-id="${p.id}" data-field="price"></td>
