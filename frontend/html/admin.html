@@ -75,7 +75,7 @@
       <div class="col-md-4"><input id="productDesc" class="form-control" placeholder="商品描述"></div>
       <div class="col-md-3"><input id="productImage" class="form-control" placeholder="圖片網址 (可空)"></div>
       <div class="col-md-3">
-        <select id="productCategory" class="form-control">
+        <select id="productCategory" class="form-control" multiple>
           <option value="" disabled selected>選擇分類</option>
           <option value="flashsale">限時搶購</option>
           <option value="sale">限定SALE</option>
@@ -190,7 +190,7 @@ async function loadProducts() {
       <td><input class="form-control form-control-sm" value="${p.description || ''}" data-id="${p.id}" data-field="description"></td>
       <td><input class="form-control form-control-sm" value="${p.image_url || ''}" data-id="${p.id}" data-field="image_url"></td>
       <td>
-        <select class="form-select form-select-sm" data-id="${p.id}" data-field="category">
+        <select class="form-select form-select-sm" multiple data-id="${p.id}" data-field="category">
           <option value="flashsale" ${(!p.category || p.category === 'flashsale') ? 'selected' : ''}>限時搶購</option>
           <option value="sale" ${p.category === 'sale' ? 'selected' : ''}>限定SALE</option>
           <option value="japan_medicine" ${p.category === 'japan_medicine' ? 'selected' : ''}>日本藥品</option>
@@ -214,7 +214,8 @@ async function addProduct() {
   const price = parseInt(document.getElementById("productPrice").value);
   const description = document.getElementById("productDesc").value;
   const image_url = document.getElementById("productImage").value;
-  const category = document.getElementById("productCategory").value;
+  const categorySelect = document.getElementById("productCategory");
+  const categories = Array.from(categorySelect.selectedOptions).map(opt => opt.value).join("#");
   if (!name || !price) { alert("請填寫完整商品名稱與價格！"); return; }
   const res = await fetch("/admin/products", {
     method: "POST",
@@ -230,7 +231,13 @@ async function saveProduct(id) {
   const inputs = document.querySelectorAll(`[data-id='${id}']`);
   const data = {};
   inputs.forEach(input => {
-    data[input.getAttribute("data-field")] = input.value;
+    if (input.getAttribute("data-field") === "category") {
+      // ⭐ 多選分類處理
+      const selectedCategories = Array.from(input.selectedOptions).map(opt => opt.value);
+      data["category"] = selectedCategories.join("#");
+    } else {
+      data[input.getAttribute("data-field")] = input.value;
+    }
   });
   const res = await fetch(`/admin/products/${id}`, {
     method: "PUT",

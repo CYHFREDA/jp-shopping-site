@@ -38,18 +38,17 @@
 
   <!-- 🔹 分類選單 -->
   <div class="bg-white border-bottom">
-    <div class="container">
-      <nav class="nav justify-content-center py-2">
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('all')">所有商品</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('flashsale')">限時搶購</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('sale')">限定SALE</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('japan_medicine')">日本藥品</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('food_drink')">食品/飲料/酒</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('beauty')">美妝/美髮/肌膚護理</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('men')">男士用品</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('home')">生活家用/沐浴&身體</a>
-        <a class="nav-link text-dark fw-bold" href="javascript:void(0)" onclick="filterProducts('baby')">親子育兒</a>
-      </nav>
+    <div class="container py-2">
+      <div id="categoryFilters" class="d-flex flex-wrap gap-2">
+        <label><input type="checkbox" class="category-checkbox" value="flashsale" onchange="filterProductsMulti()"> 限時搶購</label>
+        <label><input type="checkbox" class="category-checkbox" value="sale" onchange="filterProductsMulti()"> 限定SALE</label>
+        <label><input type="checkbox" class="category-checkbox" value="japan_medicine" onchange="filterProductsMulti()"> 日本藥品</label>
+        <label><input type="checkbox" class="category-checkbox" value="food_drink" onchange="filterProductsMulti()"> 食品/飲料/酒</label>
+        <label><input type="checkbox" class="category-checkbox" value="beauty" onchange="filterProductsMulti()"> 美妝/美髮/肌膚護理</label>
+        <label><input type="checkbox" class="category-checkbox" value="men" onchange="filterProductsMulti()"> 男士用品</label>
+        <label><input type="checkbox" class="category-checkbox" value="home" onchange="filterProductsMulti()"> 生活家用/沐浴&身體</label>
+        <label><input type="checkbox" class="category-checkbox" value="baby" onchange="filterProductsMulti()"> 親子育兒</label>
+      </div>
     </div>
   </div>
 
@@ -127,16 +126,24 @@
       });
     }
 
-    function filterProducts(category) {
-  let filtered = [];
-  if (category === "all") {
-    filtered = allProducts;
-  } else {
-    filtered = allProducts.filter(product => {
-      const productCategory = product.category || "flashsale";
-      return productCategory === category;
-    });
+    function filterProductsMulti() {
+  // 取得所有被選取的分類
+  const selectedCategories = [];
+  document.querySelectorAll(".category-checkbox:checked").forEach(checkbox => {
+    selectedCategories.push(checkbox.value);
+  });
+
+  // 沒有勾選 → 顯示所有商品
+  if (selectedCategories.length === 0) {
+    renderProducts(allProducts);
+    return;
   }
+
+  // 過濾符合多個分類的商品
+  const filtered = allProducts.filter(product => {
+    const productCategories = (product.category || "flashsale").split("#");
+    return selectedCategories.some(cat => productCategories.includes(cat));
+  });
   renderProducts(filtered);
 }
 
