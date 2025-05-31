@@ -16,17 +16,15 @@
 
 <body class="bg-light text-dark">
   <!-- 🔹 導覽列 -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom mb-0">
+  <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-        <img src="images/LOGO.png" alt="LOGO" style="height:40px;" class="me-2" />
+        <img src="images/LOGO.png" alt="LOGO" class="me-2" />
       </a>
-
       <form id="searchForm" class="d-flex ms-auto me-3">
         <input id="searchInput" class="form-control form-control-sm me-2" type="search" placeholder="搜尋" />
         <button class="btn btn-outline-dark btn-sm" type="submit"><i class="fas fa-search"></i></button>
       </form>
-
       <div class="d-flex align-items-center">
         <a href="/login.html" class="me-3 text-dark text-decoration-none">會員登入</a>
         <a href="/admin.html" class="me-3 text-dark text-decoration-none">管理員登入</a>
@@ -38,20 +36,18 @@
     </div>
   </nav>
 
-  <!-- 🔹 分類選單（點擊式） -->
-  <div class="bg-white border-bottom">
-    <div class="container py-2">
-      <div id="categoryFilters" class="d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="flashsale">限時搶購</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="sale">限定SALE</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="japan_medicine">日本藥品</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="food_drink">食品/飲料/酒</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="beauty">美妝/美髮/肌膚護理</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="men">男士用品</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="home">生活家用/沐浴&身體</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn" data-category="baby">親子育兒</button>
-        <button class="btn btn-outline-secondary btn-sm category-btn active" data-category="">全部商品</button>
-      </div>
+  <!-- 🔹 分類按鈕選單 -->
+  <div class="bg-white border-bottom shadow-sm">
+    <div class="container py-2 d-flex flex-wrap gap-2 justify-content-center">
+      <button class="btn btn-outline-secondary btn-sm category-btn active" data-category="">全部商品</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="flashsale">限時搶購</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="sale">限定SALE</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="japan_medicine">日本藥品</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="food_drink">食品/飲料/酒</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="beauty">美妝/美髮/肌膚護理</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="men">男士用品</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="home">生活家用/沐浴&身體</button>
+      <button class="btn btn-outline-secondary btn-sm category-btn" data-category="baby">親子育兒</button>
     </div>
   </div>
 
@@ -107,12 +103,10 @@
     function renderProducts(products) {
       const productList = document.getElementById("productList");
       productList.innerHTML = "";
-
       if (products.length === 0) {
         productList.innerHTML = "<p class='text-center text-muted'>找不到符合條件的商品</p>";
         return;
       }
-
       products.forEach(product => {
         const html = `
           <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white d-flex flex-wrap align-items-center">
@@ -130,12 +124,11 @@
       });
     }
 
-    // ⭐️ 分類按鈕點擊事件
-    document.getElementById("categoryFilters").addEventListener("click", e => {
-      if (e.target.classList.contains("category-btn")) {
-        document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
-        e.target.classList.add("active");
-        const category = e.target.getAttribute("data-category");
+    document.querySelectorAll(".category-btn").forEach(btn => {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        const category = this.getAttribute("data-category");
         if (!category) {
           renderProducts(allProducts);
           return;
@@ -145,10 +138,9 @@
           return categories.includes(category);
         });
         renderProducts(filtered);
-      }
+      });
     });
 
-    // 搜尋
     document.getElementById("searchForm").addEventListener("submit", e => {
       e.preventDefault();
       const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
