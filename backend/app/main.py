@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from dotenv import load_dotenv
+from psycopg2 import errors
 from datetime import datetime
 import random
 import uvicorn
@@ -204,16 +206,42 @@ async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
     image_url = data.get("image_url", "")
     category = data.get("category", "")
 
-    conn = get_db_conn()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO products (name, price, description, image_url, category)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (name, price, description, image_url, category))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return JSONResponse({"message": "商品已新增"})
+    if not name or not price:
+        return JSONResponse({"error": "❌ 商品名稱與價格為必填！"}, status_code=400)
+
+    try:
+        conn = get_db_conn()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO products (name, price, description, image_url, category)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (name, price, description, image_url, category))
+        conn.commit()
+        return JSONResponse({"message": "✅ 商品已新增"})
+    except errors.StringDataRightTruncation as e:
+        # 資料過長
+        return JSONResponse({"error": "❌ 文字長度超過限制，請修改再送出！"}, status_code=400)
+    except Exception as e:
+        print("❌ 新增商品時出錯：", e)
+        return JSONResponse({"error": "❌ 新增商品失敗，請稍後再試！"}, status_code=500)
+    finally:
+        cursor.close()
+        conn.close()
+
+# ⭐️ 改善全域例外處理器
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"❌ 全域例外錯誤: {exc}")
+    # 若為 psycopg2 的特定資料庫錯誤，給前端更明確提示
+    if isinstance(exc, errors.StringDataRightTruncation):
+        return JSONResponse({"error": "❌ 文字長度超過限制！"}, status_code=400)
+    if isinstance(exc, errors.UniqueViolation):
+        return JSONResponse({"error": "❌ 資料重複，請確認再送出！"}, status_code=400)
+    # 其他未知錯誤
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"error": "❌ 伺服器錯誤，請稍後再試！"}
+    )
 #後台編輯商品
 @app.put("/admin/products/{id}")
 async def admin_update_product(id: int, request: Request, auth=Depends(verify_basic_auth)):

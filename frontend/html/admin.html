@@ -243,23 +243,37 @@ async function addProduct() {
   const price = parseInt(document.getElementById("productPrice").value);
   const description = document.getElementById("productDesc").value;
   const image_url = document.getElementById("productImage").value;
-  
+
   const checkedCategories = [];
   document.querySelectorAll(".category-checkboxes input[type=checkbox]:checked").forEach(cb => {
     checkedCategories.push(cb.value);
   });
   const category = checkedCategories.join("#");
-  
-  if (!name || !price) { alert("請填寫完整商品名稱與價格！"); return; }
-  const res = await fetch("/admin/products", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ name, price, description, image_url, category })
-  });
-  const result = await res.json();
-  alert(result.message || result.error);
-  loadProducts();
+
+  if (!name || !price) {
+    alert("請填寫完整商品名稱與價格！");
+    return;
+  }
+
+  try {
+    const res = await fetch("/admin/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+      body: JSON.stringify({ name, price, description, image_url, category })
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      alert(result.error || "❌ 發生錯誤！");
+      return;
+    }
+    alert(result.message || "✅ 新增成功！");
+    loadProducts();
+  } catch (error) {
+    alert("❌ 請求失敗：" + error.message);
+  }
 }
+
 
 async function saveProduct(id) {
   const inputs = document.querySelectorAll(`[data-id='${id}']`);
