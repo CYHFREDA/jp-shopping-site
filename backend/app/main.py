@@ -30,8 +30,9 @@ def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
 
     if not row:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    
     hashed_password = row[0]
-    if not bcrypt.checkpw(credentials.password.encode('utf-8'), hashed_password.encode('utf-8')):
+    if not bcrypt.checkpw(credentials.password.strip().encode('utf-8'), hashed_password.encode('utf-8')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return True
 
@@ -456,7 +457,7 @@ async def create_admin(request: Request, auth=Depends(verify_basic_auth)):
     finally:
         cursor.close()
         conn.close()
-        
+
 @app.get("/admin/admin_users")
 async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
     conn = get_db_conn()

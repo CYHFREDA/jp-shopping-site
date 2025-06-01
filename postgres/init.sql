@@ -80,3 +80,9 @@ CREATE TABLE admin_users (
 -- 新增使用者管理員,密碼1234
 INSERT INTO admin_users (username, password)
 VALUES ('admin', '$2b$12$6WZclmZ.QN4Bi53PBWqWbeUeu/Sqx0ruFoZn6QgUoZkRSVOSFiP0C');
+
+COMMENT ON TABLE admin_users IS '管理員使用者表格';
+COMMENT ON COLUMN admin_users.id IS '流水號';
+COMMENT ON COLUMN admin_users.username IS '管理員帳號';
+COMMENT ON COLUMN admin_users.password IS '密碼（bcrypt 雜湊）';
+COMMENT ON COLUMN admin_users.created_at IS '建立時間';

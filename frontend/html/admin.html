@@ -463,7 +463,7 @@ async function saveCustomer(customer_id, name, phone, address) {
   const res = await fetch("/admin/update_customer", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-    body: JSON.stringify({ customer_id, name, phone, address })  // ⭐️ 傳 address 給後端
+    body: JSON.stringify({ customer_id, name, phone, address }) 
   });
   const result = await res.json();
   alert(result.message || result.error);
