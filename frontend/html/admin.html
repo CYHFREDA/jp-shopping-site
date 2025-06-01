@@ -58,6 +58,7 @@
     <li class="nav-item"><a class="nav-link" data-target="shippingArea" href="#">🚚 出貨管理</a></li>
     <li class="nav-item"><a class="nav-link" data-target="customersArea" href="#">👥 客戶管理</a></li>
     <li class="nav-item"><a class="nav-link" data-target="productsArea" href="#">🛍️ 商品管理</a></li>
+    <li class="nav-item"><a class="nav-link" data-target="adminsArea" href="#">👤 使用者管理</a></li>
   </ul>
 
   <!-- 🔹 各區塊 -->
@@ -75,7 +76,7 @@
     <h5 class="card-title mb-3">👥 客戶管理</h5>
     <div id="customersTable" class="table-responsive"></div>
   </div>
-
+  
   <div id="productsArea" class="card p-4 d-none">
     <h5 class="card-title mb-3">🛍️ 商品管理</h5>
     <div class="row g-2 mb-3">
@@ -97,6 +98,17 @@
     <button class="btn btn-success w-100 mb-3" onclick="addProduct()">新增商品</button>
     <div id="productsTable" class="table-responsive"></div>
   </div>
+
+  <div id="adminsArea" class="card p-4 d-none">
+    <h5 class="card-title mb-3">👤 管理員管理</h5>
+    <div>
+      <input id="newAdminUsername" class="form-control mb-2" placeholder="新管理員帳號">
+      <input id="newAdminPassword" type="password" class="form-control mb-2" placeholder="新管理員密碼">
+      <button class="btn btn-success w-100 mb-3" onclick="createAdmin()">新增管理員</button>
+    </div>
+    <div id="adminsTable" class="table-responsive"></div>
+  </div>
+
 </div>
 
 <footer class="mt-5">&copy; 2025 Clevora 日本代購商城管理系統</footer>
@@ -475,6 +487,34 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
     document.getElementById("loginArea").classList.remove("d-none");
   }
 });
+
+// 創建使用者
+async function createAdmin() {
+  const username = document.getElementById("newAdminUsername").value;
+  const password = document.getElementById("newAdminPassword").value;
+  if (!username || !password) {
+    alert("❌ 請輸入完整資料！");
+    return;
+  }
+  const res = await fetch("/admin/create_admin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ username, password })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadAdmins();
+}
+async function loadAdmins() {
+  const res = await fetch("/admin/admin_users", { headers: { "Authorization": "Basic " + token } });
+  const admins = await res.json();
+  let html = `<table class="table table-striped table-bordered"><thead class="table-dark"><tr><th>帳號</th><th>建立時間</th></tr></thead><tbody>`;
+  admins.forEach(a => {
+    html += `<tr><td>${a.username}</td><td>${a.created_at}</td></tr>`;
+  });
+  html += "</tbody></table>";
+  document.getElementById("adminsTable").innerHTML = html;
+}
 
 </script>
 <script src="js/cache-busting.js"></script>

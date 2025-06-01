@@ -21,7 +21,17 @@ app = FastAPI()
 #Basic Auth 設定
 security = HTTPBasic()
 def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    if credentials.username != "admin" or credentials.password != "1234":
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password FROM admin_users WHERE username=%s", (credentials.username,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not row:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    hashed_password = row[0]
+    if not bcrypt.checkpw(credentials.password.encode('utf-8'), hashed_password.encode('utf-8')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return True
 
@@ -426,3 +436,33 @@ async def admin_update_customer(request: Request, auth=Depends(verify_basic_auth
     conn.close()
 
     return JSONResponse({"message": "✅ 客戶資料已更新！"})
+#新增管理員
+@app.post("/admin/create_admin")
+async def create_admin(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    username = data.get("username")
+    password = data.get("password")
+    if not username or not password:
+        return JSONResponse({"error": "❌ 缺少必要欄位"}, status_code=400)
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO admin_users (username, password) VALUES (%s, %s)", (username, hashed_password))
+        conn.commit()
+        return JSONResponse({"message": "✅ 管理員已新增"})
+    except psycopg2.IntegrityError:
+        return JSONResponse({"error": "❌ 帳號已存在"}, status_code=400)
+    finally:
+        cursor.close()
+        conn.close()
+        
+@app.get("/admin/admin_users")
+async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, created_at FROM admin_users ORDER BY created_at")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return [{"username": r[0], "created_at": str(r[1])} for r in rows]

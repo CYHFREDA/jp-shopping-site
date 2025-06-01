@@ -18,13 +18,13 @@ COMMENT ON COLUMN orders.paid_at IS '付款時間（可為空）';
 
 -------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS products (
-  id SERIAL PRIMARY KEY,  -- 商品 ID，主鍵，自動增加
-  name TEXT NOT NULL, -- 商品名稱，必填
-  price INTEGER NOT NULL, -- 商品價格，必填，整數
-  description TEXT NOT NULL, -- 商品描述，必填
-  image_url TEXT NOT NULL, -- 商品圖片網址，必填
-  created_at TIMESTAMP DEFAULT NOW(), -- 商品建立時間，預設為當下時間
-  category VARCHAR(255) -- 商品分類，可多分類用「#」分隔
+  id SERIAL PRIMARY KEY,               -- 商品 ID，主鍵，自動增加
+  name TEXT NOT NULL,                  -- 商品名稱，必填
+  price INTEGER NOT NULL,              -- 商品價格，必填，整數
+  description TEXT NOT NULL,           -- 商品描述，必填
+  image_url TEXT NOT NULL,             -- 商品圖片網址，必填
+  created_at TIMESTAMP DEFAULT NOW(),  -- 商品建立時間，預設為當下時間
+  category VARCHAR(255)                -- 商品分類，可多分類用「#」分隔
 );
 
 COMMENT ON COLUMN products.id IS '商品 ID，主鍵，自動增加';
@@ -57,10 +57,10 @@ COMMENT ON COLUMN customers.created_at IS '建立時間，預設當下';
 -------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS shipments (
   shipment_id SERIAL PRIMARY KEY,        -- 出貨單 ID，自動增加
-  order_id VARCHAR(50) NOT NULL,                  -- 對應的訂單編號，必填
-  recipient_name VARCHAR(50) NOT NULL,            -- 收件人姓名，必填
-  address VARCHAR(200) NOT NULL,                  -- 收件地址，必填
-  status VARCHAR(20) NOT NULL,                    -- 出貨狀態（例：pending、shipped...），必填
+  order_id VARCHAR(50) NOT NULL,         -- 對應的訂單編號，必填
+  recipient_name VARCHAR(50) NOT NULL,   -- 收件人姓名，必填
+  address VARCHAR(200) NOT NULL,         -- 收件地址，必填
+  status VARCHAR(20) NOT NULL,           -- 出貨狀態（例：pending、shipped...），必填
   created_at TIMESTAMP DEFAULT NOW()     -- 建立時間
 );
 COMMENT ON COLUMN shipments.shipment_id IS '出貨單 ID，自動增加';
@@ -70,3 +70,13 @@ COMMENT ON COLUMN shipments.address IS '收件地址';
 COMMENT ON COLUMN shipments.status IS '出貨狀態（例：pending、shipped...）';
 COMMENT ON COLUMN shipments.created_at IS '建立時間';
 -------------------------------------------------------------------------------------
+CREATE TABLE admin_users (
+    id SERIAL PRIMARY KEY,                              -- 流水號
+    username VARCHAR(50) UNIQUE NOT NULL,               -- 帳號
+    password TEXT NOT NULL,                             -- bcrypt 雜湊後的密碼
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      -- 建立時間
+);
+
+-- 新增使用者管理員,密碼1234
+INSERT INTO admin_users (username, password)
+VALUES ('admin', '$2b$12$6WZclmZ.QN4Bi53PBWqWbeUeu/Sqx0ruFoZn6QgUoZkRSVOSFiP0C');
