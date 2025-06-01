@@ -21,6 +21,8 @@ app = FastAPI()
 #Basic Auth 設定
 security = HTTPBasic()
 def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    print("🟡 username:", repr(credentials.username))
+    print("🟡 password:", repr(credentials.password))
     conn = get_db_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT password FROM admin_users WHERE username=%s", (credentials.username,))
@@ -29,12 +31,19 @@ def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
     conn.close()
 
     if not row:
+        print("🛑 找不到使用者")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     
     hashed_password = row[0]
+    print("🟡 hashed_password:", hashed_password)
+    
     if not bcrypt.checkpw(credentials.password.strip().encode('utf-8'), hashed_password.encode('utf-8')):
+        print("🛑 密碼驗證失敗")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    
+    print("✅ 密碼驗證成功")
     return True
+
 
 #CORS 設定
 app.add_middleware(
