@@ -480,7 +480,7 @@ function logout() {
   }
 }
 document.getElementById("logoutBtn").addEventListener("click", () => {
-  if (confirm("確定要登出嗎？")) {
+  if (confirm("請問確定要登出嗎？")) {
     localStorage.removeItem("basic_token");
     token = "";
     document.getElementById("adminArea").classList.add("d-none");
