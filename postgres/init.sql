@@ -77,9 +77,15 @@ CREATE TABLE admin_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP      -- 建立時間
 );
 
--- 新增使用者管理員,密碼1234
+-- 新增使用者管理員,帳號admin密碼1234
+-- 先在終端機開啟 Python：python
+--  在 Python 中執行下面的程式碼：
+--import bcrypt
+--password = "1234".encode('utf-8')  # 你可以把 1234 換成任何密碼
+--hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+-- print(hashed.decode())
 INSERT INTO admin_users (username, password)
-VALUES ('admin', '$2b$12$6WZclmZ.QN4Bi53PBWqWbeUeu/Sqx0ruFoZn6QgUoZkRSVOSFiP0C');
+VALUES ('admin', '$2b$12$k56Kb.WBCHwpNxnX9WmWOu9FDe9wTNQtL/eIA4aCRvjErQ0lnbl5C');
 
 COMMENT ON TABLE admin_users IS '管理員使用者表格';
 COMMENT ON COLUMN admin_users.id IS '流水號';
