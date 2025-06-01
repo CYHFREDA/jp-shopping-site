@@ -466,7 +466,7 @@ async def create_admin(request: Request, auth=Depends(verify_basic_auth)):
     finally:
         cursor.close()
         conn.close()
-
+#顯示後台使用者
 @app.get("/admin/admin_users")
 async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
     conn = get_db_conn()
@@ -476,3 +476,22 @@ async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
     cursor.close()
     conn.close()
     return [{"username": r[0], "created_at": str(r[1])} for r in rows]
+#修改使用者密碼
+@app.post("/admin/update_admin_password")
+async def update_admin_password(request: Request, auth=Depends(verify_basic_auth)):
+    data = await request.json()
+    username = data.get("username")
+    new_password = data.get("new_password")
+    if not username or not new_password:
+        return JSONResponse({"error": "❌ 缺少必要欄位"}, status_code=400)
+    
+    # bcrypt 重新產生雜湊
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    conn = get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE admin_users SET password=%s WHERE username=%s", (hashed_password, username))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return JSONResponse({"message": "✅ 密碼已更新！"})

@@ -100,7 +100,7 @@
   </div>
 
   <div id="adminsArea" class="card p-4 d-none">
-    <h5 class="card-title mb-3">👤 管理員管理</h5>
+    <h5 class="card-title mb-3">👤 使用者管理</h5>
     <div>
       <input id="newAdminUsername" class="form-control mb-2" placeholder="新管理員帳號">
       <input id="newAdminPassword" type="password" class="form-control mb-2" placeholder="新管理員密碼">
@@ -506,17 +506,43 @@ async function createAdmin() {
   alert(result.message || result.error);
   loadAdmins();
 }
+//取得所有管理員帳號清單
 async function loadAdmins() {
   const res = await fetch("/admin/admin_users", { headers: { "Authorization": "Basic " + token } });
   const admins = await res.json();
-  let html = `<table class="table table-striped table-bordered"><thead class="table-dark"><tr><th>帳號</th><th>建立時間</th></tr></thead><tbody>`;
+  let html = `<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>帳號</th>
+        <th>建立時間</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>`;
   admins.forEach(a => {
-    html += `<tr><td>${a.username}</td><td>${a.created_at}</td></tr>`;
+    html += `<tr>
+      <td>${a.username}</td>
+      <td>${a.created_at}</td>
+      <td><button class="btn btn-warning btn-sm" onclick="resetAdminPassword('${a.username}')">重設密碼</button></td>
+    </tr>`;
   });
   html += "</tbody></table>";
   document.getElementById("adminsTable").innerHTML = html;
 }
+//重設密碼
+async function resetAdminPassword(username) {
+  const new_password = prompt(`請輸入 ${username} 的新密碼：`);
+  if (!new_password) { alert("❌ 沒有輸入新密碼！"); return; }
 
+  const res = await fetch("/admin/update_admin_password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+    body: JSON.stringify({ username, new_password })
+  });
+  const result = await res.json();
+  alert(result.message || result.error);
+  loadAdmins();
+}
 </script>
 <script src="js/cache-busting.js"></script>
 
