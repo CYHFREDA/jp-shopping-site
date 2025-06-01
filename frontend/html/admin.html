@@ -266,7 +266,7 @@ async function addProduct() {
   const result = await res.json();
   alert(result.message || result.error);
   loadProducts();
-}s
+}
 
 async function saveProduct(id) {
   const inputs = document.querySelectorAll(`[data-id='${id}']`);
