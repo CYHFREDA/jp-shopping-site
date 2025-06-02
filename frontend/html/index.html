@@ -156,27 +156,60 @@
       renderProducts(filtered);
     });
 
-    // 初始化
-    updateCartCount();
-    checkLoginStatus();
-    loadProducts();
-
     function checkLoginStatus() {
       const customer = JSON.parse(localStorage.getItem("customer"));
       const loginLink = document.querySelector('a[href="/login.html"]');
+      const authLinksDiv = loginLink ? loginLink.parentElement : null;
 
-      if (customer && customer.name) {
-        if (loginLink) {
-          loginLink.textContent = customer.name;
-          loginLink.href = "#";
+      if (customer && customer.name && loginLink && authLinksDiv) {
+        loginLink.remove();
+
+        const userNameSpan = document.createElement('span');
+        userNameSpan.classList.add('me-2', 'text-dark', 'fw-bold');
+        userNameSpan.textContent = `你好, ${customer.name}`;
+        authLinksDiv.insertBefore(userNameSpan, authLinksDiv.firstChild);
+
+        const logoutLink = document.createElement('a');
+        logoutLink.href = "#";
+        logoutLink.classList.add('me-3', 'text-dark', 'text-decoration-none');
+        logoutLink.textContent = "登出";
+        logoutLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          logout();
+        });
+        authLinksDiv.insertBefore(logoutLink, authLinksDiv.children[1]);
+
+        const adminLink = authLinksDiv.querySelector('a[href="/admin.html"]');
+        if(adminLink) {
+            adminLink.style.display = 'none';
         }
+
       } else {
         if (loginLink) {
           loginLink.textContent = "會員登入";
           loginLink.href = "/login.html";
+          loginLink.style.display = '';
         }
+        const adminLink = authLinksDiv ? authLinksDiv.querySelector('a[href="/admin.html"]') : null;
+        if(adminLink) {
+            adminLink.style.display = '';
+        }
+        const userNameSpan = authLinksDiv ? authLinksDiv.querySelector('span.fw-bold') : null;
+        if(userNameSpan) userNameSpan.remove();
+        const logoutLink = authLinksDiv ? authLinksDiv.querySelector('a:not([href="/login.html"]):not([href="/admin.html"]):not([href="/cart.html"])') : null;
+        if(logoutLink && logoutLink.textContent === '登出') logoutLink.remove();
       }
     }
+
+    function logout() {
+      localStorage.removeItem("customer");
+      window.location.reload();
+    }
+
+    // 初始化
+    updateCartCount();
+    checkLoginStatus();
+    loadProducts();
   </script>
 
   <!-- Bootstrap Bundle -->

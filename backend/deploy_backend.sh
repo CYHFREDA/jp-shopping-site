@@ -21,10 +21,10 @@ echo "========= 新的映像檔：$IMAGE_NAME ========="
 echo "========= 清理 Docker 映像檔 ========="
 docker image prune -a -f
 
-echo "=========  等待 20 秒 ========="
-sleep 20
-
-echo "========= Deployment 映像檔 =========="
-kubectl get deployment backend-api -o jsonpath="{.spec.template.spec.containers[*].image}"
-echo "========= Pod 狀態 =========="
-kubectl get pods -l app=backend-api -o wide
+#echo "=========  等待 20 秒 ========="
+#sleep 20
+#
+#echo "========= Deployment 映像檔 =========="
+#kubectl get deployment backend-api -o jsonpath="{.spec.template.spec.containers[*].image}"
+#echo "========= Pod 狀態 =========="
+#kubectl get pods -l app=backend-api -o wide

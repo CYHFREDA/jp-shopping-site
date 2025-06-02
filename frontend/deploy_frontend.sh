@@ -20,14 +20,13 @@ kubectl set image deployment frontend frontend=$FULL_IMAGE_NAME
 echo "========= 清理 Docker 映像檔 ========="
 docker image prune -a -f
 
-echo "⏳ 等待 20 秒讓 Pod 滾動更新..."
-sleep 20
-
-echo "✅ 目前使用的映像檔："
-kubectl get deployment frontend -o jsonpath="{.spec.template.spec.containers[*].image}"; echo
-
-echo "✅ 目前 Pod 狀態："
-kubectl get pods -l app=frontend -o wide
-
-echo "🎉 前端部署完成！使用的新映像檔：$FULL_IMAGE_NAME"
-
+#echo "⏳ 等待 20 秒讓 Pod 滾動更新..."
+#sleep 20
+#
+#echo "✅ 目前使用的映像檔："
+#kubectl get deployment frontend -o jsonpath="{.spec.template.spec.containers[*].image}"; echo
+#
+#echo "✅ 目前 Pod 狀態："
+#kubectl get pods -l app=frontend -o wide
+#
+#echo "🎉 前端部署完成！使用的新映像檔：$FULL_IMAGE_NAME"
