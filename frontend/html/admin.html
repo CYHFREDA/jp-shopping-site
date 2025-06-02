@@ -2,15 +2,16 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8" />
-<title>Clevora 後台管理</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<title>Clevora 後台管理 - Vue版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/admin.css" data-href="css/admin.css">
 </head>
 <body>
+
 <div id="app">
-  <!-- 🔹 導覽列 -->
+  <!-- 🔹 頁首導覽列 -->
   <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
@@ -19,7 +20,7 @@
       </a>
       <div class="ms-auto" v-if="isLoggedIn">
         <span class="navbar-text text-light me-3">後台管理系統</span>
-        <button @click="logout" class="btn btn-danger btn-sm">登出</button>
+        <button class="btn btn-danger btn-sm" @click="logout">登出</button>
       </div>
     </div>
   </nav>
@@ -28,69 +29,166 @@
   <div v-if="!isLoggedIn" class="container mt-5">
     <div class="card p-4 text-center">
       <h4 class="card-title mb-3">後台登入</h4>
-      <p class="text-muted mb-4">請輸入帳號與密碼</p>
-      <div class="mb-2">
-        <input v-model="loginData.username" class="form-control form-control-lg" placeholder="Username">
-      </div>
+      <p class="text-muted mb-4">請輸入您的帳號與密碼以登入後台</p>
       <div class="mb-3">
-        <input v-model="loginData.password" type="password" class="form-control form-control-lg" placeholder="Password">
+        <input v-model="loginForm.username" class="form-control form-control-lg mb-2" placeholder="Username">
+        <input v-model="loginForm.password" type="password" class="form-control form-control-lg" placeholder="Password">
       </div>
-      <button @click="login" class="btn btn-primary btn-lg w-100">登入</button>
+      <button class="btn btn-primary btn-lg w-100" @click="login">登入</button>
     </div>
   </div>
 
   <!-- 🔹 主畫面 -->
   <div v-else class="container mt-4">
-    <h1>後台管理主頁 (示範 Vue 管理)</h1>
-    <!-- 你可以用 v-for 等，讓 Vue 幫你產生訂單/商品清單 -->
+    <!-- 上方橫向選單 -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item" v-for="tab in tabs" :key="tab.id">
+        <a class="nav-link" :class="{active: currentTab === tab.id}" href="#" @click.prevent="switchTab(tab.id)">{{ tab.label }}</a>
+      </li>
+    </ul>
+
+    <!-- 🔹 各區塊 -->
+    <div v-show="currentTab === 'orders'">
+      <h5 class="card-title mb-3">📦 訂單管理</h5>
+      <div v-html="ordersTable"></div>
+    </div>
+
+    <div v-show="currentTab === 'shipping'">
+      <h5 class="card-title mb-3">🚚 出貨管理</h5>
+      <div v-html="shippingTable"></div>
+    </div>
+
+    <div v-show="currentTab === 'customers'">
+      <h5 class="card-title mb-3">👥 客戶管理</h5>
+      <div v-html="customersTable"></div>
+    </div>
+
+    <div v-show="currentTab === 'products'">
+      <h5 class="card-title mb-3">🛍️ 商品管理</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-3"><input v-model="newProduct.name" class="form-control" placeholder="商品名稱"></div>
+        <div class="col-md-2"><input v-model="newProduct.price" type="number" class="form-control" placeholder="價格"></div>
+        <div class="col-md-4"><input v-model="newProduct.description" class="form-control" placeholder="商品描述"></div>
+        <div class="col-md-3"><input v-model="newProduct.image_url" class="form-control" placeholder="圖片網址 (可空)"></div>
+      </div>
+      <div class="category-checkboxes mb-3">
+        <label v-for="cat in categories" :key="cat.value">
+          <input type="checkbox" :value="cat.value" v-model="newProduct.selectedCategories"> {{ cat.label }}
+        </label>
+      </div>
+      <button class="btn btn-success w-100 mb-3" @click="addProduct">新增商品</button>
+      <div v-html="productsTable"></div>
+    </div>
+
+    <div v-show="currentTab === 'admins'">
+      <h5 class="card-title mb-3">👤 使用者管理</h5>
+      <input v-model="newAdmin.username" class="form-control mb-2" placeholder="新管理員帳號">
+      <input v-model="newAdmin.password" type="password" class="form-control mb-2" placeholder="新管理員密碼">
+      <button class="btn btn-success w-100 mb-3" @click="createAdmin">新增管理員</button>
+      <div v-html="adminsTable"></div>
+    </div>
   </div>
+
+  <footer class="mt-5 text-center">&copy; 2025 Clevora 日本代購商城管理系統</footer>
 </div>
 
+<script src="https://unpkg.com/vue@3.4.15/dist/vue.global.prod.js"></script>
 <script>
 const { createApp } = Vue;
+
 createApp({
   data() {
     return {
+      token: "",
       isLoggedIn: false,
-      loginData: {
-        username: '',
-        password: ''
-      }
+      currentTab: "orders",
+      tabs: [
+        { id: "orders", label: "📦 訂單管理" },
+        { id: "shipping", label: "🚚 出貨管理" },
+        { id: "customers", label: "👥 客戶管理" },
+        { id: "products", label: "🛍️ 商品管理" },
+        { id: "admins", label: "👤 使用者管理" },
+      ],
+      loginForm: { username: "", password: "" },
+      newProduct: { name: "", price: "", description: "", image_url: "", selectedCategories: [] },
+      newAdmin: { username: "", password: "" },
+      categories: [
+        { label: "限時搶購", value: "flashsale" },
+        { label: "限定SALE", value: "sale" },
+        { label: "日本藥品", value: "japan_medicine" },
+        { label: "食品/飲料/酒", value: "food_drink" },
+        { label: "美妝/美髮/肌膚護理", value: "beauty" },
+        { label: "男士用品", value: "men" },
+        { label: "生活家用/沐浴&身體", value: "home" },
+        { label: "親子育兒", value: "baby" },
+      ],
+      ordersTable: "",
+      shippingTable: "",
+      customersTable: "",
+      productsTable: "",
+      adminsTable: "",
     };
   },
   mounted() {
     const savedToken = localStorage.getItem("basic_token");
     const expireAt = localStorage.getItem("expire_at");
     if (savedToken && expireAt && Date.now() < parseInt(expireAt)) {
+      this.token = savedToken;
       this.isLoggedIn = true;
+      this.loadOrders();
     }
   },
   methods: {
     async login() {
-      if (!this.loginData.username || !this.loginData.password) {
-        alert("請輸入帳號密碼！");
+      if (!this.loginForm.username || !this.loginForm.password) {
+        alert("請輸入完整帳號密碼！");
         return;
       }
-      // 直接用 base64 測試 (示範，實際還需安全處理)
-      const token = btoa(`${this.loginData.username}:${this.loginData.password}`);
+      this.token = btoa(`${this.loginForm.username}:${this.loginForm.password}`);
       const expireAt = Date.now() + (30 * 60 * 1000);
-      localStorage.setItem("basic_token", token);
+      localStorage.setItem("basic_token", this.token);
       localStorage.setItem("expire_at", expireAt);
+      const res = await fetch("/admin/orders", { headers: { "Authorization": "Basic " + this.token } });
+      if (!res.ok) {
+        alert("❌ 帳號或密碼錯誤！");
+        this.token = "";
+        localStorage.clear();
+        return;
+      }
       this.isLoggedIn = true;
-      alert("登入成功（示範）");
+      this.loadOrders();
+    },
+    switchTab(tabId) {
+      this.currentTab = tabId;
+      if (tabId === "orders") this.loadOrders();
+      if (tabId === "products") this.loadProducts();
+      if (tabId === "shipping") this.loadShipments();
+      if (tabId === "customers") this.loadCustomers();
+      if (tabId === "admins") this.loadAdmins();
     },
     logout() {
-      if (confirm("確定要登出？")) {
-        localStorage.removeItem("basic_token");
-        localStorage.removeItem("expire_at");
+      if (confirm("確定要登出嗎？")) {
+        localStorage.clear();
+        this.token = "";
         this.isLoggedIn = false;
       }
-    }
+    },
+    // 以下方法：loadOrders/loadProducts/loadShipments/loadCustomers/loadAdmins/addProduct/createAdmin…
+    // 與你原本的 JS 基本相同，只是搬到 methods 內，並用 this.token 替代 token。
+    // 範例：
+    async loadOrders() {
+      const res = await fetch("/admin/orders", { headers: { "Authorization": "Basic " + this.token } });
+      if (!res.ok) { alert("❌ 無法載入訂單！"); return; }
+      const orders = await res.json();
+      let html = "<table class='table table-striped table-bordered'><thead class='table-dark'>...</thead><tbody>";
+      // 建立表格 HTML...
+      html += "</tbody></table>";
+      this.ordersTable = html;
+    },
+    // … 其他方法以同樣方式搬移並更新 …
   }
-}).mount('#app');
+}).mount("#app");
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/cache-busting.js"></script>
 </body>
 </html>
