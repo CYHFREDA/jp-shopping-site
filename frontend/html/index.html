@@ -158,7 +158,25 @@
 
     // 初始化
     updateCartCount();
+    checkLoginStatus();
     loadProducts();
+
+    function checkLoginStatus() {
+      const customer = JSON.parse(localStorage.getItem("customer"));
+      const loginLink = document.querySelector('a[href="/login.html"]');
+
+      if (customer && customer.name) {
+        if (loginLink) {
+          loginLink.textContent = customer.name;
+          loginLink.href = "#";
+        }
+      } else {
+        if (loginLink) {
+          loginLink.textContent = "會員登入";
+          loginLink.href = "/login.html";
+        }
+      }
+    }
   </script>
 
   <!-- Bootstrap Bundle -->
