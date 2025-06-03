@@ -52,7 +52,7 @@ const login = async () => {
 
     if (res.ok) { // 如果成功收到回應 (非 401)
       // 登入成功
-      alert('✅ 登入成功！');
+      // alert('✅ 登入成功！');
       // 儲存 token 到 Store 和 Local Storage
       userStore.setToken(base64Credentials);
       // 導向後台主控台頁面
