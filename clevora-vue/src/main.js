@@ -6,7 +6,7 @@ import router from './router';
 import axios from 'axios';
 
 // 設定 axios 的基礎 URL
-axios.defaults.baseURL = 'http://localhost:3000';  // 請根據您的後端 API 地址修改
+axios.defaults.baseURL = 'http://backend-api:80';  // 已根據您的後端 API 地址修改
 
 // 引入全局樣式
 import './assets/main.css';
