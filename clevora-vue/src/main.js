@@ -6,8 +6,7 @@ import router from './router';
 import axios from 'axios';
 
 // 設定 axios 的基礎 URL
-// 如果在本地開發，且本地運行 Nginx 並配置 HTTPS，可能需要使用 localhost
-axios.defaults.baseURL = 'http://localhost';  // 如果在本地開發環境請嘗試修改為此
+axios.defaults.baseURL = '/';
 
 // 引入全局樣式
 import './assets/main.css';
