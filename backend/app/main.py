@@ -205,13 +205,24 @@ async def admin_update_status(request: Request, auth=Depends(verify_basic_auth))
     return JSONResponse({"message": "狀態已更新！"})
 # 取得所有商品
 @app.get("/products")
-async def get_products():
+async def get_products(query: str = ""):
     conn = get_db_conn()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cursor.execute("""
-        SELECT id, name, price, description, image_url, created_at, category
-        FROM products
-    """)
+    
+    if query:
+        # 模糊搜尋
+        cursor.execute("""
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+            WHERE name ILIKE %s
+        """, (f"%{query}%",))
+    else:
+        # 回傳所有商品
+        cursor.execute("""
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+        """)
+    
     products = cursor.fetchall()
     cursor.close()
     conn.close()
