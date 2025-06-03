@@ -20,7 +20,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # 複製 Nginx 設定檔
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # 將建置好的靜態檔案從 builder 階段複製到 Nginx 的靜態檔案目錄
 COPY --from=builder /app/dist /usr/share/nginx/html
