@@ -3,38 +3,30 @@ import { ref, computed } from 'vue';
 import axios from 'axios';
 
 export const useUserStore = defineStore('user', () => {
-  const token = ref(localStorage.getItem('token') || '');
+  const basic_token = ref(localStorage.getItem('basic_token') || '');
   const user = ref(null);
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => !!basic_token.value);
 
-  async function login(credentials) {
-    try {
-      const response = await axios.post('/api/admin/login', credentials);
-      if (response.data.token) {
-        token.value = response.data.token;
-        user.value = response.data.user;
-        localStorage.setItem('token', response.data.token);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
-    }
+  function setToken(tokenValue) {
+    basic_token.value = tokenValue;
+    localStorage.setItem('basic_token', tokenValue);
+    const expireAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 天後過期
+    localStorage.setItem('expire_at', expireAt);
   }
 
   function logout() {
-    token.value = '';
+    basic_token.value = '';
     user.value = null;
-    localStorage.removeItem('token');
+    localStorage.removeItem('basic_token');
+    localStorage.removeItem('expire_at');
   }
 
   return {
-    token,
+    basic_token,
     user,
     isAuthenticated,
-    login,
+    setToken,
     logout
   };
 }); 
