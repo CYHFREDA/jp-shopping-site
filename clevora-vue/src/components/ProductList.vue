@@ -30,3 +30,44 @@ export default {
   }
 };
 </script>
+
+<template>
+  <div>
+    <input v-model="searchQuery" placeholder="搜尋商品" />
+    <button @click="searchProducts">搜尋</button>
+
+    <ul>
+      <li v-for="product in products" :key="product.id">
+        {{ product.name }}
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      searchQuery: '',
+      products: []
+    };
+  },
+  methods: {
+    searchProducts() {
+      if (!this.searchQuery.trim()) {
+        alert('請輸入搜尋關鍵字');
+        return;
+      }
+      axios.get(`/api/products?query=${encodeURIComponent(this.searchQuery)}`)
+        .then(res => {
+          this.products = res.data;
+        })
+        .catch(err => {
+          console.error('搜尋出錯', err);
+        });
+    }
+  }
+};
+</script>
