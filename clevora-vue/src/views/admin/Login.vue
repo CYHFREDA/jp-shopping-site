@@ -56,7 +56,7 @@ const login = async () => {
       // 儲存 token 到 Store 和 Local Storage
       userStore.setToken(base64Credentials);
       // 導向後台主控台頁面
-      router.push('/admin');
+      await router.push('/admin');
     } else if (res.status === 401) { // 如果收到 401 Unauthorized
       error.value = '❌ 帳號或密碼錯誤！';
     } else { // 其他錯誤
