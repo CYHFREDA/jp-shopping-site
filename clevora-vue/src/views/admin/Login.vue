@@ -25,13 +25,13 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore'; // 引入 userStore
+import { useUserStore } from '@/stores/userStore';
 
 const username = ref('');
 const password = ref('');
 const router = useRouter();
 const error = ref('');
-const userStore = useUserStore(); // 使用 userStore
+const userStore = useUserStore();
 
 // 登入功能
 const login = async () => {
@@ -43,25 +43,29 @@ const login = async () => {
   try {
     // 後台管理員登入使用 Basic Auth
     const base64Credentials = btoa(`${username.value}:${password.value}`);
-    // 嘗試獲取使用者資訊或其他受保護的資源來驗證 token
-    const res = await fetch('/admin/auth_check', { // 假設後端有一個端點用於驗證管理員 token
+    
+    // 嘗試訪問一個受保護的後台端點來驗證 Basic Auth 憑證
+    // 例如：獲取訂單列表
+    const res = await fetch('/admin/orders', {
       headers: { 'Authorization': 'Basic ' + base64Credentials },
     });
 
-    if (res.ok) { // 檢查 HTTP 狀態碼是否成功
+    if (res.ok) { // 如果成功收到回應 (非 401)
       // 登入成功
       alert('✅ 登入成功！');
       // 儲存 token 到 Store 和 Local Storage
-      userStore.setToken(base64Credentials); // 使用 userStore 保存 token
+      userStore.setToken(base64Credentials);
       // 導向後台主控台頁面
       router.push('/admin');
-    } else {
-      // 後端可能返回 401 或其他錯誤碼
+    } else if (res.status === 401) { // 如果收到 401 Unauthorized
       error.value = '❌ 帳號或密碼錯誤！';
+    } else { // 其他錯誤
+      error.value = `後台登入失敗！(${res.status})`;
+      console.error('後台登入請求失敗：', res.status, res.statusText);
     }
   } catch (error) {
-    console.error('後台登入失敗：', error);
-    error.value = '後台登入失敗！請檢查網路或聯繫管理員。';
+    console.error('後台登入時發生網路錯誤：', error);
+    error.value = '後台登入失敗！請檢查網路連線。';
   }
 };
 </script>
