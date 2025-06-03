@@ -76,4 +76,6 @@ export const authAPI = {
   logout() {
     return api.post('/admin/logout');
   }
-}; 
+};
+
+export default api; 
