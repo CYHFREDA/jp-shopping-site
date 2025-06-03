@@ -39,12 +39,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import api from '@/services/api';
 
 const customers = ref([]);
 const userStore = useUserStore();
 
 async function loadCustomers() {
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
     alert('請先登入！');
@@ -52,21 +53,15 @@ async function loadCustomers() {
   }
 
   try {
-    const res = await fetch('/admin/customers', {
-      headers: { "Authorization": "Basic " + token }
-    });
+    const res = await api.get('/admin/customers');
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('無法載入客戶資料：', res.status, errorText);
-      alert('無法載入客戶資料！');
-      return;
-    }
-
-    customers.value = await res.json();
+    const data = res.data;
+    customers.value = data;
   } catch (error) {
     console.error('載入客戶資料時發生錯誤：', error);
-    alert('載入客戶資料時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -82,7 +77,7 @@ async function editCustomer(customerId) {
 
   const address = prompt("請輸入地址：", customer.address || '');
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -90,25 +85,23 @@ async function editCustomer(customerId) {
   }
 
   try {
-    const res = await fetch('/admin/update_customer', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ customer_id: customerId, name, phone, address })
-    });
+    const res = await api.put('/admin/customers', { customer_id: customerId, name, phone, address });
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
+    if (res.status !== 200) {
        console.error('更新客戶資料失敗：', result);
        alert(result.error || '更新客戶資料失敗！');
     } else {
        alert(result.message || '客戶資料更新成功！');
-       loadCustomers(); // 更新成功後重新載入客戶資料
+       loadCustomers();
     }
 
   } catch (error) {
     console.error('更新客戶資料時發生錯誤：', error);
-    alert('更新客戶資料時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -116,7 +109,7 @@ async function resetPassword(customerId) {
   const new_password = prompt("請輸入新密碼：");
   if (!new_password) { alert("❌ 請輸入新密碼！"); return; }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -124,15 +117,11 @@ async function resetPassword(customerId) {
   }
 
   try {
-    const res = await fetch('/admin/reset_customer_password', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ customer_id: customerId, new_password })
-    });
+    const res = await api.post('/admin/reset_customer_password', { customer_id: customerId, new_password });
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
+    if (res.status !== 200) {
        console.error('重置密碼失敗：', result);
        alert(result.error || '重置密碼失敗！');
     } else {
@@ -141,7 +130,6 @@ async function resetPassword(customerId) {
 
   } catch (error) {
     console.error('重置密碼時發生錯誤：', error);
-    alert('重置密碼時發生錯誤！');
   }
 }
 

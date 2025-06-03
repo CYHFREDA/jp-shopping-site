@@ -29,6 +29,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import api from '@/services/api'; // 引入 api 實例
 
 const settings = ref(null);
 const userStore = useUserStore();
@@ -38,7 +39,7 @@ onMounted(() => {
 });
 
 async function loadSettings() {
-  const token = userStore.token;
+  const token = userStore.admin_token; // 使用 userStore 中的 admin_token
   if (!token) {
     console.error('未找到認證 token！');
     alert('請先登入！');
@@ -46,26 +47,23 @@ async function loadSettings() {
   }
 
   try {
-    const res = await fetch('/admin/settings', {
-      headers: { "Authorization": "Basic " + token }
-    });
+    // 使用 api 實例發送請求
+    const res = await api.get('/admin/settings');
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('無法載入設定資料：', res.status, errorText);
-      alert('無法載入設定資料！');
-      return;
-    }
-
-    settings.value = await res.json();
+    const data = res.data; // axios 的響應數據在 res.data 中
+    settings.value = data;
   } catch (error) {
     console.error('載入設定資料時發生錯誤：', error);
-    alert('載入設定資料時發生錯誤！');
+    // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+      // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
+    }
   }
 }
 
 async function saveSettings() {
-  const token = userStore.token;
+  const token = userStore.admin_token; // 使用 userStore 中的 admin_token
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -75,15 +73,12 @@ async function saveSettings() {
   if (!settings.value) return;
 
   try {
-    const res = await fetch('/admin/settings', {
-      method: "POST", // 或者 PUT，根據後端 API 設計
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify(settings.value)
-    });
+    // 使用 api 實例發送請求
+    const res = await api.post('/admin/settings', settings.value); // 或者 PUT，根據後端 API 設計
 
-    const result = await res.json();
+    const result = res.data; // axios 的響應數據在 res.data 中
 
-    if (!res.ok) {
+    if (res.status !== 200) { // 檢查響應狀態碼
        console.error('保存設定失敗：', result);
        alert(result.error || '保存設定失敗！');
     } else {
@@ -94,7 +89,11 @@ async function saveSettings() {
 
   } catch (error) {
     console.error('保存設定時發生錯誤：', error);
-    alert('保存設定時發生錯誤！');
+    // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+      // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
+    }
   }
 }
 </script>

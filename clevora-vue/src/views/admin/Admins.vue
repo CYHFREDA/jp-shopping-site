@@ -37,6 +37,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import api from '@/services/api';
 
 const admins = ref([]);
 const userStore = useUserStore();
@@ -52,7 +53,7 @@ onMounted(() => {
 });
 
 async function loadAdmins() {
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
     alert('請先登入！');
@@ -60,21 +61,15 @@ async function loadAdmins() {
   }
 
   try {
-    const res = await fetch('/admin/admins', {
-      headers: { "Authorization": "Basic " + token }
-    });
+    const res = await api.get('/admin/admins');
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('無法載入使用者資料：', res.status, errorText);
-      alert('無法載入使用者資料！');
-      return;
-    }
-
-    admins.value = await res.json();
+    const data = res.data;
+    admins.value = data;
   } catch (error) {
-    console.error('載入使用者資料時發生錯誤：', error);
-    alert('載入使用者資料時發生錯誤！');
+    console.error('無法載入使用者資料：', error);
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -86,39 +81,35 @@ async function addAdmin() {
     return;
   }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
-     console.error('未找到認證 token！');
-     alert('請先登入！');
-     return;
+    console.error('未找到認證 token！');
+    alert('請先登入！');
+    return;
   }
 
   try {
-    const res = await fetch('/admin/admins', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ username, password, name })
-    });
+    const res = await api.post('/admin/admins', { username, password, name });
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
-       console.error('新增使用者失敗：', result);
-       alert(result.error || '新增使用者失敗！');
+    if (res.status !== 200) {
+      console.error('新增使用者失敗：', result);
+      alert(result.error || '新增使用者失敗！');
     } else {
-       alert(result.message || '使用者新增成功！');
-       // 清空表單
-       newAdmin.value = {
-         username: '',
-         password: '',
-         name: ''
-       };
-       loadAdmins(); // 更新成功後重新載入使用者資料
+      alert(result.message || '使用者新增成功！');
+      newAdmin.value = {
+        username: '',
+        password: '',
+        name: ''
+      };
+      loadAdmins();
     }
-
   } catch (error) {
     console.error('新增使用者時發生錯誤：', error);
-    alert('新增使用者時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -133,65 +124,60 @@ async function saveAdmin(id) {
     return;
   }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
-     console.error('未找到認證 token！');
-     alert('請先登入！');
-     return;
+    console.error('未找到認證 token！');
+    alert('請先登入！');
+    return;
   }
 
   try {
-    const res = await fetch(`/admin/admins/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ username, name })
-    });
+    const res = await api.put(`/admin/admins/${id}`, { username, name });
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
-       console.error('更新使用者失敗：', result);
-       alert(result.error || '更新使用者失敗！');
+    if (res.status !== 200) {
+      console.error('更新使用者失敗：', result);
+      alert(result.error || '更新使用者失敗！');
     } else {
-       alert(result.message || '使用者更新成功！');
-       loadAdmins(); // 更新成功後重新載入使用者資料
+      alert(result.message || '使用者更新成功！');
+      loadAdmins();
     }
-
   } catch (error) {
     console.error('更新使用者時發生錯誤：', error);
-    alert('更新使用者時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
 async function deleteAdmin(id) {
   if (!confirm("確定刪除這個使用者？")) return;
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
-     console.error('未找到認證 token！');
-     alert('請先登入！');
-     return;
+    console.error('未找到認證 token！');
+    alert('請先登入！');
+    return;
   }
 
   try {
-    const res = await fetch(`/admin/admins/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Basic " + token }
-    });
+    const res = await api.delete(`/admin/admins/${id}`);
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
-       console.error('刪除使用者失敗：', result);
-       alert(result.error || '刪除使用者失敗！');
+    if (res.status !== 200) {
+      console.error('刪除使用者失敗：', result);
+      alert(result.error || '刪除使用者失敗！');
     } else {
-       alert(result.message || '使用者刪除成功！');
-       loadAdmins(); // 更新成功後重新載入使用者資料
+      alert(result.message || '使用者刪除成功！');
+      loadAdmins();
     }
-
   } catch (error) {
     console.error('刪除使用者時發生錯誤：', error);
-    alert('刪除使用者時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 </script>

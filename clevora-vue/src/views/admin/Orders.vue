@@ -43,67 +43,58 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import api from '@/services/api';
 
 const orders = ref([]);
 const userStore = useUserStore();
 
 async function loadOrders() {
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
-    // 如果沒有 token，可能需要導向登入頁面或顯示錯誤訊息
     console.error('未找到認證 token！');
+    alert('請先登入！');
     return;
   }
 
   try {
-    const res = await fetch('/admin/orders', {
-      headers: { "Authorization": "Basic " + token }
-    });
+    const res = await api.get('/admin/orders');
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('無法載入訂單：', res.status, errorText);
-      alert('❌ 無法載入訂單！');
-      return;
-    }
-
-    orders.value = await res.json();
+    const data = res.data;
+    orders.value = data;
   } catch (error) {
     console.error('載入訂單時發生錯誤：', error);
-    alert('載入訂單時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-  if (!newStatus) return;
-
-  const token = userStore.token;
+async function updateOrderStatus(orderId, status) {
+  const token = userStore.admin_token;
   if (!token) {
-     console.error('未找到認證 token！');
-     alert('請先登入！');
-     return;
+    console.error('未找到認證 token！');
+    alert('請先登入！');
+    return;
   }
 
   try {
-    const res = await fetch('/admin/update_order_status', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ order_id: orderId, status: newStatus })
-    });
+    const res = await api.put(`/admin/orders/${orderId}`, { status });
 
-    const result = await res.json();
+    const result = res.data;
 
-    if (!res.ok) {
-       console.error('更新訂單狀態失敗：', result);
-       alert(result.error || '更新訂單狀態失敗！');
+    if (res.status !== 200) {
+      console.error('更新訂單狀態失敗：', result);
+      alert(result.error || '更新訂單狀態失敗！');
     } else {
-       alert(result.message || '訂單狀態更新成功！');
-       loadOrders(); // 更新成功後重新載入訂單
+      alert(result.message || '訂單狀態更新成功！');
+      loadOrders();
     }
 
   } catch (error) {
     console.error('更新訂單狀態時發生錯誤：', error);
-    alert('更新訂單狀態時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 

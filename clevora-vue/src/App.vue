@@ -3,7 +3,9 @@ import { onMounted } from 'vue';
 import { clearCache } from './utils/cache';
 import NavBar from '@/components/NavBar.vue';
 import { useCartStore } from '@/stores/cartStore';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const cartStore = useCartStore();
 
 // 在應用啟動時初始化緩存清理和載入購物車
@@ -15,7 +17,7 @@ onMounted(() => {
 
 <template>
   <div class="app-container">
-    <NavBar />
+    <NavBar v-if="!route.path.startsWith('/admin')" />
     <router-view></router-view>
     <footer class="mt-5">
       <div class="container">

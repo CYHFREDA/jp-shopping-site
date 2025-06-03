@@ -91,6 +91,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
+import api from '@/services/api';
 
 const products = ref([]);
 const userStore = useUserStore();
@@ -108,7 +109,7 @@ onMounted(() => {
 });
 
 async function loadProducts() {
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
     alert('請先登入！');
@@ -116,7 +117,7 @@ async function loadProducts() {
   }
 
   try {
-    const res = await fetch('/products');
+    const res = await api.get('/admin/products');
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -132,7 +133,9 @@ async function loadProducts() {
     }));
   } catch (error) {
     console.error('載入商品資料時發生錯誤：', error);
-    alert('載入商品資料時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -150,7 +153,7 @@ async function handleAddProduct() {
     return;
   }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -158,11 +161,7 @@ async function handleAddProduct() {
   }
 
   try {
-    const res = await fetch('/admin/products', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ name, price, description, image_url, category })
-    });
+    const res = await api.post('/admin/products', { name, price, description, image_url, category });
 
     const result = await res.json();
 
@@ -184,7 +183,9 @@ async function handleAddProduct() {
 
   } catch (error) {
     console.error('新增商品時發生錯誤：', error);
-    alert('新增商品時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
@@ -202,7 +203,7 @@ async function handleSaveProduct(product) {
     return;
   }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -210,11 +211,7 @@ async function handleSaveProduct(product) {
   }
 
   try {
-    const res = await fetch(`/admin/products/${product.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
-      body: JSON.stringify({ name, price, description, image_url, category })
-    });
+    const res = await api.put(`/admin/products/${product.id}`, { name, price, description, image_url, category });
 
     const result = await res.json();
 
@@ -228,14 +225,16 @@ async function handleSaveProduct(product) {
 
   } catch (error) {
     console.error('更新商品時發生錯誤：', error);
-    alert('更新商品時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 
 async function handleDeleteProduct(id) {
   if (!confirm("確定刪除這個商品？")) return;
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -243,10 +242,7 @@ async function handleDeleteProduct(id) {
   }
 
   try {
-    const res = await fetch(`/admin/products/${id}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Basic " + token }
-    });
+    const res = await api.delete(`/admin/products/${id}`);
 
     const result = await res.json();
 
@@ -260,7 +256,9 @@ async function handleDeleteProduct(id) {
 
   } catch (error) {
     console.error('刪除商品時發生錯誤：', error);
-    alert('刪除商品時發生錯誤！');
+    if (error.response && error.response.status === 401) {
+      alert('認證失敗，請重新登入！');
+    }
   }
 }
 </script>
