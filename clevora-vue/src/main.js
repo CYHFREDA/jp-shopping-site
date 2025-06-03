@@ -6,7 +6,8 @@ import router from './router';
 import axios from 'axios';
 
 // 設定 axios 的基礎 URL
-axios.defaults.baseURL = 'http://backend-api:80';  // 已根據您的後端 API 地址修改
+// 將其設定為前端網站的域名，讓請求通過 Nginx 代理到後端
+axios.defaults.baseURL = 'https://shop.wwwwcw.xyz';  // 修改為前端網站的域名
 
 // 引入全局樣式
 import './assets/main.css';
