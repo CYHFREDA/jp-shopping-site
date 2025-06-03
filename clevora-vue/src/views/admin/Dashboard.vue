@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 導覽列 -->
-    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
+     <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
       <div class="container-fluid">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
           <img src="/images/LOGO.png" alt="LOGO" class="me-2" />
@@ -9,7 +9,7 @@
         </a>
         <button class="btn btn-danger btn-sm" @click="handleLogout">登出</button>
       </div>
-    </nav> -->
+    </nav>
 
     <!-- 主要內容區域 -->
     <div class="container mt-4">
