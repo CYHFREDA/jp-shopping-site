@@ -45,21 +45,18 @@ const login = async () => {
     const base64Credentials = btoa(`${username.value}:${password.value}`);
     
     // 嘗試訪問一個受保護的後台端點來驗證 Basic Auth 憑證
-    // 例如：獲取訂單列表
     const res = await fetch('/admin/orders', {
       headers: { 'Authorization': 'Basic ' + base64Credentials },
     });
 
-    if (res.ok) { // 如果成功收到回應 (非 401)
-      // 登入成功
-      // alert('✅ 登入成功！');
-      // 儲存 token 到 Store 和 Local Storage
+    if (res.ok) {
+      // 登入成功，設置 token
       userStore.setToken(base64Credentials);
       // 導向後台主控台頁面
-      await router.push('/admin');
-    } else if (res.status === 401) { // 如果收到 401 Unauthorized
+      router.push('/admin');
+    } else if (res.status === 401) {
       error.value = '❌ 帳號或密碼錯誤！';
-    } else { // 其他錯誤
+    } else {
       error.value = `後台登入失敗！(${res.status})`;
       console.error('後台登入請求失敗：', res.status, res.statusText);
     }
