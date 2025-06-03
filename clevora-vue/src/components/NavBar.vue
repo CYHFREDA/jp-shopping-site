@@ -5,8 +5,14 @@
         <img src="/images/LOGO.png" alt="LOGO" class="me-2" />
         <span>Clevora 日本代購</span>
       </router-link>
-      <form id="searchForm" class="d-flex ms-auto me-3">
-        <input id="searchInput" class="form-control form-control-sm me-2" type="search" placeholder="搜尋" />
+      <form id="searchForm" class="d-flex ms-auto me-3" @submit.prevent="handleSearch">
+        <input 
+          id="searchInput" 
+          class="form-control form-control-sm me-2" 
+          type="search" 
+          placeholder="搜尋" 
+          v-model="searchQuery"
+        />
         <button class="btn btn-outline-dark btn-sm" type="submit"><i class="fas fa-search"></i></button>
       </form>
       <div class="d-flex align-items-center">
@@ -30,6 +36,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter } from 'vue-router';
@@ -37,10 +44,17 @@ import { useRouter } from 'vue-router';
 const customerStore = useCustomerStore();
 const cartStore = useCartStore();
 const router = useRouter();
+const searchQuery = ref('');
 
 function handleLogout() {
   customerStore.logout();
   router.push('/');
+}
+
+function handleSearch() {
+  if (searchQuery.value.trim()) {
+    router.push({ path: '/', query: { search: searchQuery.value.trim() } });
+  }
 }
 </script>
 

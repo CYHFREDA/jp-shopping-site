@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- <NavBar @search="searchProduct" /> -->
+    <NavBar @search="searchProduct" />
     <div class="bg-white border-bottom shadow-sm">
       <div class="container py-2 d-flex flex-wrap gap-2 justify-content-center">
         <button
@@ -46,16 +46,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
-// import NavBar from '@/components/NavBar.vue';
+import NavBar from '@/components/NavBar.vue';
 import ProductList from '@/components/ProductList.vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useRoute } from 'vue-router';
 
 const allProducts = ref([]);
 const selectedCategory = ref('');
 const searchQuery = ref('');
+const route = useRoute();
 
 const cartStore = useCartStore();
 const customerStore = useCustomerStore();
@@ -72,6 +74,15 @@ const categories = ref([
   { label: '親子育兒', value: 'baby' },
 ]);
 
+// 監聽路由變化以更新搜尋查詢
+watch(() => route.query.search, (newSearch) => {
+  if (newSearch) {
+    searchQuery.value = newSearch;
+  } else {
+    searchQuery.value = '';
+  }
+}, { immediate: true });
+
 const filteredProducts = computed(() => {
   let products = allProducts.value;
 
@@ -84,7 +95,10 @@ const filteredProducts = computed(() => {
 
   if (searchQuery.value) {
     const keyword = searchQuery.value.toLowerCase();
-    products = products.filter(p => p.name.toLowerCase().includes(keyword));
+    products = products.filter(p => 
+      p.name.toLowerCase().includes(keyword) || 
+      (p.description && p.description.toLowerCase().includes(keyword))
+    );
   }
 
   return products;
@@ -92,10 +106,20 @@ const filteredProducts = computed(() => {
 
 const loadProducts = async () => {
   try {
+    console.log('開始載入商品...');
     const res = await axios.get('/products');
+    console.log('API 回應：', res.data);
     allProducts.value = res.data;
   } catch (error) {
-    console.error('無法載入商品：', error);
+    console.error('載入商品時發生錯誤：', error);
+    if (error.response) {
+      console.error('錯誤狀態碼：', error.response.status);
+      console.error('錯誤資料：', error.response.data);
+    } else if (error.request) {
+      console.error('請求已發送但沒有收到回應');
+    } else {
+      console.error('設定請求時發生錯誤：', error.message);
+    }
   }
 };
 
