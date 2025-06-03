@@ -6,6 +6,7 @@ import Products from './views/admin/Products.vue';
 import Orders from './views/admin/Orders.vue';
 import Cart from './views/Cart.vue';
 import CustomerAuth from './views/CustomerAuth.vue';
+import Return from './views/Return.vue';
 
 const routes = [
   { 
@@ -19,6 +20,10 @@ const routes = [
   {
     path: '/login',
     component: CustomerAuth
+  },
+  {
+    path: '/pay/return',
+    component: Return
   },
   { 
     path: '/admin/login', 
