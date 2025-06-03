@@ -9,8 +9,8 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('admin_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && config.url.startsWith('/admin')) {
+      config.headers.Authorization = `Basic ${token}`;
     }
     return config;
   },
@@ -23,8 +23,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && error.config.url.startsWith('/admin')) {
       localStorage.removeItem('admin_token');
+      alert('後台認證失敗，請重新登入！');
       window.location.href = '/admin/login';
     }
     return Promise.reject(error);
