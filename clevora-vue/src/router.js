@@ -12,6 +12,7 @@ import CustomerAuth from './views/CustomerAuth.vue';
 import Return from './views/Return.vue';
 import OrderHistory from './views/OrderHistory.vue';
 import { useCustomerStore } from './stores/customerStore';
+import { useUserStore } from './stores/userStore';
 
 const routes = [
   { 
@@ -83,6 +84,7 @@ router.beforeEach((to, from, next) => {
   document.title = 'Clevora';
 
   const customerStore = useCustomerStore(); // 獲取 customerStore 實例
+  const userStore = useUserStore(); // 獲取 userStore 實例
 
   // 如果用戶已登入且嘗試訪問登入頁面，則重定向到首頁
   if (to.path === '/login' && customerStore.isAuthenticated) {
@@ -100,9 +102,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('admin_token');
-    const expireAt = localStorage.getItem('expire_at');
-    if (!token || !expireAt || Date.now() > parseInt(expireAt)) {
+    if (!userStore.isAuthenticated) {
       next('/admin/login');
     } else {
       next();

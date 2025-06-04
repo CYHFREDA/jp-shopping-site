@@ -41,7 +41,7 @@ const shipments = ref([]);
 const userStore = useUserStore();
 
 async function loadShipments() {
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
     alert('請先登入！');
@@ -50,7 +50,7 @@ async function loadShipments() {
 
   try {
     const res = await fetch('/api/admin/shipments', {
-      headers: { "Authorization": "Basic " + token }
+      headers: { "Authorization": "Bearer " + token }
     });
 
     if (!res.ok) {
@@ -77,7 +77,7 @@ async function editShipment(shipmentId) {
   const status = prompt("請輸入狀態（pending, shipped, completed）：", "shipped");
   if (!status) { alert("❌ 請輸入狀態！"); return; }
 
-  const token = userStore.token;
+  const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
      alert('請先登入！');
@@ -87,7 +87,7 @@ async function editShipment(shipmentId) {
   try {
     const res = await fetch('/api/admin/update_shipment', {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
       body: JSON.stringify({ shipment_id: shipmentId, recipient_name, address, status })
     });
 

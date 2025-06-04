@@ -39,7 +39,7 @@
               </td>
               <td>
                 <ul class="list-unstyled mb-0">
-                  <li v-for="item in order.item_names.split('#')" :key="item">{{ item }}</li>
+                  <li v-for="item in (order.item_names?.split('#') || [])" :key="item">{{ item }}</li>
                 </ul>
               </td>
             </tr>
@@ -86,6 +86,12 @@ onMounted(async () => {
   const loadOrders = async () => {
     try {
       const customerId = customerStore.customer.id;
+      if (!customerId) {
+        console.error('customerId 為空或 undefined，無法載入訂單。');
+        error.value = '無法取得客戶ID，請重新登入。';
+        loading.value = false;
+        return;
+      }
       console.log('正在請求訂單資料，customerId:', customerId);
       
       // 添加請求超時設置

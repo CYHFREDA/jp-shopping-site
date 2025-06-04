@@ -14,6 +14,10 @@ export const useCustomerStore = defineStore('customer', () => {
     customer.value = userData;
     token.value = authToken;
     expireAt.value = expireTime;
+    console.log('CustomerStore: setCustomer 被呼叫。');
+    console.log('新 customer:', customer.value);
+    console.log('新 token:', token.value);
+    console.log('新 expireAt:', expireAt.value);
   }
 
   function logout() {
@@ -23,6 +27,7 @@ export const useCustomerStore = defineStore('customer', () => {
     localStorage.removeItem('customer');
     localStorage.removeItem('customer_token');
     localStorage.removeItem('customer_expire_at');
+    console.log('CustomerStore: logout 被呼叫。狀態已清空。');
   }
 
   // 新增日誌用於偵錯
