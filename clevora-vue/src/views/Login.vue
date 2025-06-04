@@ -36,10 +36,13 @@
             <input v-model="registerForm.name" type="text" class="form-control" placeholder="姓名">
           </div>
           <div class="mb-3">
-            <input v-model="registerForm.email" type="email" class="form-control" placeholder="Email（選填）">
+            <input v-model="registerForm.email" type="email" class="form-control" placeholder="Email">
           </div>
           <div class="mb-3">
-            <input v-model="registerForm.phone" type="text" class="form-control" placeholder="電話（選填）">
+            <input v-model="registerForm.phone" type="text" class="form-control" placeholder="電話">
+          </div>
+          <div class="mb-3">
+            <input v-model="registerForm.address" type="text" class="form-control" placeholder="地址">
           </div>
           <div class="mb-3">
             <input v-model="registerForm.password" type="password" class="form-control" placeholder="密碼">
@@ -73,6 +76,7 @@ const registerForm = ref({
   name: '',
   email: '',
   phone: '',
+  address: '', // Initialize address field
   password: '',
 });
 
@@ -114,7 +118,7 @@ const login = async () => {
 
 // 註冊功能
 const register = async () => {
-  if (!registerForm.value.username || !registerForm.value.name || !registerForm.value.password) {
+  if (!registerForm.value.username || !registerForm.value.name || !registerForm.value.email || !registerForm.value.phone || !registerForm.value.address || !registerForm.value.password) {
     alert('請填寫完整必填資訊！');
     return;
   }

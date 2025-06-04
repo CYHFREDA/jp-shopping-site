@@ -447,11 +447,11 @@ async def customer_register(request: Request):
     email = data.get("email")
     phone = data.get("phone")
     password = data.get("password")
-    address = data.get("address", "")
+    address = data.get("address")
 
     print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
 
-    if not (username and name and password):
+    if not (username and name and email and phone and address and password):
         print("❌ 註冊失敗: 缺少必要欄位") # Debugging line
         return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
 

@@ -25,7 +25,7 @@ onMounted(() => {
       <div class="container">
         <div class="row">
           <div class="col-12">
-            &copy; 2025 Clevora 日本代購商城管理系統
+            &copy; 2025 Clevora 日本代購
           </div>
         </div>
       </div>
