@@ -91,7 +91,7 @@ export const useCustomerStore = defineStore('customer', () => {
   };
 }, {
   persist: {
-    enabled: true,
+    enabled: false,
     strategies: [
       {
         key: 'customer',
