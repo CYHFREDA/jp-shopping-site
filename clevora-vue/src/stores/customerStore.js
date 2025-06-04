@@ -45,21 +45,35 @@ export const useCustomerStore = defineStore('customer', () => {
     
     if (storedCustomer && storedToken && storedExpireAt) {
       try {
+        // 驗證令牌 - 前端只需檢查過期時間
         const expireTime = parseInt(storedExpireAt);
-        if (expireTime > Date.now()) {
-          customer.value = JSON.parse(storedCustomer);
+
+        // 添加對解析後的 customer 資料的檢查
+        let parsedCustomer = null;
+        try {
+          parsedCustomer = JSON.parse(storedCustomer);
+        } catch (parseError) {
+          console.error('解析本地儲存的 customer 資料錯誤：', parseError);
+          setCustomer(null, null, null); // 解析錯誤則清除本地儲存
+          return; // 終止 init 函數執行
+        }
+
+        if (expireTime > Date.now() && parsedCustomer) { // 檢查token是否過期且customer資料存在
+          customer.value = parsedCustomer;
           token.value = storedToken;
           expireAt.value = expireTime;
+           console.log('從本地儲存成功載入用戶資料和token'); // 添加成功日誌
         } else {
-          console.log('Token 已過期');
-          setCustomer(null, null, null);
+          console.log('Token 已過期或本地儲存的 customer 資料無效'); // 調整日誌
+          setCustomer(null, null, null); // Token 過期或資料無效則清除本地儲存
         }
       } catch (error) {
         console.error('載入本地儲存資料錯誤：', error);
-        setCustomer(null, null, null);
+        setCustomer(null, null, null); // 錯誤則清除本地儲存
       }
     } else {
        console.log('本地儲存無用戶資料或token');
+       // 在這裡不需要 setCustomer(null, null, null)，因為初始值就是null
     }
   }
 
