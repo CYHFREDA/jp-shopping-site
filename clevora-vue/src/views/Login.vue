@@ -89,8 +89,12 @@ const login = async () => {
 
     if (data.message) {
       alert('✅ 登入成功！');
-      // 使用 customerStore 更新客戶狀態
-      customerStore.setCustomer({ id: data.customer_id, name: data.name });
+      // 使用 customerStore 更新客戶狀態，傳遞從後端獲取的用戶數據、token 和過期時間
+      customerStore.setCustomer(
+        { id: data.customer_id, name: data.name }, // 客戶數據
+        data.token,       // token
+        data.expire_at    // 過期時間
+      );
 
       const redirectURL = localStorage.getItem('redirectAfterLogin') || '/';
       localStorage.removeItem('redirectAfterLogin');
