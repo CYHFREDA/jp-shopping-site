@@ -39,13 +39,17 @@
             <input id="registerName" type="text" class="form-control" v-model="registerForm.name" />
           </div>
           <div class="mb-3">
-            <label for="registerEmail" class="form-label">Email（選填）</label>
+            <label for="registerEmail" class="form-label">Email</label>
             <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" />
           </div>
           <div class="mb-3">
-            <label for="registerPhone" class="form-label">電話（選填）</label>
+            <label for="registerPhone" class="form-label">電話</label>
             <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" />
           </div>
+          <div class="mb-3">
+            <label for="registerAddress" class="form-label">地址</label>
+            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" />
+          </div>         
           <div class="mb-3">
             <label for="registerPassword" class="form-label">密碼</label>
             <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" />
@@ -79,6 +83,7 @@ const registerForm = ref({
   name: '',
   email: '',
   phone: '',
+  address: '',
   password: '',
 });
 
@@ -119,10 +124,10 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
-  const { username, name, email, phone, password } = registerForm.value;
+  const { username, name, email, phone, address, password } = registerForm.value;
 
-  if (!username || !name || !password) {
-    alert("請填寫完整使用者名稱、姓名和密碼！");
+  if (!username || !name || !email || !phone || !address || !password) {
+    alert("請填寫所有必填欄位！");
     return;
   }
 
@@ -130,7 +135,7 @@ async function handleRegister() {
     const res = await fetch('/customers/register', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, name, email, phone, password })
+      body: JSON.stringify({ username, name, email, phone, address, password })
     });
 
     const data = await res.json();
@@ -142,6 +147,7 @@ async function handleRegister() {
         name: '',
         email: '',
         phone: '',
+        address: '',
         password: '',
       };
       activeTab.value = 'login';

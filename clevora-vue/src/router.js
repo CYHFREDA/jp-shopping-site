@@ -7,6 +7,7 @@ import Orders from './views/admin/Orders.vue';
 import Cart from './views/Cart.vue';
 import CustomerAuth from './views/CustomerAuth.vue';
 import Return from './views/Return.vue';
+import OrderHistory from './views/OrderHistory.vue';
 import { useCustomerStore } from './stores/customerStore';
 
 const routes = [
@@ -25,6 +26,11 @@ const routes = [
   {
     path: '/pay/return',
     component: Return
+  },
+  {
+    path: '/orderHistory',
+    component: OrderHistory,
+    meta: { requiresCustomerAuth: true }
   },
   { 
     path: '/admin/login', 
@@ -63,6 +69,14 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/login' && customerStore.isAuthenticated) {
     console.log('已登入用戶嘗試訪問登入頁面，重定向到首頁。');
     next('/');
+    return;
+  }
+
+  // 新增客戶登入驗證
+  if (to.meta.requiresCustomerAuth && !customerStore.isAuthenticated) {
+    console.log('未登入客戶嘗試訪問需要客戶登入的頁面，重定向到登入頁。');
+    localStorage.setItem('redirectAfterLogin', to.fullPath); // 儲存目標路徑，登入後可跳回
+    next('/login');
     return;
   }
 
