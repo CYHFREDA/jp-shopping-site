@@ -3,15 +3,18 @@ import { onMounted } from 'vue';
 import { clearCache } from './utils/cache';
 import NavBar from '@/components/NavBar.vue';
 import { useCartStore } from '@/stores/cartStore';
+import { useCustomerStore } from '@/stores/customerStore';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const cartStore = useCartStore();
+const customerStore = useCustomerStore();
 
 // 在應用啟動時初始化緩存清理和載入購物車
 onMounted(() => {
   clearCache.init();
   cartStore.loadCart();
+  customerStore.loadCustomer();
 });
 </script>
 

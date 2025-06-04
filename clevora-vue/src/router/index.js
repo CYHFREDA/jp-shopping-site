@@ -61,7 +61,7 @@ const routes = [
     ]
   },
   {
-    path: '/orderHistory',
+    path: '/orderhistory',
     name: 'OrderHistory',
     component: () => import('@/views/OrderHistory.vue'),
     meta: { 
