@@ -2,7 +2,7 @@
   <div class="container my-5">
     <div v-if="product" class="row">
       <div class="col-md-6">
-        <img :src="product.image_url || 'https://via.placeholder.com/400'" :alt="product.name" class="img-fluid rounded">
+        <img :src="product.image_url || 'https://picsum.photos/400'" :alt="product.name" class="img-fluid rounded">
       </div>
       <div class="col-md-6">
         <h1 class="mb-3">{{ product.name }}</h1>

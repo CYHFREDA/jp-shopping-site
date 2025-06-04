@@ -2,7 +2,7 @@
   <div v-if="products.length">
     <div v-for="product in products" :key="product.id" class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
       <div class="d-flex flex-column flex-md-row">
-        <img :src="product.image_url || 'https://via.placeholder.com/150'" :alt="product.name" class="me-3 mb-3 mb-md-0" style="width:150px; height:auto;">
+        <img :src="product.image_url || 'https://picsum.photos/150'" :alt="product.name" class="me-3 mb-3 mb-md-0" style="width:150px; height:auto;">
         <div class="flex-grow-1">
           <h5>{{ product.name }}</h5>
           <p>{{ product.description }}</p>
