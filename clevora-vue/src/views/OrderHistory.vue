@@ -74,7 +74,7 @@ onMounted(async () => {
   console.log('customerStore.customer:', customerStore.customer);
   
   // 確保客戶已登入且 customer_id 可用
-  if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
+  if (!customerStore.isAuthenticated || !customerStore.customer?.id) {
     error.value = '請先登入以查看訂單記錄。';
     loading.value = false;
     return;
@@ -85,7 +85,7 @@ onMounted(async () => {
 
   const loadOrders = async () => {
     try {
-      const customerId = customerStore.customer.customer_id;
+      const customerId = customerStore.customer.id;
       console.log('正在請求訂單資料，customerId:', customerId);
       
       // 添加請求超時設置

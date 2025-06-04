@@ -49,6 +49,7 @@ const searchQuery = ref('');
 
 function handleLogout() {
   customerStore.logout();
+  alert('已成功登出');
   router.push('/');
 }
 
