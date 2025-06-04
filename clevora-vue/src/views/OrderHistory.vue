@@ -55,10 +55,10 @@ import { ref, onMounted } from 'vue';
 import { useCustomerStore } from '@/stores/customerStore';
 import axios from 'axios';
 
-const customerStore = useCustomerStore();
 const orders = ref([]);
 const loading = ref(true);
 const error = ref(null);
+const customerStore = useCustomerStore();
 
 // 格式化日期時間
 function formatDateTime(dateTimeString) {
@@ -68,9 +68,13 @@ function formatDateTime(dateTimeString) {
 }
 
 onMounted(async () => {
+  console.log('OrderHistory.vue mounted.');
+  console.log('isAuthenticated:', customerStore.isAuthenticated);
+  console.log('customer_id:', customerStore.customer?.customer_id);
+
   // 確保客戶已登入且 customer_id 可用
   if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
-    error.value = '請先登入以查看訂單記錄。';
+    error.value = '請先登入以查看訂單記錄。' + (customerStore.isAuthenticated ? '' : ' (未驗證)') + (customerStore.customer?.customer_id ? '' : ' (無 ID)');
     loading.value = false;
     return;
   }
