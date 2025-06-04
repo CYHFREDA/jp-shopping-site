@@ -635,14 +635,22 @@ async def get_customer_orders(customer_id: int, request: Request):
         conn = get_db_conn()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute("""
-            SELECT order_id, amount, item_names, status, created_at, paid_at 
-            FROM orders 
-            WHERE customer_id=%s 
+            SELECT order_id, amount, item_names, status, created_at, paid_at
+            FROM orders
+            WHERE customer_id=%s
             ORDER BY created_at DESC
         """, (customer_id,))
         orders = cursor.fetchall()
         cursor.close()
         conn.close()
+
+        # 將 datetime 物件轉換為字串，以解決 JSON 序列化問題
+        for order in orders:
+            if 'created_at' in order and isinstance(order['created_at'], datetime):
+                order['created_at'] = str(order['created_at'])
+            if 'paid_at' in order and isinstance(order['paid_at'], datetime):
+                order['paid_at'] = str(order['paid_at'])
+
         return JSONResponse(orders)
 
     except Exception as e:
