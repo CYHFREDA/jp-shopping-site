@@ -155,9 +155,13 @@ onMounted(() => {
 
 // 檢查登入狀態，如果已登入則導向首頁 (避免重複登入)
 onMounted(() => {
-  if (customerStore.isAuthenticated) {
-    router.push('/');
-  }
+  // 增加一個短暫的延遲，確保頁面渲染完成再檢查登入狀態和導向
+  setTimeout(() => {
+    if (customerStore.isAuthenticated) {
+      console.log('已偵測到登入狀態，導向首頁...'); // 添加日誌
+      router.push('/');
+    }
+  }, 100); // 延遲 100 毫秒，可根據需要調整
 });
 </script>
 

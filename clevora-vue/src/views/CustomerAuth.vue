@@ -100,10 +100,11 @@ async function handleLogin() {
 
     if (res.ok) {
       alert("✅ 登入成功！");
-      customerStore.setCustomer({
-        ...data,
-        customer_id: data.customer_id,
-      });
+      customerStore.setCustomer(
+        { id: data.customer_id, name: data.name },
+        data.token,
+        data.expire_at
+      );
 
       const redirectURL = localStorage.getItem("redirectAfterLogin") || "/";
       localStorage.removeItem("redirectAfterLogin");
