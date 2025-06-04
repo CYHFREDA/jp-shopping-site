@@ -21,7 +21,7 @@
           <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
             <div class="product-list-img me-3 mb-3 mb-md-0">
               <router-link :to="`/product/${product.id}`">
-                <img :src="product.image_url || 'https://via.placeholder.com/150'" :alt="product.name" class="img-fluid" />
+                <img :src="product.image_url || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'" :alt="product.name" class="img-fluid" />
               </router-link>
             </div>
             <div class="product-list-content">
@@ -32,7 +32,7 @@
               </h5>
               <p class="product-list-desc mb-2">{{ product.description || '' }}</p>
               <div class="product-list-bottom">
-                <div class="product-list-price">NT$ {{ product.price }}</div>
+                <div class="product-list-price">NT$ {{ product.price?.toFixed(0) || '未定價' }}</div>
                 <button class="btn btn-success btn-sm" @click="addToCart(product)">加入購物車</button>
               </div>
             </div>
@@ -107,7 +107,15 @@ const loadProducts = async () => {
     console.log('開始載入商品...');
     const res = await axios.get('/products');
     console.log('API 回應：', res.data);
-    allProducts.value = res.data;
+    allProducts.value = res.data.map(p => ({
+      id: p[0],
+      name: p[1],
+      price: p[2],
+      description: p[3],
+      image_url: p[4],
+      created_at: p[5],
+      category: p[6]
+    }));
   } catch (error) {
     console.error('載入商品時發生錯誤：', error);
     if (error.response) {
