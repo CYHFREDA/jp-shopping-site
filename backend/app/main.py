@@ -447,8 +447,9 @@ async def customer_register(request: Request):
     email = data.get("email")
     phone = data.get("phone")
     password = data.get("password")
+    address = data.get("address", "")
 
-    print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}") # Debugging line
+    print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
 
     if not (username and name and password):
         print("❌ 註冊失敗: 缺少必要欄位") # Debugging line
@@ -467,8 +468,8 @@ async def customer_register(request: Request):
         # bcrypt 雜湊密碼
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        cursor.execute("INSERT INTO customers (username, name, email, phone, password, created_at) VALUES (%s, %s, %s, %s, %s, NOW())",
-                      (username, name, email, phone, hashed_password))
+        cursor.execute("INSERT INTO customers (username, name, email, phone, password, address, created_at) VALUES (%s, %s, %s, %s, %s, %s, NOW())",
+                      (username, name, email, phone, hashed_password, address))
         conn.commit()
         print(f"✅ 使用者 '{username}' 註冊成功！") # Debugging line
         return JSONResponse({"message": "註冊成功"})
