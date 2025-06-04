@@ -15,6 +15,7 @@ import psycopg2
 import bcrypt
 import psycopg2.extras
 import jwt
+import pytz
 
 load_dotenv()
 app = FastAPI()
@@ -644,12 +645,19 @@ async def get_customer_orders(customer_id: int, request: Request):
         cursor.close()
         conn.close()
 
-        # 將 datetime 物件轉換為字串，以解決 JSON 序列化問題
+        # 將 datetime 物件轉換為字串，並轉換時區為台北時間，以解決 JSON 序列化問題
+        taipei_tz = pytz.timezone('Asia/Taipei')
         for order in orders:
             if 'created_at' in order and isinstance(order['created_at'], datetime):
-                order['created_at'] = str(order['created_at'])
+                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
+                utc_dt = order['created_at'].replace(tzinfo=pytz.utc)
+                taipei_dt = utc_dt.astimezone(taipei_tz)
+                order['created_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
             if 'paid_at' in order and isinstance(order['paid_at'], datetime):
-                order['paid_at'] = str(order['paid_at'])
+                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
+                utc_dt = order['paid_at'].replace(tzinfo=pytz.utc)
+                taipei_dt = utc_dt.astimezone(taipei_tz)
+                order['paid_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
 
         return JSONResponse(orders)
 
