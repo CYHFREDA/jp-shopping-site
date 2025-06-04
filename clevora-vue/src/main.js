@@ -20,9 +20,8 @@ import { useUserStore } from '@/stores/userStore';
 
 const app = createApp(App);
 const pinia = createPinia();
-
-app.use(pinia); // 先安裝 pinia
 pinia.use(piniaPersistedstate) // ✅ 啟用 persist plugin
+app.use(pinia); // 先安裝 pinia
 // 在掛載應用程式前，嘗試載入使用者狀態
 const userStore = useUserStore();
 // Pinia store 在定義時已經會從 localStorage 載入 token 了
