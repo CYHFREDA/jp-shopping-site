@@ -2,7 +2,7 @@
   <nav class="admin-header navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <router-link to="/admin" class="navbar-brand">
-        <img src="/images/logo.png" alt="Clevora Logo" class="admin-logo me-2">
+        <img src="/images/LOGO.png" alt="Clevora Logo" class="admin-logo me-2">
         後台管理
       </router-link>
       <div class="d-flex">
