@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from dotenv import load_dotenv
 from psycopg2 import errors
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import uvicorn
 import hashlib
@@ -480,7 +480,19 @@ async def customer_login(request: Request):
         hashed_password = row[2]
         # 用 bcrypt 驗證密碼是否相符
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-            return JSONResponse({"message": "登入成功", "customer_id": row[0], "name": row[1]})
+            customer_id = row[0]
+            name = row[1]
+            
+            # 💡 生成 JWT Token
+            expire_at = datetime.utcnow() + timedelta(hours=24) # 設定 24 小時後過期
+            payload = {
+                "customer_id": customer_id,
+                "name": name,
+                "exp": expire_at # Token 的過期時間
+            }
+            token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+            
+            return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)}) # 回傳毫秒時間戳記給前端
     return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
 
 #客戶重置密碼
