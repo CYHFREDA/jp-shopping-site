@@ -1,6 +1,5 @@
 <template>
   <div>
-    <NavBar @search="searchProduct" />
     <div class="bg-white border-bottom shadow-sm">
       <div class="container py-2 d-flex flex-wrap gap-2 justify-content-center">
         <button
@@ -48,8 +47,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
-import NavBar from '@/components/NavBar.vue';
-import ProductList from '@/components/ProductList.vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
 import { useRoute } from 'vue-router';
@@ -125,10 +122,6 @@ const loadProducts = async () => {
 
 const filterCategory = (category) => {
   selectedCategory.value = category;
-};
-
-const searchProduct = (query) => {
-  searchQuery.value = query;
 };
 
 const addToCart = (product) => {
