@@ -1,16 +1,17 @@
 import axios from 'axios';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const api = axios.create({
   baseURL: '/',
-  timeout: 5000
+  timeout: 10000
 });
 
 // 請求攔截器
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('admin_token');
-    if (token && config.url.startsWith('/admin')) {
-      config.headers.Authorization = `Basic ${token}`;
+    const customerStore = useCustomerStore();
+    if (customerStore.isAuthenticated) {
+      config.headers.Authorization = `Bearer ${customerStore.token}`;
     }
     return config;
   },
@@ -23,10 +24,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401 && error.config.url.startsWith('/admin')) {
-      localStorage.removeItem('admin_token');
-      alert('後台認證失敗，請重新登入！');
-      window.location.href = '/admin/login';
+    if (error.response && error.response.status === 401) {
+      const customerStore = useCustomerStore();
+      customerStore.logout();
     }
     return Promise.reject(error);
   }

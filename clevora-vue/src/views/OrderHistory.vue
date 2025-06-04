@@ -53,7 +53,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useCustomerStore } from '@/stores/customerStore';
-import axios from 'axios';
+import api from '@/services/api';
 
 const orders = ref([]);
 const loading = ref(true);
@@ -80,20 +80,73 @@ onMounted(async () => {
     return;
   }
 
-  try {
-    const customerId = customerStore.customer.customer_id;
-    const response = await axios.get(`/customers/${customerId}/orders`);
-    orders.value = response.data;
-  } catch (err) {
-    console.error('載入訂單記錄錯誤：', err);
-    if (err.response && err.response.status === 401) {
-      error.value = '認證已過期，請重新登入。';
-    } else {
-      error.value = '載入訂單記錄失敗，請稍後再試或聯繫客服。';
+  let retryCount = 0;
+  const maxRetries = 3;
+
+  const loadOrders = async () => {
+    try {
+      const customerId = customerStore.customer.customer_id;
+      console.log('正在請求訂單資料，customerId:', customerId);
+      
+      // 添加請求超時設置
+      const response = await Promise.race([
+        api.get(`/customers/${customerId}/orders`),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('請求超時')), 10000)
+        )
+      ]);
+      
+      console.log('訂單資料響應：', response);
+      console.log('訂單資料：', response.data);
+      
+      if (Array.isArray(response.data)) {
+        orders.value = response.data;
+      } else {
+        console.error('訂單資料格式不正確：', response.data);
+        error.value = '訂單資料格式不正確，請聯繫客服。';
+      }
+    } catch (err) {
+      console.error('載入訂單記錄錯誤：', err);
+      console.error('錯誤詳情：', {
+        message: err.message,
+        response: err.response,
+        request: err.request
+      });
+
+      if (err.response) {
+        if (err.response.status === 401) {
+          error.value = '認證已過期，請重新登入。';
+          customerStore.logout();
+        } else if (err.response.status === 404) {
+          error.value = '找不到訂單記錄。';
+        } else if (err.response.status >= 500) {
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`重試載入訂單 (${retryCount}/${maxRetries})...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            return loadOrders();
+          }
+          error.value = '伺服器錯誤，請稍後再試。';
+        } else {
+          error.value = '載入訂單記錄失敗，請稍後再試。';
+        }
+      } else if (err.message === '請求超時') {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`重試載入訂單 (${retryCount}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          return loadOrders();
+        }
+        error.value = '載入訂單超時，請稍後再試。';
+      } else {
+        error.value = '載入訂單記錄失敗，請稍後再試或聯繫客服。';
+      }
+    } finally {
+      loading.value = false;
     }
-  } finally {
-    loading.value = false;
-  }
+  };
+
+  await loadOrders();
 });
 
 </script>

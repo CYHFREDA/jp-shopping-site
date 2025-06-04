@@ -14,6 +14,7 @@ import os
 import psycopg2
 import bcrypt
 import psycopg2.extras
+import jwt
 
 load_dotenv()
 app = FastAPI()
@@ -577,11 +578,31 @@ async def update_admin_password(request: Request, auth=Depends(verify_basic_auth
     return JSONResponse({"message": "✅ 密碼已更新！"})
 
 @app.get("/customers/{customer_id}/orders")
-async def get_customer_orders(customer_id: int):
+async def get_customer_orders(customer_id: int, request: Request):
     try:
+        # 從請求頭中獲取 token
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return JSONResponse({"error": "未授權訪問"}, status_code=401)
+        
+        token = auth_header.split(' ')[1]
+        # 驗證 token 並獲取客戶 ID
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            token_customer_id = payload.get('customer_id')
+            if not token_customer_id or int(token_customer_id) != customer_id:
+                return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
+        except jwt.InvalidTokenError:
+            return JSONResponse({"error": "無效的認證令牌"}, status_code=401)
+
         conn = get_db_conn()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cursor.execute("SELECT * FROM orders WHERE customer_id=%s ORDER BY created_at DESC", (customer_id,))
+        cursor.execute("""
+            SELECT order_id, amount, item_names, status, created_at, paid_at 
+            FROM orders 
+            WHERE customer_id=%s 
+            ORDER BY created_at DESC
+        """, (customer_id,))
         orders = cursor.fetchall()
         cursor.close()
         conn.close()
