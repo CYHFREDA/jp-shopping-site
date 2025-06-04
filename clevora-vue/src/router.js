@@ -41,6 +41,10 @@ const routes = [
     component: AdminDashboard,
     meta: { requiresAuth: true },
     children: [
+      {
+        path: '', // 當路徑為 /admin 時，預設重定向到 orders
+        redirect: 'orders'
+      },
       { 
         path: 'products', 
         component: Products 
