@@ -14,7 +14,6 @@ const customerStore = useCustomerStore();
 onMounted(() => {
   clearCache.init();
   cartStore.loadCart();
-  customerStore.loadCustomer();
 });
 </script>
 
