@@ -57,4 +57,7 @@ export const useCustomerStore = defineStore('customer', () => {
     loadCustomer,
     logout 
   };
-}); 
+},
+  {
+    persist: true
+  });

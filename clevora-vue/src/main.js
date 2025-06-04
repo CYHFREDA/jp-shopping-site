@@ -1,6 +1,7 @@
 // main.js
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import piniaPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue';
 import router from './router';
 import axios from 'axios';
@@ -21,7 +22,7 @@ const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia); // 先安裝 pinia
-
+pinia.use(piniaPersistedstate) // ✅ 啟用 persist plugin
 // 在掛載應用程式前，嘗試載入使用者狀態
 const userStore = useUserStore();
 // Pinia store 在定義時已經會從 localStorage 載入 token 了
