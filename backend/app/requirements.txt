@@ -6,3 +6,4 @@ python-dotenv
 gunicorn
 python-multipart
 bcrypt
+PyJWT
