@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import jwt from 'jsonwebtoken';
 
 export const useCustomerStore = defineStore('customer', () => {
   const customer = ref(null);
@@ -11,27 +10,18 @@ export const useCustomerStore = defineStore('customer', () => {
     return !!customer.value && !!token.value && !!expireAt.value && Date.now() < expireAt.value;
   });
 
-  function setCustomer(data) {
-    if (data) {
-      // 生成 JWT 令牌
-      const tokenData = {
-        customer_id: data.customer_id,
-        name: data.name,
-        exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 分鐘過期
-      };
-      
-      const newToken = jwt.sign(tokenData, 'your-secret-key'); // 請使用環境變數存儲密鑰
-      
+  function setCustomer(data, token, expireAtValue) {
+    if (data && token && expireAtValue) {
       customer.value = {
         ...data,
         customer_id: data.customer_id
       };
-      token.value = newToken;
-      expireAt.value = Date.now() + 30 * 60 * 1000; // 30 分鐘有效
+      token.value = token;
+      expireAt.value = expireAtValue;
       
       localStorage.setItem('customer', JSON.stringify(customer.value));
-      localStorage.setItem('customer_token', newToken);
-      localStorage.setItem('customer_expire_at', expireAt.value);
+      localStorage.setItem('customer_token', token);
+      localStorage.setItem('customer_expire_at', expireAtValue);
     } else {
       customer.value = null;
       token.value = null;
@@ -44,7 +34,7 @@ export const useCustomerStore = defineStore('customer', () => {
 
   function logout() {
     alert('登入已過期，請重新登入');
-    setCustomer(null);
+    setCustomer(null, null, null);
   }
 
   // 初始化時從 localStorage 載入資料
@@ -55,19 +45,21 @@ export const useCustomerStore = defineStore('customer', () => {
     
     if (storedCustomer && storedToken && storedExpireAt) {
       try {
-        // 驗證令牌
-        const decoded = jwt.verify(storedToken, 'your-secret-key');
-        if (decoded.exp * 1000 > Date.now()) {
+        const expireTime = parseInt(storedExpireAt);
+        if (expireTime > Date.now()) {
           customer.value = JSON.parse(storedCustomer);
           token.value = storedToken;
-          expireAt.value = parseInt(storedExpireAt);
+          expireAt.value = expireTime;
         } else {
-          setCustomer(null);
+          console.log('Token 已過期');
+          setCustomer(null, null, null);
         }
       } catch (error) {
-        console.error('令牌驗證失敗：', error);
-        setCustomer(null);
+        console.error('載入本地儲存資料錯誤：', error);
+        setCustomer(null, null, null);
       }
+    } else {
+       console.log('本地儲存無用戶資料或token');
     }
   }
 
