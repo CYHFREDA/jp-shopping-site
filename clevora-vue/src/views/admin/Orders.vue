@@ -34,13 +34,15 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 const orders = ref([]);
 const isLoading = ref(true);
+const userStore = useUserStore();
 
 const loadOrders = async () => {
-  const token = localStorage.getItem('adminToken');
+  const token = userStore.admin_token;
   if (!token) {
     alert('請先登入後台');
     router.push('/admin/login');

@@ -8,11 +8,10 @@ export const useUserStore = defineStore('user', () => {
 
   const isAuthenticated = computed(() => !!admin_token.value);
 
-  function setToken(tokenValue) {
+  function setToken(tokenValue, expireAtValue) {
     admin_token.value = tokenValue;
     localStorage.setItem('admin_token', tokenValue);
-    const expireAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 天後過期
-    localStorage.setItem('expire_at', expireAt);
+    localStorage.setItem('expire_at', expireAtValue);
   }
 
   function logout() {

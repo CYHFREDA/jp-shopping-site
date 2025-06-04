@@ -78,12 +78,8 @@ CREATE TABLE admin_users (
 );
 
 --新增使用者管理員,帳號admin密碼1234
---先在終端機開啟 python
---在 Python 中執行下面的程式碼：
---import bcrypt
---password = "1234".encode('utf-8')  # 你可以把 1234 換成任何密碼
---hashed = bcrypt.hashpw(password, bcrypt.gensalt())
---print(hashed.decode())
+-- 生成 python -c "import bcrypt; print(bcrypt.hashpw(b'1234', bcrypt.gensalt()).decode())"
+-- 驗證 python -c "import bcrypt; print(bcrypt.checkpw(b'1234', b'$2b$12$VRZbqsMIwOa5NeJqG/BkduteRLXKnmfu5pNxd1obytRFLhs0ccYlq'))"
 --INSERT INTO admin_users (username, password)
 --VALUES ('admin', '$2b$12$k56Kb.WBCHwpNxnX9WmWOu9FDe9wTNQtL/eIA4aCRvjErQ0lnbl5C');
 -- UPDATE admin_users

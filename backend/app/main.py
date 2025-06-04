@@ -71,8 +71,7 @@ DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 DB_HOST = os.getenv("POSTGRES_HOST")
 DB_PORT = "5432"
 
-# 全局連線池
-# minconn 建議根據應用程式的預期併發量設定，maxconn 避免耗盡資料庫資源
+# 全局連線池 minconn 建議根據應用程式的預期併發量設定，maxconn 避免耗盡資料庫資源
 # 可以根據實際情況調整這些值
 global_pool = SimpleConnectionPool(minconn=1, maxconn=10,
                                     dbname=DB_NAME,
@@ -107,10 +106,26 @@ def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
     sha256 = hashlib.sha256()
     sha256.update(encode_str.encode('utf-8'))
     return sha256.hexdigest().upper()
+
 #測試API是否正常
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+# ⭐️ 改善全域例外處理器
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"❌ 全域例外錯誤: {exc}")
+    # 若為 psycopg2 的特定資料庫錯誤，給前端更明確提示
+    if isinstance(exc, errors.StringDataRightTruncation):
+        return JSONResponse({"error": "❌ 文字長度超過限制！"}, status_code=400)
+    if isinstance(exc, errors.UniqueViolation):
+        return JSONResponse({"error": "❌ 資料重複，請確認再送出！"}, status_code=400)
+    # 其他未知錯誤
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"error": "❌ 伺服器錯誤，請稍後再試！"}
+    )
 
 # 支付區
 @app.post("/pay")
@@ -199,6 +214,7 @@ async def ecpay_notify(request: Request, cursor=Depends(get_db_cursor)):
         print("❌ /ecpay/notify 發生錯誤：", str(e))
         return HTMLResponse("0|Error")
 
+#前端
 @app.get("/api/orders/{order_id}/status")
 async def get_order_status(order_id: str, cursor=Depends(get_db_cursor)):
     try:
@@ -214,6 +230,144 @@ async def get_order_status(order_id: str, cursor=Depends(get_db_cursor)):
         print("❌ 後端查詢訂單狀態錯誤：", str(e))
         return JSONResponse({"error": "Internal server error"}, status_code=500)
 
+# 取得所有商品
+@app.get("/api/products")
+async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
+    if query:
+        cursor.execute("""
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+            WHERE name ILIKE %s
+        """, (f"%{query}%",))
+    else:
+        cursor.execute("""
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+        """)
+    
+    products = cursor.fetchall()
+    return products
+
+#客戶註冊（前台用）
+@app.post("/api/customers/register")
+async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    username = data.get("username")
+    name = data.get("name")
+    email = data.get("email")
+    phone = data.get("phone")
+    password = data.get("password")
+    address = data.get("address")
+
+    print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
+
+    if not (username and name and email and phone and address and password):
+        print("❌ 註冊失敗: 缺少必要欄位") # Debugging line
+        return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
+
+    # Check if username already exists BEFORE attempting insert to give a clearer error
+    try:
+        cursor.execute("SELECT username FROM customers WHERE username ILIKE %s", (username,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            print(f"❌ 註冊失敗: 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
+            return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+
+        # bcrypt 雜湊密碼
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        cursor.execute("INSERT INTO customers (username, name, email, phone, password, address, created_at) VALUES (%s, %s, %s, %s, %s, %s, NOW())",
+                      (username, name, email, phone, hashed_password, address))
+        cursor.connection.commit()
+        print(f"✅ 使用者 '{username}' 註冊成功！") # Debugging line
+        return JSONResponse({"message": "註冊成功"})
+    except psycopg2.IntegrityError as e:
+        print(f"❌ 資料庫 IntegrityError (可能為唯一性約束)：{e}") # Debugging line
+        return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+    except Exception as e:
+        print(f"❌ 註冊時發生其他錯誤：{e}") # Debugging line
+        return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
+    
+#客戶登入（前台用）
+@app.post("/api/customers/login")
+async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    username = data.get("username")
+    password = data.get("password")
+    # conn = get_db_conn()
+    # cursor = conn.cursor()
+    # 先撈出該 username 的 bcrypt 雜湊密碼
+    cursor.execute("SELECT customer_id, name, password FROM customers WHERE username=%s", (username,))
+    row = cursor.fetchone()
+    # cursor.close()
+    # conn.close()
+
+    if row:
+        hashed_password = row[2]
+        # 用 bcrypt 驗證密碼是否相符
+        if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+            customer_id = row[0]
+            name = row[1]
+            
+            # 💡 生成 JWT Token
+            expire_at = datetime.utcnow() + timedelta(hours=24) # 設定 24 小時後過期
+            payload = {
+                "customer_id": customer_id,
+                "name": name,
+                "exp": expire_at # Token 的過期時間
+            }
+            token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+            
+            return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)}) # 回傳毫秒時間戳記給前端
+    return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+
+@app.get("/api/customers/{customer_id}/orders")
+async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
+    try:
+        # 從請求頭中獲取 token
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return JSONResponse({"error": "未授權訪問"}, status_code=401)
+        
+        token = auth_header.split(' ')[1]
+        # 驗證 token 並獲取客戶 ID
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            token_customer_id = payload.get('customer_id')
+            if not token_customer_id or int(token_customer_id) != customer_id:
+                return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
+        except jwt.InvalidTokenError:
+            return JSONResponse({"error": "無效的認證令牌"}, status_code=401)
+
+        cursor.execute("""
+            SELECT order_id, amount, item_names, status, created_at, paid_at
+            FROM orders
+            WHERE customer_id=%s
+            ORDER BY created_at DESC
+        """, (customer_id,))
+        orders = cursor.fetchall()
+
+        # 將 datetime 物件轉換為字串，並轉換時區為台北時間，以解決 JSON 序列化問題
+        taipei_tz = pytz.timezone('Asia/Taipei')
+        for order in orders:
+            if 'created_at' in order and isinstance(order['created_at'], datetime):
+                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
+                utc_dt = order['created_at'].replace(tzinfo=pytz.utc)
+                taipei_dt = utc_dt.astimezone(taipei_tz)
+                order['created_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
+            if 'paid_at' in order and isinstance(order['paid_at'], datetime):
+                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
+                utc_dt = order['paid_at'].replace(tzinfo=pytz.utc)
+                taipei_dt = utc_dt.astimezone(taipei_tz)
+                order['paid_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        return JSONResponse(orders)
+
+    except Exception as e:
+        print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤：", str(e))
+        return JSONResponse({"error": "Internal server error"}, status_code=500)
+    
+# 後端
 @app.get("/api/admin/orders")
 async def admin_get_orders(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("SELECT id, order_id, item_names, amount, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
@@ -258,24 +412,6 @@ async def update_order_status(request: Request, auth=Depends(verify_admin_jwt), 
         print("❌ 更新訂單狀態錯誤：", str(e))
         return JSONResponse({"error": "更新訂單狀態失敗"}, status_code=500)
 
-# 取得所有商品
-@app.get("/api/products")
-async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
-    if query:
-        cursor.execute("""
-            SELECT id, name, price, description, image_url, created_at, category
-            FROM products
-            WHERE name ILIKE %s
-        """, (f"%{query}%",))
-    else:
-        cursor.execute("""
-            SELECT id, name, price, description, image_url, created_at, category
-            FROM products
-        """)
-    
-    products = cursor.fetchall()
-    return products
-
 #後台新增商品
 @app.post("/api/admin/products")
 async def admin_add_product(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
@@ -305,21 +441,6 @@ async def admin_add_product(request: Request, auth=Depends(verify_admin_jwt), cu
         print("❌ 新增商品時出錯：", e)
         return JSONResponse({"error": "❌ 新增商品失敗，請稍後再試！"}, status_code=500)
 
-# ⭐️ 改善全域例外處理器
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    print(f"❌ 全域例外錯誤: {exc}")
-    # 若為 psycopg2 的特定資料庫錯誤，給前端更明確提示
-    if isinstance(exc, errors.StringDataRightTruncation):
-        return JSONResponse({"error": "❌ 文字長度超過限制！"}, status_code=400)
-    if isinstance(exc, errors.UniqueViolation):
-        return JSONResponse({"error": "❌ 資料重複，請確認再送出！"}, status_code=400)
-    # 其他未知錯誤
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"error": "❌ 伺服器錯誤，請稍後再試！"}
-    )
-
 #後台編輯商品
 @app.put("/api/admin/products/{id}")
 async def admin_update_product(id: int, request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
@@ -345,7 +466,7 @@ async def admin_delete_product(id: int, auth=Depends(verify_admin_jwt), cursor=D
     cursor.connection.commit()
     return JSONResponse({"message": "商品已刪除"})
 
-#出貨管理（後台）
+#後台出貨管理
 @app.get("/api/admin/shipments")
 async def admin_get_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     print("🚚 準備查詢出貨資料")
@@ -358,7 +479,7 @@ async def admin_get_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get
     shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
     return JSONResponse(shipments)
 
-# 出貨管理（更新出貨單資料）
+# 後台出貨管理更新出貨單資料
 @app.post("/api/admin/update_shipment")
 async def admin_update_shipment(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
@@ -377,7 +498,7 @@ async def admin_update_shipment(request: Request, auth=Depends(verify_admin_jwt)
     cursor.connection.commit()
     return JSONResponse({"message": "✅ 出貨資料已更新！"})
 
-#客戶管理（後台）
+#後台客戶管理
 @app.get("/api/admin/customers")
 async def admin_get_customers(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("SELECT customer_id, name, email, phone, address, created_at FROM customers ORDER BY created_at DESC")
@@ -394,79 +515,6 @@ async def admin_get_customers(auth=Depends(verify_admin_jwt), cursor=Depends(get
         for r in rows
     ]
     return JSONResponse(customers)
-
-#客戶註冊（前台用）
-@app.post("/api/customers/register")
-async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
-    data = await request.json()
-    username = data.get("username")
-    name = data.get("name")
-    email = data.get("email")
-    phone = data.get("phone")
-    password = data.get("password")
-    address = data.get("address")
-
-    print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
-
-    if not (username and name and email and phone and address and password):
-        print("❌ 註冊失敗: 缺少必要欄位") # Debugging line
-        return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
-
-    # Check if username already exists BEFORE attempting insert to give a clearer error
-    try:
-        cursor.execute("SELECT username FROM customers WHERE username ILIKE %s", (username,))
-        existing_user = cursor.fetchone()
-        if existing_user:
-            print(f"❌ 註冊失敗: 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
-            return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
-
-        # bcrypt 雜湊密碼
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-        cursor.execute("INSERT INTO customers (username, name, email, phone, password, address, created_at) VALUES (%s, %s, %s, %s, %s, %s, NOW())",
-                      (username, name, email, phone, hashed_password, address))
-        cursor.connection.commit()
-        print(f"✅ 使用者 '{username}' 註冊成功！") # Debugging line
-        return JSONResponse({"message": "註冊成功"})
-    except psycopg2.IntegrityError as e:
-        print(f"❌ 資料庫 IntegrityError (可能為唯一性約束)：{e}") # Debugging line
-        return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
-    except Exception as e:
-        print(f"❌ 註冊時發生其他錯誤：{e}") # Debugging line
-        return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
-
-#客戶登入（前台用）
-@app.post("/api/customers/login")
-async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
-    data = await request.json()
-    username = data.get("username")
-    password = data.get("password")
-    # conn = get_db_conn()
-    # cursor = conn.cursor()
-    # 先撈出該 username 的 bcrypt 雜湊密碼
-    cursor.execute("SELECT customer_id, name, password FROM customers WHERE username=%s", (username,))
-    row = cursor.fetchone()
-    # cursor.close()
-    # conn.close()
-
-    if row:
-        hashed_password = row[2]
-        # 用 bcrypt 驗證密碼是否相符
-        if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-            customer_id = row[0]
-            name = row[1]
-            
-            # 💡 生成 JWT Token
-            expire_at = datetime.utcnow() + timedelta(hours=24) # 設定 24 小時後過期
-            payload = {
-                "customer_id": customer_id,
-                "name": name,
-                "exp": expire_at # Token 的過期時間
-            }
-            token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-            
-            return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)}) # 回傳毫秒時間戳記給前端
-    return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
 
 #後台客戶重置密碼
 @app.post("/api/admin/reset_customer_password")
@@ -590,49 +638,3 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
     return JSONResponse({"message": "登入成功", "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
-
-@app.get("/api/customers/{customer_id}/orders")
-async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
-    try:
-        # 從請求頭中獲取 token
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return JSONResponse({"error": "未授權訪問"}, status_code=401)
-        
-        token = auth_header.split(' ')[1]
-        # 驗證 token 並獲取客戶 ID
-        try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            token_customer_id = payload.get('customer_id')
-            if not token_customer_id or int(token_customer_id) != customer_id:
-                return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
-        except jwt.InvalidTokenError:
-            return JSONResponse({"error": "無效的認證令牌"}, status_code=401)
-
-        cursor.execute("""
-            SELECT order_id, amount, item_names, status, created_at, paid_at
-            FROM orders
-            WHERE customer_id=%s
-            ORDER BY created_at DESC
-        """, (customer_id,))
-        orders = cursor.fetchall()
-
-        # 將 datetime 物件轉換為字串，並轉換時區為台北時間，以解決 JSON 序列化問題
-        taipei_tz = pytz.timezone('Asia/Taipei')
-        for order in orders:
-            if 'created_at' in order and isinstance(order['created_at'], datetime):
-                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
-                utc_dt = order['created_at'].replace(tzinfo=pytz.utc)
-                taipei_dt = utc_dt.astimezone(taipei_tz)
-                order['created_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
-            if 'paid_at' in order and isinstance(order['paid_at'], datetime):
-                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
-                utc_dt = order['paid_at'].replace(tzinfo=pytz.utc)
-                taipei_dt = utc_dt.astimezone(taipei_tz)
-                order['paid_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
-
-        return JSONResponse(orders)
-
-    except Exception as e:
-        print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤：", str(e))
-        return JSONResponse({"error": "Internal server error"}, status_code=500)

@@ -43,17 +43,15 @@ const login = async () => {
   }
 
   try {
-    // 後台管理員登入使用 Basic Auth
-    const base64Credentials = btoa(`${username.value}:${password.value}`);
-    
-    // 嘗試訪問一個受保護的後台端點來驗證 Basic Auth 憑證
-    const res = await fetch('/api/admin/orders', {
-      headers: { 'Authorization': 'Basic ' + base64Credentials },
+    const res = await axios.post('/api/admin/login', {
+      username: username.value,
+      password: password.value,
     });
 
-    if (res.ok) {
-      // 登入成功，設置 token
-      userStore.setToken(base64Credentials);
+    if (res.status === 200) {
+      const { token, expire_at } = res.data;
+      // 登入成功，設置 token 和 expire_at
+      userStore.setToken(token, expire_at);
       // 導向後台主控台頁面
       router.push('/admin');
     } else if (res.status === 401) {
@@ -62,9 +60,13 @@ const login = async () => {
       error.value = `後台登入失敗！(${res.status})`;
       console.error('後台登入請求失敗：', res.status, res.statusText);
     }
-  } catch (error) {
-    console.error('後台登入時發生網路錯誤：', error);
-    error.value = '後台登入失敗！請檢查網路連線。';
+  } catch (err) {
+    if (err.response && err.response.status === 401) {
+      error.value = '❌ 帳號或密碼錯誤！';
+    } else {
+      console.error('後台登入時發生網路錯誤：', err);
+      error.value = '後台登入失敗！請檢查網路連線。';
+    }
   }
 };
 </script>
