@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import OrderHistory from '@/views/OrderHistory.vue'; // 靜態導入
 
 const routes = [
   {
@@ -63,7 +64,7 @@ const routes = [
   {
     path: '/orderHistory',
     name: 'OrderHistory',
-    component: () => import('@/views/OrderHistory.vue'),
+    component: OrderHistory, // 使用靜態導入的組件
     meta: { 
       title: 'Clevora 我的訂單',
       requiresCustomerAuth: true
