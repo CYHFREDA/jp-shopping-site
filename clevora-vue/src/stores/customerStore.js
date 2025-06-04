@@ -14,9 +14,6 @@ export const useCustomerStore = defineStore('customer', () => {
     customer.value = userData;
     token.value = authToken;
     expireAt.value = expireTime;
-    localStorage.setItem('customer', JSON.stringify(userData));
-    localStorage.setItem('customer_token', authToken);
-    localStorage.setItem('customer_expire_at', expireTime);
   }
 
   function logout() {
@@ -28,43 +25,12 @@ export const useCustomerStore = defineStore('customer', () => {
     localStorage.removeItem('customer_expire_at');
   }
 
-  function init() {
-    const storedCustomer = localStorage.getItem('customer');
-    const storedToken = localStorage.getItem('customer_token');
-    const storedExpireAt = localStorage.getItem('customer_expire_at');
-
-    if (storedCustomer && storedToken && storedExpireAt) {
-      try {
-        const expireTime = parseInt(storedExpireAt);
-        let parsedCustomer = null;
-
-        try {
-          parsedCustomer = JSON.parse(storedCustomer);
-        } catch (parseError) {
-          console.error('解析本地儲存的 customer 資料錯誤：', parseError);
-          logout(); // ❗改用 logout 清除資料
-          return;
-        }
-
-        if (expireTime > Date.now() && parsedCustomer) {
-          customer.value = parsedCustomer;
-          token.value = storedToken;
-          expireAt.value = expireTime;
-          console.log('✅ 從本地儲存成功載入用戶資料和 token');
-        } else {
-          console.log('⚠️ Token 已過期或客戶資料無效');
-          logout(); // ❗改用 logout 清除
-        }
-      } catch (error) {
-        console.error('🚫 載入本地儲存資料錯誤：', error);
-        logout(); // ❗改用 logout 清除
-      }
-    } else {
-      console.log('📭 本地儲存沒有登入資訊');
-    }
-  }
-
-  init();
+  // 新增日誌用於偵錯
+  console.log('CustomerStore 初始化。目前狀態：');
+  console.log('customer:', customer.value);
+  console.log('token:', token.value);
+  console.log('expireAt:', expireAt.value);
+  console.log('isAuthenticated:', isAuthenticated.value);
 
   return {
     customer,
@@ -73,7 +39,6 @@ export const useCustomerStore = defineStore('customer', () => {
     isAuthenticated,
     setCustomer,
     logout,
-    init
   };
 }, {
   persist: {
