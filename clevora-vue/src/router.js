@@ -81,7 +81,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('basic_token');
+    const token = localStorage.getItem('admin_token');
     const expireAt = localStorage.getItem('expire_at');
     if (!token || !expireAt || Date.now() > parseInt(expireAt)) {
       next('/admin/login');

@@ -1,4 +1,5 @@
 <template>
+  <AdminHeader />
   <div class="admin-login-page">
     <div class="card p-4 text-center">
       <h4 class="card-title mb-3">後台登入</h4>
@@ -26,6 +27,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import AdminHeader from '@/components/AdminHeader.vue';
 
 const username = ref('');
 const password = ref('');
