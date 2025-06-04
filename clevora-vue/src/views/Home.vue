@@ -49,12 +49,13 @@ import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const allProducts = ref([]);
 const selectedCategory = ref('');
 const searchQuery = ref('');
 const route = useRoute();
+const router = useRouter();
 
 const cartStore = useCartStore();
 const customerStore = useCustomerStore();
@@ -122,6 +123,8 @@ const loadProducts = async () => {
 
 const filterCategory = (category) => {
   selectedCategory.value = category;
+  searchQuery.value = '';
+  router.push({ path: '/', query: { category: category === '' ? undefined : category } });
 };
 
 const addToCart = (product) => {
