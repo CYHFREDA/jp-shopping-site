@@ -1,15 +1,7 @@
 <template>
   <div>
     <!-- 導覽列 -->
-     <nav class="navbar navbar-expand-lg navbar-light bg-warning border-bottom shadow-sm">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-          <img src="/images/LOGO.png" alt="LOGO" class="me-2" />
-          <span>Clevora 後台管理</span>
-        </a>
-        <button class="btn btn-danger btn-sm" @click="handleLogout">登出</button>
-      </div>
-    </nav>
+    <AdminNavbar />
 
     <!-- 主要內容區域 -->
     <div class="container mt-4">
@@ -45,6 +37,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import AdminNavbar from '@/components/AdminNavbar.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
