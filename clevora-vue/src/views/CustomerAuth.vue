@@ -32,27 +32,27 @@
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
           <div class="mb-3">
             <label for="registerUsername" class="form-label">使用者名稱</label>
-            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" />
+            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
           </div>
           <div class="mb-3">
             <label for="registerName" class="form-label">姓名</label>
-            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" />
+            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
           </div>
           <div class="mb-3">
             <label for="registerEmail" class="form-label">Email</label>
-            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" />
+            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
           </div>
           <div class="mb-3">
             <label for="registerPhone" class="form-label">電話</label>
-            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" />
+            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
           </div>
           <div class="mb-3">
             <label for="registerAddress" class="form-label">地址</label>
-            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" />
+            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
           </div>         
           <div class="mb-3">
             <label for="registerPassword" class="form-label">密碼</label>
-            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" />
+            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
           </div>
           <div class="d-grid">
             <button class="btn btn-primary" @click="handleRegister">註冊</button>
