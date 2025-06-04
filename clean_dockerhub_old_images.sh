@@ -1,11 +1,11 @@
 #!/bin/bash
-
+exec > >(awk '{ print strftime("%F %T"), $0; fflush(); }') 2>&1
 # 你的 Docker Hub 帳號 & 密碼（建議改用環境變數避免硬編在檔案裡）
 DOCKERHUB_USERNAME="inulifgogo"
 DOCKERHUB_PASSWORD="cahKev-miknik-tespe8"
 
 # 要清理的 repo 名稱陣列
-REPOS=("inulifgogo/backend-api" "inulifgogo/frontend-shop")
+REPOS=("inulifgogo/backend-api" "inulifgogo/frontend-shop" "inulifgogo/clevora-frontend")
 
 # 只保留最新的 N 個 tags
 KEEP_NUM=5

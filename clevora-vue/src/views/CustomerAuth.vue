@@ -171,12 +171,16 @@ async function handleLogin() {
     if (res.ok) {
       alert("✅ 登入成功！");
       customerStore.setCustomer({
-        id: data.id,
+        id: data.customer_id,
         name: data.name,
         username: data.username,
         email: data.email,
         phone: data.phone
       });
+      
+      // 將 customer_id 儲存到 localStorage 作為簡單的登入標記
+      localStorage.setItem('customer_token', data.customer_id);
+
       const redirectURL = localStorage.getItem("redirectAfterLogin") || "/";
       localStorage.removeItem("redirectAfterLogin");
       router.push(redirectURL);
