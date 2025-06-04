@@ -72,40 +72,29 @@ onMounted(async () => {
   console.log('isAuthenticated:', customerStore.isAuthenticated);
   console.log('customer_id:', customerStore.customer?.customer_id);
   console.log('customerStore.customer:', customerStore.customer);
+  
   // 確保客戶已登入且 customer_id 可用
   if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
-    error.value = '請先登入以查看訂單記錄。' + (customerStore.isAuthenticated ? '' : ' (未驗證)') + (customerStore.customer?.customer_id ? '' : ' (無 ID)');
+    error.value = '請先登入以查看訂單記錄。';
     loading.value = false;
     return;
   }
 
-  const customerId = customerStore.customer.customer_id;
-  const apiUrl = `/customers/${customerId}/orders`;
-
   try {
-    const response = await axios.get(apiUrl);
+    const customerId = customerStore.customer.customer_id;
+    const response = await axios.get(`/customers/${customerId}/orders`);
     orders.value = response.data;
   } catch (err) {
     console.error('載入訂單記錄錯誤：', err);
-    error.value = '載入訂單記錄失敗，請稍後再試或聯繫客服。';
+    if (err.response && err.response.status === 401) {
+      error.value = '認證已過期，請重新登入。';
+    } else {
+      error.value = '載入訂單記錄失敗，請稍後再試或聯繫客服。';
+    }
   } finally {
     loading.value = false;
   }
 });
-
-// 等待 store 恢復完再判斷
-watch(
-  () => customerStore.isAuthenticated,
-  (isAuthed) => {
-    if (isAuthed && customerStore.customer?.customer_id) {
-      loadOrders(customerStore.customer.customer_id);
-    } else {
-      error.value = '請先登入以查看訂單記錄。';
-      loading.value = false;
-    }
-  },
-  { immediate: true }
-);
 
 </script>
 

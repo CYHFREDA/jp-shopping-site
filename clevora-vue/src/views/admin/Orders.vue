@@ -58,18 +58,20 @@ async function loadOrders() {
 
   try {
     const res = await api.get('/admin/orders');
-
-    const data = res.data;
-    orders.value = data;
+    orders.value = res.data;
   } catch (error) {
     console.error('載入訂單時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
       alert('認證失敗，請重新登入！');
+    } else {
+      alert('載入訂單失敗，請稍後再試！');
     }
   }
 }
 
 async function updateOrderStatus(orderId, status) {
+  if (!status) return;
+  
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
@@ -78,22 +80,21 @@ async function updateOrderStatus(orderId, status) {
   }
 
   try {
-    const res = await api.put(`/admin/orders/${orderId}`, { status });
+    const res = await api.post('/admin/update_order_status', {
+      order_id: orderId,
+      status: status
+    });
 
-    const result = res.data;
-
-    if (res.status !== 200) {
-      console.error('更新訂單狀態失敗：', result);
-      alert(result.error || '更新訂單狀態失敗！');
-    } else {
-      alert(result.message || '訂單狀態更新成功！');
-      loadOrders();
+    if (res.data.message) {
+      alert(res.data.message);
+      await loadOrders(); // 重新載入訂單列表
     }
-
   } catch (error) {
     console.error('更新訂單狀態時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
       alert('認證失敗，請重新登入！');
+    } else {
+      alert('更新訂單狀態失敗，請稍後再試！');
     }
   }
 }

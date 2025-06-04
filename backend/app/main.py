@@ -216,17 +216,50 @@ async def admin_get_orders(auth=Depends(verify_basic_auth)):
     return JSONResponse(orders)
 
 @app.post("/admin/update_order_status")
-async def admin_update_status(request: Request, auth=Depends(verify_basic_auth)):
-    data = await request.json()
-    order_id = data.get("order_id")
-    new_status = data.get("status")
-    conn = get_db_conn()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE orders SET status=%s WHERE order_id=%s", (new_status, order_id))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return JSONResponse({"message": "狀態已更新！"})
+async def update_order_status(request: Request, auth=Depends(verify_basic_auth)):
+    try:
+        data = await request.json()
+        order_id = data.get("order_id")
+        new_status = data.get("status")
+
+        if not order_id or not new_status:
+            return JSONResponse({"error": "缺少必要參數"}, status_code=400)
+
+        if new_status not in ["pending", "success", "fail"]:
+            return JSONResponse({"error": "無效的訂單狀態"}, status_code=400)
+
+        conn = get_db_conn()
+        cursor = conn.cursor()
+        
+        # 檢查訂單是否存在
+        cursor.execute("SELECT status FROM orders WHERE order_id=%s", (order_id,))
+        order = cursor.fetchone()
+        
+        if not order:
+            cursor.close()
+            conn.close()
+            return JSONResponse({"error": "找不到訂單"}, status_code=404)
+
+        # 更新訂單狀態
+        cursor.execute("""
+            UPDATE orders 
+            SET status=%s, 
+                paid_at=CASE 
+                    WHEN %s='success' THEN CURRENT_TIMESTAMP 
+                    ELSE paid_at 
+                END 
+            WHERE order_id=%s
+        """, (new_status, new_status, order_id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return JSONResponse({"message": "訂單狀態更新成功"})
+
+    except Exception as e:
+        print("❌ 更新訂單狀態錯誤：", str(e))
+        return JSONResponse({"error": "更新訂單狀態失敗"}, status_code=500)
 
 # 取得所有商品
 @app.get("/products")
