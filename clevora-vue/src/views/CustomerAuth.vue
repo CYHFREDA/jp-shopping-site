@@ -1,61 +1,27 @@
 <template>
   <main class="auth-main">
-    <!-- 登入 / 註冊卡片 -->
     <div class="card auth-card">
       <h3 class="text-center mb-4">會員登入 / 註冊</h3>
 
       <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            :class="{ active: activeTab === 'login' }"
-            @click="activeTab = 'login'"
-            id="login-tab"
-            type="button"
-          >
-            登入
-          </button>
+          <button class="nav-link" :class="{ active: activeTab === 'login' }" @click="activeTab = 'login'">登入</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button
-            class="nav-link"
-            :class="{ active: activeTab === 'register' }"
-            @click="activeTab = 'register'"
-            id="register-tab"
-            type="button"
-          >
-            註冊
-          </button>
+          <button class="nav-link" :class="{ active: activeTab === 'register' }" @click="activeTab = 'register'">註冊</button>
         </li>
       </ul>
 
       <div class="tab-content">
         <!-- 登入 -->
-        <div
-          class="tab-pane fade"
-          :class="{ 'show active': activeTab === 'login' }"
-          id="login"
-          role="tabpanel"
-        >
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'login' }" id="login">
           <div class="mb-3">
             <label for="loginUsername" class="form-label">使用者名稱</label>
-            <input
-              id="loginUsername"
-              type="text"
-              class="form-control"
-              v-model="loginForm.username"
-              placeholder="使用者名稱"
-            />
+            <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
           </div>
           <div class="mb-3">
             <label for="loginPassword" class="form-label">密碼</label>
-            <input
-              id="loginPassword"
-              type="password"
-              class="form-control"
-              v-model="loginForm.password"
-              placeholder="密碼"
-            />
+            <input id="loginPassword" type="password" class="form-control" v-model="loginForm.password" />
           </div>
           <div class="d-grid">
             <button class="btn btn-success" @click="handleLogin">登入</button>
@@ -63,61 +29,26 @@
         </div>
 
         <!-- 註冊 -->
-        <div
-          class="tab-pane fade"
-          :class="{ 'show active': activeTab === 'register' }"
-          id="register"
-          role="tabpanel"
-        >
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
           <div class="mb-3">
             <label for="registerUsername" class="form-label">使用者名稱</label>
-            <input
-              id="registerUsername"
-              type="text"
-              class="form-control"
-              v-model="registerForm.username"
-              placeholder="使用者名稱"
-            />
+            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" />
           </div>
           <div class="mb-3">
             <label for="registerName" class="form-label">姓名</label>
-            <input
-              id="registerName"
-              type="text"
-              class="form-control"
-              v-model="registerForm.name"
-              placeholder="姓名"
-            />
+            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" />
           </div>
           <div class="mb-3">
             <label for="registerEmail" class="form-label">Email（選填）</label>
-            <input
-              id="registerEmail"
-              type="email"
-              class="form-control"
-              v-model="registerForm.email"
-              placeholder="Email（選填）"
-            />
+            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" />
           </div>
           <div class="mb-3">
             <label for="registerPhone" class="form-label">電話（選填）</label>
-            <input
-              id="registerPhone"
-              type="text"
-              class="form-control"
-              v-model="registerForm.phone"
-              placeholder="電話（選填）"
-            />
+            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" />
           </div>
           <div class="mb-3">
             <label for="registerPassword" class="form-label">密碼</label>
-            <input
-              id="registerPassword"
-              type="password"
-              class="form-control"
-              v-model="registerForm.password"
-              placeholder="密碼"
-            />
+            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" />
           </div>
           <div class="d-grid">
             <button class="btn btn-primary" @click="handleRegister">註冊</button>
@@ -153,7 +84,6 @@ const registerForm = ref({
 
 async function handleLogin() {
   const { username, password } = loginForm.value;
-
   if (!username || !password) {
     alert("請填寫完整使用者名稱和密碼！");
     return;
@@ -171,26 +101,19 @@ async function handleLogin() {
     if (res.ok) {
       alert("✅ 登入成功！");
       customerStore.setCustomer({
+        ...data,
         customer_id: data.customer_id,
-        name: data.name,
-        username: data.username,
-        email: data.email,
-        phone: data.phone
       });
-      
-      // 將 customer_id 儲存到 localStorage 作為簡單的登入標記
-      localStorage.setItem('customer_token', data.customer_id);
 
       const redirectURL = localStorage.getItem("redirectAfterLogin") || "/";
       localStorage.removeItem("redirectAfterLogin");
       router.push(redirectURL);
     } else {
-      console.error('登入失敗：', data);
       alert(data.error || '登入失敗！');
     }
   } catch (error) {
-    console.error('登入時發生錯誤：', error);
-    alert('登入時發生錯誤！');
+    console.error('登入錯誤：', error);
+    alert('登入失敗，請稍後再試');
   }
 }
 
@@ -222,12 +145,11 @@ async function handleRegister() {
       };
       activeTab.value = 'login';
     } else {
-      console.error('註冊失敗：', data);
       alert(data.error || '註冊失敗！');
     }
   } catch (error) {
-    console.error('註冊時發生錯誤：', error);
-    alert('註冊時發生錯誤！');
+    console.error('註冊錯誤：', error);
+    alert('註冊失敗，請稍後再試');
   }
 }
 
@@ -267,4 +189,4 @@ onMounted(() => {
     padding: 20px;
   }
 }
-</style> 
+</style>
