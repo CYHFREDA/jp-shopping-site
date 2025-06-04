@@ -18,7 +18,7 @@
           <tr v-for="order in orders" :key="order.order_id">
             <td>{{ order.order_id }}</td>
             <td>NT$ {{ order.amount }}</td>
-            <td>{{ order.item_names }}</td>
+            <td>{{ order.item_names ? order.item_names : '無商品內容' }}</td>
             <td>{{ order.status }}</td>
             <td>{{ order.created_at }}</td>
             <td>{{ order.paid_at || '尚未付款' }}</td>

@@ -346,34 +346,45 @@ async def get_customer_orders(customer_id: int, request: Request, cursor=Depends
             ORDER BY created_at DESC
         """, (customer_id,))
         orders = cursor.fetchall()
-
-        # 將 datetime 物件轉換為字串，並轉換時區為台北時間，以解決 JSON 序列化問題
-        taipei_tz = pytz.timezone('Asia/Taipei')
+        
+        # 將 datetime 物件轉換為字串以便 JSON 序列化
+        formatted_orders = []
         for order in orders:
-            if 'created_at' in order and isinstance(order['created_at'], datetime):
-                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
-                utc_dt = order['created_at'].replace(tzinfo=pytz.utc)
-                taipei_dt = utc_dt.astimezone(taipei_tz)
-                order['created_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
-            if 'paid_at' in order and isinstance(order['paid_at'], datetime):
-                # 假設資料庫時間為 UTC，先將其本地化為 UTC，再轉換為台北時間
-                utc_dt = order['paid_at'].replace(tzinfo=pytz.utc)
-                taipei_dt = utc_dt.astimezone(taipei_tz)
-                order['paid_at'] = taipei_dt.strftime('%Y-%m-%d %H:%M:%S')
+            formatted_order = dict(order) # 將 Record 對象轉換為字典
+            if formatted_order.get('created_at'):
+                formatted_order['created_at'] = formatted_order['created_at'].isoformat()
+            if formatted_order.get('paid_at'):
+                formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
+            formatted_orders.append(formatted_order)
 
-        return JSONResponse(orders)
+        return formatted_orders
 
     except Exception as e:
-        print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤：", str(e))
-        return JSONResponse({"error": "Internal server error"}, status_code=500)
+        print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤： {e}")
+        return JSONResponse({"error": "內部伺服器錯誤"}, status_code=500)
     
 # 後端
 @app.get("/api/admin/orders")
 async def admin_get_orders(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
-    cursor.execute("SELECT id, order_id, item_names, amount, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
-    rows = cursor.fetchall()
-    orders = [{"id": r[0], "order_id": r[1], "item_names": r[2], "amount": r[3], "status": r[4], "created_at": str(r[5]), "paid_at": str(r[6]) if r[6] else None} for r in rows]
-    return JSONResponse(orders)
+    try:
+        cursor.execute("SELECT order_id, amount, item_names, status, created_at, paid_at FROM orders")
+        orders = cursor.fetchall()
+
+        # 將 datetime 物件轉換為字串以便 JSON 序列化
+        formatted_orders = []
+        for order in orders:
+            formatted_order = dict(order) # 將 Record 對象轉換為字典
+            if formatted_order.get('created_at'):
+                formatted_order['created_at'] = formatted_order['created_at'].isoformat()
+            if formatted_order.get('paid_at'):
+                formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
+            formatted_orders.append(formatted_order)
+
+        return formatted_orders
+
+    except Exception as e:
+        print(f"❌ 後端查詢訂單錯誤： {e}")
+        return JSONResponse({"error": "內部伺服器錯誤"}, status_code=500)
 
 @app.post("/api/admin/update_order_status")
 async def update_order_status(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
