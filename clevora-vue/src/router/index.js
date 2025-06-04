@@ -59,6 +59,15 @@ const routes = [
         meta: { title: 'Clevora 後台管理 - 訂單管理' }
       }
     ]
+  },
+  {
+    path: '/my-orders',
+    name: 'OrderHistory',
+    component: () => import('@/views/OrderHistory.vue'),
+    meta: { 
+      title: 'Clevora 我的訂單',
+      requiresCustomerAuth: true
+    }
   }
 ];
 
@@ -79,10 +88,13 @@ const router = createRouter({
 
 // 路由守衛
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('admin_token');
+  const isAdminAuthenticated = localStorage.getItem('admin_token');
+  const isCustomerAuthenticated = localStorage.getItem('customer_token');
   
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !isAdminAuthenticated) {
     next('/admin/login');
+  } else if (to.meta.requiresCustomerAuth && !isCustomerAuthenticated) {
+    next({ path: '/login', query: { redirect: to.fullPath } });
   } else {
     document.title = to.meta.title ? to.meta.title : 'Clevora';
     next();

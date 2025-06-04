@@ -98,8 +98,13 @@ async def pay(request: Request):
         print("✅ 收到前端資料：", data)
 
         products = data.get("products")
+        customer_id = data.get("customer_id")
+
         if not products:
             return JSONResponse({"error": "❌ 缺少商品資料"}, status_code=400)
+            
+        if not customer_id:
+            print("⚠️ 未收到 customer_id，訂單將不會關聯到客戶。")
 
         now = datetime.now()
         date_time_str = now.strftime("%Y%m%d%H%M%S")
@@ -114,9 +119,9 @@ async def pay(request: Request):
         conn = get_db_conn()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO orders (order_id, amount, item_names, status, created_at)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (order_id, amount, item_names, 'pending', trade_date))
+            INSERT INTO orders (order_id, amount, item_names, status, created_at, customer_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (order_id, amount, item_names, 'pending', trade_date, customer_id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -222,6 +227,7 @@ async def admin_update_status(request: Request, auth=Depends(verify_basic_auth))
     cursor.close()
     conn.close()
     return JSONResponse({"message": "狀態已更新！"})
+
 # 取得所有商品
 @app.get("/products")
 async def get_products(query: str = ""):
@@ -246,6 +252,7 @@ async def get_products(query: str = ""):
     cursor.close()
     conn.close()
     return products
+
 #後台新增商品
 @app.post("/admin/products")
 async def admin_add_product(request: Request, auth=Depends(verify_basic_auth)):
@@ -292,6 +299,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"error": "❌ 伺服器錯誤，請稍後再試！"}
     )
+
 #後台編輯商品
 @app.put("/admin/products/{id}")
 async def admin_update_product(id: int, request: Request, auth=Depends(verify_basic_auth)):
@@ -313,6 +321,7 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ba
     cursor.close()
     conn.close()
     return JSONResponse({"message": "商品已更新"})
+
 #後台刪除商品
 @app.delete("/admin/products/{id}")
 async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
@@ -323,6 +332,7 @@ async def admin_delete_product(id: int, auth=Depends(verify_basic_auth)):
     cursor.close()
     conn.close()
     return JSONResponse({"message": "商品已刪除"})
+
 #出貨管理（後台）
 @app.get("/admin/shipments")
 async def admin_get_shipments(auth=Depends(verify_basic_auth)):
@@ -340,6 +350,7 @@ async def admin_get_shipments(auth=Depends(verify_basic_auth)):
         conn.close()
     shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
     return JSONResponse(shipments)
+
 # 出貨管理（更新出貨單資料）
 @app.post("/admin/update_shipment")
 async def admin_update_shipment(request: Request, auth=Depends(verify_basic_auth)):
@@ -362,6 +373,7 @@ async def admin_update_shipment(request: Request, auth=Depends(verify_basic_auth
     cursor.close()
     conn.close()
     return JSONResponse({"message": "✅ 出貨資料已更新！"})
+
 #客戶管理（後台）
 @app.get("/admin/customers")
 async def admin_get_customers(auth=Depends(verify_basic_auth)):
@@ -383,6 +395,7 @@ async def admin_get_customers(auth=Depends(verify_basic_auth)):
         for r in rows
     ]
     return JSONResponse(customers)
+
 #客戶註冊（前台用）
 @app.post("/customers/register")
 async def customer_register(request: Request):
@@ -452,6 +465,7 @@ async def admin_reset_customer_password(request: Request, auth=Depends(verify_ba
     cursor.close()
     conn.close()
     return JSONResponse({"message": "✅ 密碼已重置（bcrypt 加密）"})
+
 #編輯客戶資料
 @app.post("/admin/update_customer")
 async def admin_update_customer(request: Request, auth=Depends(verify_basic_auth)):
@@ -476,6 +490,7 @@ async def admin_update_customer(request: Request, auth=Depends(verify_basic_auth
     conn.close()
 
     return JSONResponse({"message": "✅ 客戶資料已更新！"})
+
 #新增管理員
 @app.post("/admin/create_admin")
 async def create_admin(request: Request, auth=Depends(verify_basic_auth)):
@@ -496,6 +511,7 @@ async def create_admin(request: Request, auth=Depends(verify_basic_auth)):
     finally:
         cursor.close()
         conn.close()
+
 #顯示後台使用者
 @app.get("/admin/admin_users")
 async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
@@ -506,6 +522,7 @@ async def admin_get_admin_users(auth=Depends(verify_basic_auth)):
     cursor.close()
     conn.close()
     return [{"username": r[0], "created_at": str(r[1])} for r in rows]
+
 #修改使用者密碼
 @app.post("/admin/update_admin_password")
 async def update_admin_password(request: Request, auth=Depends(verify_basic_auth)):
@@ -525,3 +542,18 @@ async def update_admin_password(request: Request, auth=Depends(verify_basic_auth
     cursor.close()
     conn.close()
     return JSONResponse({"message": "✅ 密碼已更新！"})
+
+@app.get("/customers/{customer_id}/orders")
+async def get_customer_orders(customer_id: int):
+    try:
+        conn = get_db_conn()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute("SELECT * FROM orders WHERE customer_id=%s ORDER BY created_at DESC", (customer_id,))
+        orders = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return JSONResponse(orders)
+
+    except Exception as e:
+        print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤：", str(e))
+        return JSONResponse({"error": "Internal server error"}, status_code=500)

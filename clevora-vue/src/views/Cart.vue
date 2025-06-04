@@ -113,7 +113,10 @@ function checkout() {
   fetch("/pay", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ products: cartStore.items })
+    body: JSON.stringify({
+      products: cartStore.items,
+      customer_id: customerStore.customer?.customer_id
+    })
   })
   .then(res => res.json())
   .then(data => {

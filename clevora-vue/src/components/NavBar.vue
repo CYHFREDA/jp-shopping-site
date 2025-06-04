@@ -18,6 +18,7 @@
       <div class="d-flex align-items-center">
         <template v-if="customerStore.isAuthenticated">
           <span class="me-2 text-dark fw-bold">你好, {{ customerStore.customer?.name }}</span>
+          <router-link to="/my-orders" class="me-3 text-dark text-decoration-none">我的訂單</router-link>
           <a href="#" class="me-3 text-dark text-decoration-none" @click.prevent="handleLogout">登出</a>
         </template>
         <template v-else>
