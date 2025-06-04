@@ -43,6 +43,7 @@ export const useCustomerStore = defineStore('customer', () => {
   }
 
   function logout() {
+    alert('已閒置30分鐘，您的登入已過期，請重新登入。');
     setCustomer(null);
   }
 
