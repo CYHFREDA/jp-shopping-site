@@ -53,7 +53,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useCustomerStore } from '@/stores/customerStore';
-import api from '@/services/api';
+import { ordersAPI } from '@/services/api';
 
 const orders = ref([]);
 const loading = ref(true);
@@ -90,7 +90,7 @@ onMounted(async () => {
       
       // 添加請求超時設置
       const response = await Promise.race([
-        api.get(`/customers/${customerId}/orders`),
+        ordersAPI.getCustomerOrders(customerId),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('請求超時')), 10000)
         )

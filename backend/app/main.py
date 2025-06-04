@@ -19,6 +19,10 @@ import jwt
 load_dotenv()
 app = FastAPI()
 
+# JWT 設定
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # 從環境變數讀取密鑰
+JWT_ALGORITHM = "HS256"
+
 #Basic Auth 設定
 security = HTTPBasic()
 def verify_basic_auth(credentials: HTTPBasicCredentials = Depends(security)):

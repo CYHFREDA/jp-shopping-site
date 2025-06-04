@@ -55,6 +55,9 @@ export const ordersAPI = {
   },
   updateOrder(id, data) {
     return api.put(`/orders/${id}`, data);
+  },
+  getCustomerOrders(customerId) {
+    return api.get(`/customers/${customerId}/orders`);
   }
 };
 
