@@ -282,7 +282,9 @@ async def admin_add_product(request: Request, auth=Depends(verify_admin_jwt), cu
     name = data.get("name")
     price = data.get("price")
     description = data.get("description", "")
-    image_url = data.get("image_url", "")
+    image_url = data.get("image_url")
+    if not image_url:
+        image_url = "https://picsum.photos/150"
     category = data.get("category", "")
 
     if not name or not price:
