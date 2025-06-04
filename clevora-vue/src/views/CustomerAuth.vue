@@ -171,7 +171,7 @@ async function handleLogin() {
     if (res.ok) {
       alert("✅ 登入成功！");
       customerStore.setCustomer({
-        id: data.customer_id,
+        customer_id: data.customer_id,
         name: data.name,
         username: data.username,
         email: data.email,
