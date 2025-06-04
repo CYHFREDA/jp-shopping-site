@@ -21,6 +21,10 @@ app = FastAPI()
 
 # JWT 設定
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # 從環境變數讀取密鑰
+if not JWT_SECRET_KEY:
+    print("⚠️ JWT_SECRET_KEY 環境變數未設定，將使用預設值。請在生產環境中設定安全的密鑰！")
+    JWT_SECRET_KEY = "super-secret-jwt-key-for-development"
+
 JWT_ALGORITHM = "HS256"
 
 #Basic Auth 設定
