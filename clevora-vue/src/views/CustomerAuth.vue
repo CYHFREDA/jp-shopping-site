@@ -95,7 +95,7 @@ async function handleLogin() {
   }
 
   try {
-    const res = await fetch('/customers/login', {
+    const res = await fetch('/api/customers/login', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
@@ -132,7 +132,7 @@ async function handleRegister() {
   }
 
   try {
-    const res = await fetch('/customers/register', {
+    const res = await fetch('/api/customers/register', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, name, email, phone, address, password })

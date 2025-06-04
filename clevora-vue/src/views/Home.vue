@@ -105,7 +105,7 @@ const filteredProducts = computed(() => {
 const loadProducts = async () => {
   try {
     console.log('開始載入商品...');
-    const res = await axios.get('/products');
+    const res = await axios.get('/api/products');
     console.log('API 回應：', res.data);
     allProducts.value = res.data.map(p => ({
       id: p[0],

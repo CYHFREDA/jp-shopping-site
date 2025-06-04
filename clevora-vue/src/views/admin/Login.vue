@@ -47,7 +47,7 @@ const login = async () => {
     const base64Credentials = btoa(`${username.value}:${password.value}`);
     
     // 嘗試訪問一個受保護的後台端點來驗證 Basic Auth 憑證
-    const res = await fetch('/admin/orders', {
+    const res = await fetch('/api/admin/orders', {
       headers: { 'Authorization': 'Basic ' + base64Credentials },
     });
 

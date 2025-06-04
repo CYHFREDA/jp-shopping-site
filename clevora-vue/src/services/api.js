@@ -35,49 +35,49 @@ api.interceptors.response.use(
 // 商品相關 API
 export const productsAPI = {
   getProducts() {
-    return api.get('/products');
+    return api.get('/api/products');
   },
   addProduct(data) {
-    return api.post('/products', data);
+    return api.post('/api/products', data);
   },
   updateProduct(id, data) {
-    return api.put(`/products/${id}`, data);
+    return api.put(`/api/products/${id}`, data);
   },
   deleteProduct(id) {
-    return api.delete(`/products/${id}`);
+    return api.delete(`/api/products/${id}`);
   }
 };
 
 // 訂單相關 API
 export const ordersAPI = {
   getOrders() {
-    return api.get('/orders');
+    return api.get('/api/orders');
   },
   updateOrder(id, data) {
-    return api.put(`/orders/${id}`, data);
+    return api.put(`/api/orders/${id}`, data);
   },
   getCustomerOrders(customerId) {
-    return api.get(`/customers/${customerId}/orders`);
+    return api.get(`/api/customers/${customerId}/orders`);
   }
 };
 
 // 會員相關 API
 export const membersAPI = {
   getMembers() {
-    return api.get('/members');
+    return api.get('/api/members');
   },
   updateMember(id, data) {
-    return api.put(`/members/${id}`, data);
+    return api.put(`/api/members/${id}`, data);
   }
 };
 
 // 登入相關 API
 export const authAPI = {
   login(credentials) {
-    return api.post('/admin/login', credentials);
+    return api.post('/api/admin/login', credentials);
   },
   logout() {
-    return api.post('/admin/logout');
+    return api.post('/api/admin/logout');
   }
 };
 

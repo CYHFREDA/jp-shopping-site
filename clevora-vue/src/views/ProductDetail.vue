@@ -45,7 +45,7 @@ async function loadProductDetail() {
   
   try {
     // 假設後端 API 有 /products/:id 的端點來獲取單一商品資料
-    const res = await fetch(`/products/${productId}`);
+    const res = await fetch(`/api/products/${productId}`);
 
     if (!res.ok) {
       const errorText = await res.text();

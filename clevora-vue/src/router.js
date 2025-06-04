@@ -4,6 +4,9 @@ import AdminLogin from './views/admin/Login.vue';
 import AdminDashboard from './views/admin/Dashboard.vue';
 import Products from './views/admin/Products.vue';
 import Orders from './views/admin/Orders.vue';
+import Shipments from './views/admin/Shipments.vue';
+import Customers from './views/admin/Customers.vue';
+import AdminUsers from './views/admin/Admins.vue';
 import Cart from './views/Cart.vue';
 import CustomerAuth from './views/CustomerAuth.vue';
 import Return from './views/Return.vue';
@@ -52,6 +55,18 @@ const routes = [
       { 
         path: 'orders', 
         component: Orders 
+      },
+      { 
+        path: 'shipments', 
+        component: Shipments 
+      },
+      { 
+        path: 'customers', 
+        component: Customers 
+      },
+      { 
+        path: 'admin_users', 
+        component: AdminUsers 
       }
     ]
   }

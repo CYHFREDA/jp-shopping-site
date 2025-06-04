@@ -66,7 +66,7 @@ onMounted(async () => {
   }
 
   // 構建查詢訂單狀態的 API URL
-  const apiUrl = `/orders/${orderId}/status`;
+  const apiUrl = `/api/orders/${orderId}/status`;
   console.log('查詢訂單狀態 API URL:', apiUrl);
 
   try {

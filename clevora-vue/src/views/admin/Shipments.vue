@@ -49,7 +49,7 @@ async function loadShipments() {
   }
 
   try {
-    const res = await fetch('/admin/shipments', {
+    const res = await fetch('/api/admin/shipments', {
       headers: { "Authorization": "Basic " + token }
     });
 
@@ -85,7 +85,7 @@ async function editShipment(shipmentId) {
   }
 
   try {
-    const res = await fetch('/admin/update_shipment', {
+    const res = await fetch('/api/admin/update_shipment', {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Basic " + token },
       body: JSON.stringify({ shipment_id: shipmentId, recipient_name, address, status })

@@ -107,11 +107,12 @@ def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
     sha256 = hashlib.sha256()
     sha256.update(encode_str.encode('utf-8'))
     return sha256.hexdigest().upper()
-
+#測試API是否正常
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
+# 支付區
 @app.post("/pay")
 async def pay(request: Request, cursor=Depends(get_db_cursor)):
     try:
@@ -198,7 +199,7 @@ async def ecpay_notify(request: Request, cursor=Depends(get_db_cursor)):
         print("❌ /ecpay/notify 發生錯誤：", str(e))
         return HTMLResponse("0|Error")
 
-@app.get("/orders/{order_id}/status")
+@app.get("/api/orders/{order_id}/status")
 async def get_order_status(order_id: str, cursor=Depends(get_db_cursor)):
     try:
         cursor.execute("SELECT status FROM orders WHERE order_id=%s", (order_id,))
@@ -213,14 +214,14 @@ async def get_order_status(order_id: str, cursor=Depends(get_db_cursor)):
         print("❌ 後端查詢訂單狀態錯誤：", str(e))
         return JSONResponse({"error": "Internal server error"}, status_code=500)
 
-@app.get("/admin/orders")
+@app.get("/api/admin/orders")
 async def admin_get_orders(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("SELECT id, order_id, item_names, amount, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
     rows = cursor.fetchall()
     orders = [{"id": r[0], "order_id": r[1], "item_names": r[2], "amount": r[3], "status": r[4], "created_at": str(r[5]), "paid_at": str(r[6]) if r[6] else None} for r in rows]
     return JSONResponse(orders)
 
-@app.post("/admin/update_order_status")
+@app.post("/api/admin/update_order_status")
 async def update_order_status(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     try:
         data = await request.json()
@@ -258,7 +259,7 @@ async def update_order_status(request: Request, auth=Depends(verify_admin_jwt), 
         return JSONResponse({"error": "更新訂單狀態失敗"}, status_code=500)
 
 # 取得所有商品
-@app.get("/products")
+@app.get("/api/products")
 async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
     if query:
         cursor.execute("""
@@ -276,7 +277,7 @@ async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
     return products
 
 #後台新增商品
-@app.post("/admin/products")
+@app.post("/api/admin/products")
 async def admin_add_product(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     name = data.get("name")
@@ -320,7 +321,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 #後台編輯商品
-@app.put("/admin/products/{id}")
+@app.put("/api/admin/products/{id}")
 async def admin_update_product(id: int, request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     name = data.get("name")
@@ -338,14 +339,14 @@ async def admin_update_product(id: int, request: Request, auth=Depends(verify_ad
     return JSONResponse({"message": "商品已更新"})
 
 #後台刪除商品
-@app.delete("/admin/products/{id}")
+@app.delete("/api/admin/products/{id}")
 async def admin_delete_product(id: int, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("DELETE FROM products WHERE id=%s", (id,))
     cursor.connection.commit()
     return JSONResponse({"message": "商品已刪除"})
 
 #出貨管理（後台）
-@app.get("/admin/shipments")
+@app.get("/api/admin/shipments")
 async def admin_get_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     print("🚚 準備查詢出貨資料")
     try:
@@ -358,7 +359,7 @@ async def admin_get_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get
     return JSONResponse(shipments)
 
 # 出貨管理（更新出貨單資料）
-@app.post("/admin/update_shipment")
+@app.post("/api/admin/update_shipment")
 async def admin_update_shipment(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     shipment_id = data.get("shipment_id")
@@ -377,7 +378,7 @@ async def admin_update_shipment(request: Request, auth=Depends(verify_admin_jwt)
     return JSONResponse({"message": "✅ 出貨資料已更新！"})
 
 #客戶管理（後台）
-@app.get("/admin/customers")
+@app.get("/api/admin/customers")
 async def admin_get_customers(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("SELECT customer_id, name, email, phone, address, created_at FROM customers ORDER BY created_at DESC")
     rows = cursor.fetchall()
@@ -395,7 +396,7 @@ async def admin_get_customers(auth=Depends(verify_admin_jwt), cursor=Depends(get
     return JSONResponse(customers)
 
 #客戶註冊（前台用）
-@app.post("/customers/register")
+@app.post("/api/customers/register")
 async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
@@ -435,7 +436,7 @@ async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
         return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
 
 #客戶登入（前台用）
-@app.post("/customers/login")
+@app.post("/api/customers/login")
 async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
@@ -467,8 +468,8 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
             return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)}) # 回傳毫秒時間戳記給前端
     return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
 
-#客戶重置密碼
-@app.post("/admin/reset_customer_password")
+#後台客戶重置密碼
+@app.post("/api/admin/reset_customer_password")
 async def admin_reset_customer_password(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     customer_id = data.get("customer_id")
@@ -488,8 +489,8 @@ async def admin_reset_customer_password(request: Request, auth=Depends(verify_ad
     # conn.close()
     return JSONResponse({"message": "✅ 密碼已重置（bcrypt 加密）"})
 
-#編輯客戶資料
-@app.post("/admin/update_customer")
+#後台編輯客戶資料
+@app.post("/api/admin/update_customer")
 async def admin_update_customer(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     customer_id = data.get("customer_id")
@@ -513,8 +514,8 @@ async def admin_update_customer(request: Request, auth=Depends(verify_admin_jwt)
 
     return JSONResponse({"message": "✅ 客戶資料已更新！"})
 
-#新增管理員
-@app.post("/admin/create_admin")
+#後台新增管理員
+@app.post("/api/admin/create_admin")
 async def create_admin(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
@@ -532,14 +533,14 @@ async def create_admin(request: Request, auth=Depends(verify_admin_jwt), cursor=
         pass # 連線由依賴項管理，不需要手動關閉
 
 #顯示後台使用者
-@app.get("/admin/admin_users")
+@app.get("/api/admin/admin_users")
 async def admin_get_admin_users(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     cursor.execute("SELECT username, created_at FROM admin_users ORDER BY created_at")
     rows = cursor.fetchall()
     return [{"username": r[0], "created_at": str(r[1])} for r in rows]
 
 #修改使用者密碼
-@app.post("/admin/update_admin_password")
+@app.post("/api/admin/update_admin_password")
 async def update_admin_password(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
@@ -555,7 +556,7 @@ async def update_admin_password(request: Request, auth=Depends(verify_admin_jwt)
     return JSONResponse({"message": "✅ 密碼已更新！"})
 
 # 後台管理員登入 (新增 JWT 認證)
-@app.post("/admin/login")
+@app.post("/api/admin/login")
 async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
@@ -590,7 +591,7 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     
     return JSONResponse({"message": "登入成功", "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
 
-@app.get("/customers/{customer_id}/orders")
+@app.get("/api/customers/{customer_id}/orders")
 async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
     try:
         # 從請求頭中獲取 token

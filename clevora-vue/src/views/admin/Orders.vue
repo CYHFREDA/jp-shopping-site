@@ -48,20 +48,15 @@ const loadOrders = async () => {
   }
 
   try {
-    const res = await axios.get('/admin/orders', {
+    const res = await axios.get('/api/admin/orders', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    orders.value = res.data;
+    orders.value = res.data.orders;
+    isLoading.value = false;
   } catch (error) {
-    console.error('讀取訂單失敗', error);
-    if (error.response?.status === 401) {
-      alert('登入已過期或無效，請重新登入');
-      localStorage.removeItem('adminToken');
-      router.push('/admin/login');
-    }
-  } finally {
+    console.error('載入訂單時發生錯誤:', error);
     isLoading.value = false;
   }
 };
@@ -71,12 +66,6 @@ onMounted(() => {
 });
 </script>
 
-
 <style scoped>
-/* 可以添加一些 Orders.vue 特有的樣式 */
-/* Add specific styles for table header from admin.css */
-.table-dark th {
-  background-color: #4a69bd;
-  color: #fff;
-}
+  /* Add your styles here */
 </style>
