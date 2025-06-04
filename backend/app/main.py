@@ -139,7 +139,7 @@ async def pay(request: Request):
         params["CheckMacValue"] = generate_check_mac_value(params, ECPAY_HASH_KEY, ECPAY_HASH_IV)
         print("✅ 送出的參數：", params)
 
-        return JSONResponse({"ecpay_url": ECPAY_API_URL, "params": params})
+        return JSONResponse({"ecpay_url": ECPAY_API_URL, "params": params, "order_id": order_id})
 
     except Exception as e:
         print("❌ 後端錯誤：", str(e))
@@ -163,7 +163,7 @@ async def ecpay_notify(request: Request):
 
         # 🟢 新增出貨資料（如果訂單是成功付款）
         if status_ == "success":
-            # 這裡假設收件人與地址等資料先隨便填，等人工在後台編輯；或者，你可以自己決定要不要從客戶資料表撈
+            # 這裡假設收件人與地址等資料先隨便填，等人工在後台編輯，或者可以自己決定要不要從客戶資料表撈
             cursor.execute("""
                 INSERT INTO shipments (order_id, recipient_name, address, status, created_at)
                 VALUES (%s, %s, %s, %s, NOW())
@@ -179,6 +179,25 @@ async def ecpay_notify(request: Request):
     except Exception as e:
         print("❌ /ecpay/notify 發生錯誤：", str(e))
         return HTMLResponse("0|Error")
+
+@app.get("/orders/{order_id}/status")
+async def get_order_status(order_id: str):
+    try:
+        conn = get_db_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT status FROM orders WHERE order_id=%s", (order_id,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if row:
+            return JSONResponse({"order_id": order_id, "status": row[0]})
+        else:
+            return JSONResponse({"error": "Order not found"}, status_code=404)
+
+    except Exception as e:
+        print("❌ 後端查詢訂單狀態錯誤：", str(e))
+        return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 @app.get("/admin/orders")
 async def admin_get_orders(auth=Depends(verify_basic_auth)):

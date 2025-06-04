@@ -30,30 +30,21 @@ const iconClass = computed(() => {
   return 'fas fa-spinner fa-spin'; // 處理中的圖標
 });
 
-// TODO: 根據金流服務的回傳參數解析支付結果
-// 這是一個示意性的函數，你需要根據實際的金流服務回傳格式來實作
-async function processPaymentResult() {
-  const queryParams = route.query; // 獲取 URL 中的查詢參數
-  console.log('支付回傳參數：', queryParams);
-
-  // 假設金流服務回傳一個參數 `RtnCode` 表示結果，`1` 為成功，其他為失敗
-  const rtnCode = queryParams.RtnCode;
-  const rtnMsg = queryParams.RtnMsg;
-  
-  if (rtnCode === '1') { // 假設 1 表示成功 (綠界)
+// 根據訂單狀態更新頁面顯示
+function updatePageBasedOnStatus(orderStatus) {
+  if (orderStatus === 'success') {
     message.value = '付款成功！';
     subMessage.value = '感謝您的訂購。您的訂單已成立。';
     status.value = 'success';
     cartStore.clearCart(); // 支付成功則清空購物車
-    
-    // TODO: 可能需要呼叫後端 API 來最終確認訂單狀態
-    // 例如：fetch('/api/confirm-order', { method: 'POST', body: JSON.stringify(queryParams) });
-
-  } else { // 處理失敗或其他情況
+  } else if (orderStatus === 'fail') {
     message.value = '付款失敗！';
-    // 顯示金流回傳的錯誤訊息，如果沒有則顯示預設訊息
-    subMessage.value = rtnMsg || '請檢查您的支付資訊或聯繫客服。'; 
+    subMessage.value = '請檢查您的支付資訊或聯繫客服。';
     status.value = 'failed';
+  } else { // 其他狀態，例如 pending 或找不到訂單
+    message.value = '訂單狀態查詢中...';
+    subMessage.value = '';
+    status.value = 'processing';
   }
 }
 
@@ -61,8 +52,48 @@ function goHome() {
   router.push('/');
 }
 
-onMounted(() => {
-  processPaymentResult();
+onMounted(async () => {
+  // 從 localStorage 獲取 order_id
+  const orderId = localStorage.getItem('latest_order_id');
+
+  if (!orderId) {
+    // 如果沒有找到 order_id，顯示錯誤或導回首頁
+    message.value = '無法獲取訂單資訊！';
+    subMessage.value = '請直接前往首頁查詢訂單狀態或聯繫客服。';
+    status.value = 'failed';
+    console.error('無法從 localStorage 獲取 order_id');
+    return;
+  }
+
+  // 構建查詢訂單狀態的 API URL
+  const apiUrl = `/orders/${orderId}/status`;
+  console.log('查詢訂單狀態 API URL:', apiUrl);
+
+  try {
+    // 調用後端 API 查詢訂單狀態
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+
+    if (res.ok) {
+      // 根據後端回傳的狀態更新頁面
+      updatePageBasedOnStatus(data.status);
+      // 清理 localStorage 中的 order_id
+      localStorage.removeItem('latest_order_id');
+    } else {
+      // 處理 API 錯誤，例如訂單不存在
+      console.error('查詢訂單狀態 API 錯誤：', data.error || res.statusText);
+      message.value = '查詢訂單狀態失敗！';
+      subMessage.value = data.error || '請稍後再試或聯繫客服。';
+      status.value = 'failed';
+    }
+
+  } catch (error) {
+    // 處理網路錯誤或其他異常
+    console.error('調用查詢訂單狀態 API 時發生錯誤：', error);
+    message.value = '連接錯誤！';
+    subMessage.value = '無法查詢訂單狀態，請檢查網路或聯繫客服。';
+    status.value = 'failed';
+  }
 });
 </script>
 

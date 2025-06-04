@@ -119,6 +119,10 @@ function checkout() {
   .then(data => {
     if (data.ecpay_url && data.params) {
       cartStore.clearCart(); // 呼叫 Store 中的 action 清空購物車
+      // 儲存 order_id 到 localStorage
+      if (data.order_id) {
+        localStorage.setItem('latest_order_id', data.order_id);
+      }
       const form = document.createElement("form");
       form.action = data.ecpay_url;
       form.method = "post";
