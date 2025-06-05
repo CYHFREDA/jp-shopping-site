@@ -34,7 +34,7 @@
         <!-- 註冊 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
           <div v-if="registrationSuccessAndPendingVerification" class="alert alert-info text-center" role="alert">
-            ✅ 註冊成功！請到您的信箱進行驗證。<br>請勿關閉此頁面。待 Email 驗證完成後（透過點擊 Email 中的連結），系統會自動跳轉至登入畫面。<br>驗證連結將在 5 分鐘內過期。<br>若未收到，請檢查垃圾郵件或稍後再試。
+            ✅ 註冊成功！請到您的信箱進行驗證。<br>請勿關閉此頁面。待 Email 驗證完成後（透過點擊 Email 中的連結），系統會自動跳轉至登入畫面。<br>驗證連結將於 <b>{{ Math.floor(countdown/60) }} 分 {{ (countdown%60).toString().padStart(2, '0') }} 秒</b> 內過期。<br>若未收到，請檢查垃圾郵件或稍後再試。
           </div>
           <div v-else>
             <div v-if="apiErrorMessage" class="alert" :class="{ 'alert-danger': apiErrorMessage.includes('❌'), 'alert-success': apiErrorMessage.includes('✅') }" role="alert">
@@ -121,6 +121,8 @@ const passwordError = ref('');
 
 const registrationEmail = ref(''); // 新增一個 ref 來儲存註冊成功的 Email
 let registrationTimer = null; // 用於儲存計時器 ID
+const countdown = ref(300); // 5分鐘=300秒
+let countdownTimer = null;
 
 // 驗證函式
 function validateUsername() {
@@ -317,6 +319,8 @@ async function handleRegister() {
           apiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊。';
         }
       }, 5 * 60 * 1000);
+
+      startCountdown();
     } else if (data.error) {
       if (data.error.includes('Email 已被使用')) {
         emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
@@ -368,10 +372,27 @@ const resendVerificationEmail = async () => {
   }
 };
 
+function startCountdown() {
+  countdown.value = 300;
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(countdownTimer);
+      registrationSuccessAndPendingVerification.value = false;
+      apiErrorMessage.value = '❌ 驗證連結已過期，請重新註冊。';
+    }
+  }, 1000);
+}
+
 // 在組件卸載時清除計時器，防止記憶體洩漏
 onUnmounted(() => {
   if (registrationTimer) {
     clearTimeout(registrationTimer);
+  }
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
   }
 });
 

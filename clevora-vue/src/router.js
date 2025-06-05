@@ -83,10 +83,10 @@ const routes = [
       title: 'Clevora 後台管理 - 主控台'
     },
     children: [
-      {
-        path: '',
-        redirect: 'orders'
-      },
+      // {
+       //  path: '',
+        // redirect: 'orders'
+      // },
       {
         path: 'products',
         name: 'AdminProducts',

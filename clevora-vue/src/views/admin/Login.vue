@@ -38,7 +38,7 @@ const userStore = useUserStore();
 // 監聽 userStore.isAuthenticated 的變化，如果為 true 則導向後台主控台頁面
 watch(() => userStore.isAuthenticated, (newVal) => {
   if (newVal) {
-    router.push('/admin/orders');
+    router.push('/admin');
   }
 }, { immediate: true }); // immediate: true 確保在組件初始化時也執行一次檢查
 
@@ -60,7 +60,7 @@ const login = async () => {
       // 登入成功，設置 token 和 expire_at
       userStore.setToken(token, expire_at);
       // 導向後台主控台頁面
-      router.push('/admin/orders');
+      router.push('/admin');
     } else if (res.status === 401) {
       error.value = '❌ 帳號或密碼錯誤！';
     } else {
