@@ -667,6 +667,25 @@ async def admin_get_admin_users(auth=Depends(verify_admin_jwt), cursor=Depends(g
     # 返回包含 id 和 notes 的使用者列表
     return [{"id": r[0], "username": r[1], "created_at": str(r[2]), "notes": r[3]} for r in rows]
 
+# 刪除管理員
+@app.delete("/api/admin/admin_users/{admin_id}")
+async def admin_delete_admin(admin_id: int, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        # 執行刪除操作
+        cursor.execute("DELETE FROM admin_users WHERE id=%s", (admin_id,))
+        cursor.connection.commit()
+
+        # 檢查是否有行被刪除
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="❌ 找不到該管理員或已刪除！")
+
+        return JSONResponse({"message": "✅ 管理員已成功刪除！"})
+    except HTTPException as e:
+        raise e # 重新拋出 HTTPException
+    except Exception as e:
+        print(f"❌ 刪除管理員時發生錯誤： {e}")
+        raise HTTPException(status_code=500, detail="❌ 刪除管理員失敗，請稍後再試！")
+
 # 修改管理員資訊 (例如備註)
 @app.post("/api/admin/update_admin")
 async def admin_update_admin(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
