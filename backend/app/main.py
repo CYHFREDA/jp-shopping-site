@@ -968,15 +968,15 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                 <span style=\"color:#a18a7b;font-weight:bold;width:80px;display:inline-block;\">有效時間</span>
                 <span style=\"color:#38302e;\">5 分鐘內</span>
               </div>
-              <div style=\"display:flex;align-items:center;margin-bottom:12px;\">
-                <span style=\"font-size:20px;margin-right:10px;\">🔗</span>
-                <span style=\"color:#a18a7b;font-weight:bold;width:80px;display:inline-block;\">驗證連結</span>
-                <span style=\"word-break:break-all;\"><a href=\"{verification_link}\" style=\"color:#a18a7b;\">點此完成驗證</a></span>
+              <div style="display:flex;align-items:center;margin-bottom:12px;">
+                <span style="font-size:20px;margin-right:10px;">🔗</span>
+                <span style="color:#a18a7b;font-weight:bold;width:80px;display:inline-block;">驗證連結</span>
+                <span style="color:#a18a7b;">點此下方連結完成驗證</span>
               </div>
             </div>
-            <a href=\"{verification_link}\" style=\"display:block;width:100%;max-width:320px;margin:0 auto 24px auto;background:#a18a7b;color:#fff;text-align:center;padding:14px 0;border-radius:8px;font-size:1.15rem;font-weight:bold;text-decoration:none;\">立即驗證信箱</a>
-            <p style=\"color:#888;font-size:0.95rem;text-align:center;margin-bottom:8px;\">如果你沒有註冊 Clevora，請忽略此信件。</p>
-            <p style=\"color:#bbb;font-size:0.85rem;text-align:center;\">Clevora 日本代購 &nbsp;|&nbsp; <a href=\"mailto:support@clevora.com\" style=\"color:#bbb;\">客服信箱</a></p>
+            <a href="{verification_link}" style="display:block;width:100%;max-width:320px;margin:0 auto 24px auto;background:#a18a7b;color:#fff;text-align:center;padding:14px 0;border-radius:8px;font-size:1.15rem;font-weight:bold;text-decoration:none;">立即驗證信箱</a>
+            <p style="color:#888;font-size:0.95rem;text-align:center;margin-bottom:8px;">如果你沒有註冊 Clevora，請忽略此信件。</p>
+            <p style="color:#bbb;font-size:0.85rem;text-align:center;">Clevora 日本代購 &nbsp;|&nbsp; <a href="mailto:wvwwcw99@gmail.com" style="color:#bbb;">客服信箱</a></p>
           </div>
         </body>
         </html>

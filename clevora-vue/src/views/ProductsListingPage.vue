@@ -29,12 +29,11 @@
             <img :src="product.image_url || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'" :alt="product.name" class="product-grid-img" />
           </router-link>
           <div class="product-grid-content flex-grow-1 d-flex flex-column justify-content-between p-2 w-100">
-            <h6 class="product-grid-title mb-1 text-center">
+            <h6 class="product-grid-title mb-2 text-center">
               <router-link :to="`/product/${product.id}`" class="text-decoration-none">
                 {{ product.name }}
               </router-link>
             </h6>
-            <div class="product-grid-desc mb-2 text-center">{{ product.description || '' }}</div>
             <div class="product-grid-bottom mt-auto">
               <div class="product-grid-price mb-2 text-center">NT$ {{ product.price?.toFixed(0) || '未定價' }}</div>
               <button class="btn btn-success btn-sm w-100" @click="addToCart(product)">加入購物車</button>

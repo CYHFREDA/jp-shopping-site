@@ -121,6 +121,12 @@ onMounted(() => {
     border: 1px solid var(--light-grey); /* 圖片邊框 */
     border-radius: 8px; /* 圖片圓角 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 圖片陰影 */
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .product-title {
