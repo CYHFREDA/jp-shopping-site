@@ -4,7 +4,8 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 export const useUserStore = defineStore('user', () => {
-  const admin_token = ref('');
+  const admin_token = ref(localStorage.getItem('admin_token') || '');
+  const expire_at = ref(parseInt(localStorage.getItem('expire_at'), 10) || null);
   const user = ref(null);
 
   let inactivityTimer = null;
@@ -14,15 +15,15 @@ export const useUserStore = defineStore('user', () => {
 
   const isAuthenticated = computed(() => {
     const token = admin_token.value;
-    const expiry = localStorage.getItem('expire_at');
+    const expiry = expire_at.value;
     const now = Date.now();
-    const isExpired = !expiry || now >= parseInt(expiry, 10);
+    const isExpired = !expiry || now >= expiry;
 
     console.log('isAuthenticated check:');
     console.log('  admin_token.value:', token ? '存在' : '不存在');
-    console.log('  localStorage expire_at:', expiry);
+    console.log('  expire_at.value:', expiry);
     console.log('  目前時間 (ms):', now);
-    console.log('  過期時間 (ms):', parseInt(expiry, 10));
+    console.log('  過期時間 (ms):', expiry);
     console.log('  是否過期:', isExpired);
     console.log('  最終 isAuthenticated:', !!token && !isExpired);
 
@@ -68,8 +69,7 @@ export const useUserStore = defineStore('user', () => {
 
   function setToken(tokenValue, expireAtValue) {
     admin_token.value = tokenValue;
-    localStorage.setItem('admin_token', tokenValue);
-    localStorage.setItem('expire_at', expireAtValue);
+    expire_at.value = expireAtValue;
     if (tokenValue) {
         startInactivityTimer();
         addActivityListeners();
@@ -79,26 +79,18 @@ export const useUserStore = defineStore('user', () => {
   function logout() {
     console.log('Logging out admin user.');
     admin_token.value = '';
+    expire_at.value = null;
     user.value = null;
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('expire_at');
     clearInactivityTimer();
     removeActivityListeners();
   }
 
-  const initialToken = localStorage.getItem('admin_token');
-  const initialExpiry = localStorage.getItem('expire_at');
-  const now = Date.now();
-  const isInitialTokenValid = initialToken && initialExpiry && now < parseInt(initialExpiry, 10);
-
-  if (isInitialTokenValid) {
-      admin_token.value = initialToken;
+  if (isAuthenticated.value) {
       startInactivityTimer();
       addActivityListeners();
-      console.log('Admin authenticated on load, starting timer and listeners.');
-  } else if (initialToken) {
-      logout();
-      console.log('Expired or invalid admin token found on load, logging out.');
+      console.log('Admin authenticated on load (via initial state), starting timer and listeners.');
+  } else if (localStorage.getItem('admin_token')) {
+      console.log('Expired or invalid admin token found in localStorage on load.');
   }
 
   return {
@@ -115,7 +107,7 @@ export const useUserStore = defineStore('user', () => {
       {
         key: 'user',
         storage: localStorage,
-        paths: ['admin_token']
+        paths: ['admin_token', 'expire_at']
       }
     ]
   }

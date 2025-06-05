@@ -54,8 +54,8 @@
       <p v-else class="text-center text-muted">找不到符合條件的商品</p>
       
       <!-- 分頁控制項 和 每頁顯示控制項 -->
-      <div v-if="filteredProducts.length > 0" class="d-flex justify-content-between align-items-center mt-4">
-        <nav v-if="filteredProducts.length > itemsPerPage">
+      <div v-if="filteredProducts.length > 0" class="d-flex justify-content-center align-items-center mt-4">
+        <nav v-if="filteredProducts.length > itemsPerPage" class="me-4">
           <ul class="pagination mb-0">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
               <button class="page-link" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">上一頁</button>
