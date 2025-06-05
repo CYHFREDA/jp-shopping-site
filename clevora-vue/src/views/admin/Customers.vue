@@ -23,12 +23,12 @@
             <td>{{ customer.address || '' }}</td>
             <td>{{ customer.created_at }}</td>
             <td>
-              <button class="btn btn-primary btn-sm" @click="editCustomer(customer.customer_id)">修改</button>
+              <button class="btn btn-primary btn-sm me-1" @click="editCustomer(customer.customer_id)">修改</button>
               <button class="btn btn-warning btn-sm" @click="resetPassword(customer.customer_id)">重置密碼</button>
             </td>
           </tr>
           <tr v-if="customers.length === 0">
-            <td colspan="7" class="text-center">沒有找到客戶資料。</td>
+            <td colspan="7" class="text-center text-muted">沒有找到客戶資料。</td>
           </tr>
         </tbody>
       </table>
@@ -140,5 +140,52 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 可以添加一些 Customers.vue 特有的樣式 */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  margin-top: 1.5rem;
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #f2f2f2;
+}
+
+.table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+.card-title {
+  color: #343a40;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.text-muted {
+  font-style: italic;
+}
 </style> 

@@ -11,8 +11,8 @@
         <thead class="table-dark">
           <tr>
             <th>使用者名稱</th>
-            <th>備註</th>
             <th>操作</th>
+            <th>備註</th>
           </tr>
         </thead>
         <tbody>
@@ -21,16 +21,16 @@
               <input v-model="admin.username" class="form-control form-control-sm" :disabled="admin.username === 'admin'">
             </td>
             <td>
-              <input v-model="admin.notes" class="form-control form-control-sm" :disabled="admin.username === 'admin'">
-            </td>
-            <td>
               <button class="btn btn-primary btn-sm me-1" @click="saveAdmin(admin)" :disabled="admin.username === 'admin'">保存</button>
               <button class="btn btn-warning btn-sm me-1" @click="resetPassword(admin)" :disabled="admin.username === 'admin'">重置密碼</button>
               <button class="btn btn-danger btn-sm" @click="deleteAdmin(admin.id)" :disabled="admin.username === 'admin'">刪除</button>
             </td>
+            <td>
+              <input v-model="admin.notes" class="form-control form-control-sm" :disabled="admin.username === 'admin'">
+            </td>
           </tr>
           <tr v-if="admins.length === 0">
-            <td colspan="3" class="text-center">沒有找到使用者資料。</td>
+            <td colspan="3" class="text-center text-muted">沒有找到使用者資料。</td>
           </tr>
         </tbody>
       </table>
@@ -238,6 +238,78 @@ async function deleteAdmin(id) {
 </script>
 
 <style scoped>
+/* 提升卡片的質感 */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  margin-top: 1.5rem; /* 添加一些頂部間距 */
+}
+
+/* 表格樣式優化 */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem; /* 添加底部間距 */
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* 偶數行條紋 */
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #f2f2f2;
+}
+
+/* 懸停效果 */
+.table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* 輸入框樣式微調 */
+.form-control {
+  border-radius: 5px;
+  border-color: #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* 按鈕樣式微調 (使用 Bootstrap 標準按鈕類別) */
+/* 不需要在此重複定義 btn 樣式，Bootstrap 已提供 */
+/* 但可以微調一些特定按鈕顏色如果需要 */
+
+/* 標題樣式微調 */
+.card-title {
+  color: #343a40; /* 深色標題 */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5rem; /* 調整標題字體大小 */
+}
+
+/* 無資料提示文字樣式 */
+.text-muted {
+  font-style: italic;
+}
+
+/* admin 帳號行的特殊樣式 (保留並整合) */
 .admin-row {
   background-color: #f0f0f0;
   opacity: 0.8;

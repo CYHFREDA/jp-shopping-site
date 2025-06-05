@@ -59,20 +59,24 @@ function handleLogout() {
 }
 
 .nav-tabs .nav-link {
-  color: #495057;
+  color: #6c757d;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem;
   margin-right: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .nav-tabs .nav-link.active {
-  color: #0d6efd;
-  border-bottom: 2px solid #0d6efd;
-  background: none;
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  background-color: #e9ecef;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 .nav-tabs .nav-link:hover {
+  color: #0056b3;
+  background-color: #f8f9fa;
   border-color: transparent;
-  color: #0d6efd;
 }
 </style> 

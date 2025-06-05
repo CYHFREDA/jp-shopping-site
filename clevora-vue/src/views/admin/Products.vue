@@ -274,14 +274,112 @@ async function handleDeleteProduct(id) {
 </script>
 
 <style scoped>
-.category-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+/* 提升卡片的質感 */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* 可以添加一些背景色或者留白 */
+  background-color: #fff;
 }
 
+/* 表格樣式優化 */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  /* 調整表格邊框顏色和樣式 */
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden; /* 確保圓角生效 */
+}
+
+.table th,
+.table td {
+  padding: 12px 15px; /* 調整單元格內邊距 */
+  border-top: 1px solid #e0e0e0; /* 單元格頂部邊框 */
+}
+
+.table thead th {
+  background-color: #f8f9fa; /* 表頭背景色 */
+  color: #495057; /* 表頭文字顏色 */
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6; /* 表頭底部邊框 */
+}
+
+/* 偶數行條紋 */
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #f2f2f2; /* 淺灰色條紋 */
+}
+
+/* 懸停效果 */
+.table tbody tr:hover {
+  background-color: #e9ecef; /* 懸停時變色 */
+}
+
+/* 輸入框樣式微調 */
+.form-control {
+  border-radius: 5px;
+  border-color: #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* 按鈕樣式微調 */
+.btn {
+  border-radius: 5px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.btn-success {
+   background-color: #28a745;
+   border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-danger {
+   background-color: #dc3545;
+   border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* 分類 checkbox 間距調整 */
 .category-checkboxes label {
   margin-right: 15px;
-  white-space: nowrap;
+  margin-bottom: 5px; /* 添加底部間距 */
+  display: inline-block; /* 讓 label 可以在一行顯示 */
 }
+
+.category-checkboxes input[type="checkbox"] {
+  margin-right: 5px; /* 調整 checkbox 與文字間距 */
+}
+
+/* 響應式調整表格 */
+@media (max-width: 768px) {
+  .table-responsive .table {
+    /* 在小螢幕上可以考慮不顯示部分欄位或堆疊顯示 */
+  }
+}
+
 </style> 
