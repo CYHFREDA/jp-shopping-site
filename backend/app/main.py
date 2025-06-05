@@ -957,74 +957,103 @@ async def send_verification_email(recipient_email: str, username: str, verificat
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>帳戶驗證通知</title>
             <style>
-                body {{{{ /* 雙倍花括號逸出 */
+                body {{
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     line-height: 1.6;
                     color: #333333;
                     margin: 0;
                     padding: 0;
                     background-color: #f7f7f7;
-                }}}}
-                .email-wrapper {{{{ /* 雙倍花括號逸出 */
+                }}
+                .email-wrapper {{
                     max-width: 600px;
                     margin: 20px auto;
                     background-color: #ffffff;
-                    border-radius: 8px;
+                    border-radius: 12px;
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                     overflow: hidden;
-                }}}}
-                .header {{{{ /* 雙倍花括號逸出 */
-                    background-color: #007bff;
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #007bff, #0056b3);
                     color: #ffffff;
-                    padding: 25px 30px;
+                    padding: 30px 20px;
                     text-align: center;
-                }}}}
-                .header h1 {{{{ /* 雙倍花括號逸出 */
+                }}
+                .header h1 {{
                     margin: 0;
-                    font-size: 28px;
+                    font-size: 24px;
                     font-weight: 600;
-                }}}}
-                .content {{{{ /* 雙倍花括號逸出 */
-                    padding: 30px;
-                }}}}
-                .content p {{{{ /* 雙倍花括號逸出 */
+                }}
+                .content {{
+                    padding: 30px 20px;
+                }}
+                .content p {{
                     margin-bottom: 20px;
                     font-size: 16px;
-                }}}}
-                .button-container {{{{ /* 雙倍花括號逸出 */
+                    color: #444444;
+                }}
+                .button-container {{
                     text-align: center;
                     margin: 30px 0;
-                }}}}
-                .button {{{{ /* 雙倍花括號逸出 */
-                    background-color: #28a745; /* Green for success */
-                    color: white !important; /* !important to override client styles */
-                    padding: 15px 30px;
+                }}
+                .button {{
+                    background: linear-gradient(135deg, #28a745, #218838);
+                    color: white !important;
+                    padding: 16px 32px;
                     text-align: center;
                     text-decoration: none;
                     display: inline-block;
-                    border-radius: 25px; /* Pill-shaped button */
+                    border-radius: 30px;
                     font-weight: bold;
                     font-size: 18px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                    transition: background-color 0.3s ease;
-                }}}}
-                .button:hover {{{{ /* 雙倍花括號逸出 */
-                    background-color: #218838;
-                }}}}
-                .expiry-text {{{{ /* 雙倍花括號逸出 */
-                    color: #dc3545; /* Red for emphasis */
+                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                    transition: all 0.3s ease;
+                    min-width: 200px;
+                    word-break: break-all;
+                }}
+                .button:hover {{
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+                }}
+                .expiry-text {{
+                    color: #dc3545;
                     font-weight: bold;
                     font-size: 15px;
-                }}}}
-                .footer {{{{ /* 雙倍花括號逸出 */
+                    background-color: #fff5f5;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    display: inline-block;
+                }}
+                .footer {{
                     text-align: center;
-                    padding: 20px 30px;
-                    margin-top: 30px;
+                    padding: 20px;
+                    margin-top: 20px;
                     border-top: 1px solid #eeeeee;
-                    font-size: 12px;
-                    color: #777777;
-                    background-color: #fdfdfd;
-                }}}}
+                    font-size: 13px;
+                    color: #666666;
+                    background-color: #f8f9fa;
+                }}
+                @media only screen and (max-width: 480px) {{
+                    .email-wrapper {{
+                        margin: 10px;
+                        border-radius: 8px;
+                    }}
+                    .header {{
+                        padding: 20px 15px;
+                    }}
+                    .header h1 {{
+                        font-size: 20px;
+                    }}
+                    .content {{
+                        padding: 20px 15px;
+                    }}
+                    .button {{
+                        padding: 14px 28px;
+                        font-size: 16px;
+                        width: 100%;
+                        max-width: 280px;
+                    }}
+                }}
             </style>
         </head>
         <body>
@@ -1034,9 +1063,9 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                 </div>
                 <div class="content">
                     <p>哈囉 <strong>{username}</strong>,</p>
-                    <p>CleVora 感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的連結進行 Email 驗證。</p>
+                    <p>CleVora 感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的按鈕進行 Email 驗證。</p>
                     <div class="button-container">
-                        <a href="{verification_link}" class="button">立即驗證您的 Email</a>
+                        <a href="{verification_link}" class="button">立即驗證 Email</a>
                     </div>
                     <p style="text-align: center;">此驗證連結將於 <span class="expiry-text">5 分鐘</span> 內過期，請盡快完成驗證。</p>
                     <p>如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
