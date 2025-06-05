@@ -1017,9 +1017,21 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                     box-shadow: 0 2px 8px rgba(56,48,46,0.10);
                     border: none;
                     transition: background 0.2s;
+                    width: 100%;
+                    max-width: 320px;
                 }}
                 .button:hover {{
                     background: #2a2523;
+                }}
+                .plain-link {{
+                    display: block;
+                    margin: 18px auto 0 auto;
+                    word-break: break-all;
+                    overflow-wrap: break-word;
+                    color: #38302e;
+                    font-size: 0.97rem;
+                    text-align: center;
+                    max-width: 100%;
                 }}
                 .expiry-text {{
                     color: var(--danger-color);
@@ -1053,6 +1065,10 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                         width: 100%;
                         font-size: 1rem;
                         padding: 14px 0;
+                        max-width: 100%;
+                    }}
+                    .plain-link {{
+                        font-size: 0.93rem;
                     }}
                 }}
             </style>
@@ -1067,6 +1083,10 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                     <p>感謝您註冊 CleVora！為了完成您的帳戶啟用，請點擊下方按鈕進行 Email 驗證。</p>
                     <div class=\"button-container\">
                         <a href=\"{verification_link}\" class=\"button\">立即驗證 Email</a>
+                    </div>
+                    <div class=\"plain-link\">
+                        或直接複製以下連結到瀏覽器開啟：<br>
+                        <span>{verification_link}</span>
                     </div>
                     <p style=\"text-align: center;\">此驗證連結將於 <span class=\"expiry-text\">5 分鐘</span> 內過期，請盡快完成驗證。</p>
                     <p style=\"font-size:0.97rem; color:var(--accent-brown);\">如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
