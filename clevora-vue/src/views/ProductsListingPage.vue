@@ -14,8 +14,9 @@
   </div>
 
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-title-container d-flex justify-content-between align-items-center mb-4">
       <h1 class="page-title fw-bold">商品列表</h1>
+      <div class="page-title-underline"></div>
     </div>
     
     <div v-if="paginatedProducts.length" class="row row-cols-1 g-3">
@@ -229,21 +230,46 @@ onMounted(() => {
   --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
 }
 
+/* 頁面標題樣式 */
+.page-title-container {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  color: var(--dark-brown);
+  font-size: 1.8rem;
+  font-weight: bold;
+  padding-bottom: 10px;
+  margin-bottom: 0; /* 移除 h1 預設的 margin-bottom */
+}
+
+.page-title-underline {
+  content: '';
+  display: block;
+  width: 80px; /* 調整下劃線長度 */
+  height: 3px; /* 調整下劃線粗細 */
+  background-color: var(--light-brown);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
 /* 類別篩選條樣式 */
 .category-filter-bar {
   background-color: var(--white);
-  padding: 10px 0;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 15px 0; /* 增加上下內邊距 */
+  margin-bottom: 2.5rem; /* 增加底部間距 */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* 增加陰影強度 */
 }
 
 .category-btn {
   background-color: var(--light-grey);
   color: var(--dark-brown);
   border: 1px solid var(--medium-grey);
-  padding: 8px 15px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  padding: 10px 20px; /* 增加內邊距 */
+  border-radius: 25px; /* 更圓潤 */
+  font-size: 1rem;
   transition: all 0.3s ease;
 }
 
@@ -264,32 +290,38 @@ onMounted(() => {
   display: flex;
   align-items: flex-start; /* 讓圖片和內容從頂部對齊 */
   border: 1px solid var(--medium-grey);
-  border-radius: 8px;
-  overflow: hidden; /* 防止內容溢出圓角 */
+  border-radius: 10px; /* 增加圓角 */
+  overflow: hidden; 
   background-color: var(--white);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加過渡效果 */
+}
+
+.product-list-item:hover {
+  transform: translateY(-5px); /* 懸停時上浮 */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 懸停時更明顯陰影 */
 }
 
 .product-list-img {
-  flex-shrink: 0; /* 防止圖片縮小 */
-  width: 150px; /* 固定圖片寬度 */
-  height: 150px; /* 固定圖片高度 */
+  flex-shrink: 0;
+  width: 180px; /* 增加圖片寬度 */
+  height: 180px; /* 增加圖片高度 */
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--light-grey); /* 圖片背景色 */
-  border-right: 1px solid var(--medium-grey); /* 右側邊框 */
-  padding: 10px; /* 圖片內邊距 */
+  background-color: var(--light-grey);
+  border-right: 1px solid var(--medium-grey);
+  padding: 15px; /* 增加圖片內邊距 */
 }
 
 .product-list-img img {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain; /* 確保圖片內容完整顯示 */
+  object-fit: contain;
 }
 
 .product-list-content {
   flex-grow: 1;
-  padding: 15px;
+  padding: 20px; /* 增加內容內邊距 */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -297,39 +329,63 @@ onMounted(() => {
 
 .product-list-title {
   color: var(--dark-brown);
-  font-size: 1.15rem;
+  font-size: 1.25rem; /* 調整標題字體大小 */
   font-weight: bold;
+  margin-bottom: 0.75rem;
 }
 
 .product-list-desc {
-  color: #6c757d; /* 描述文字顏色 */
-  font-size: 0.9rem;
-  line-height: 1.5;
-  flex-grow: 1; /* 讓描述佔據剩餘空間 */
+  color: var(--disabled-text); /* 使用主題禁用文字顏色 */
+  font-size: 0.95rem; /* 調整描述字體大小 */
+  line-height: 1.6;
+  flex-grow: 1;
 }
 
 .product-list-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 1.25rem; /* 增加與描述的間距 */
 }
 
 .product-list-price {
-  font-size: 1.2rem;
+  font-size: 1.4rem; /* 調整價格字體大小 */
   font-weight: bold;
-  color: var(--accent-brown); /* 價格顏色 */
+  color: var(--accent-brown);
 }
 
-/* 頁碼 */
+/* 加入購物車按鈕樣式 */
+.btn-success {
+    background-color: var(--dark-brown); /* 使用深棕色 */
+    border-color: var(--dark-brown);
+    color: var(--white);
+    border-radius: 20px; /* 圓潤按鈕 */
+    padding: 8px 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background-color: #2a2523; /* 懸停時更深一點 */
+    border-color: #2a2523;
+    color: var(--white);
+}
+
+/* 分頁樣式 */
 .pagination .page-item .page-link {
     color: var(--dark-brown);
     background-color: var(--white);
     border: 1px solid var(--medium-grey);
+    border-radius: 5px; /* 輕微圓角 */
+    margin: 0 2px; /* 頁碼間距 */
+    transition: all 0.3s ease;
 }
 
 .pagination .page-item.disabled .page-link {
     color: var(--disabled-text);
+    background-color: var(--light-grey);
+    border-color: var(--medium-grey);
+    cursor: not-allowed;
 }
 
 .pagination .page-item.active .page-link,
@@ -339,58 +395,81 @@ onMounted(() => {
     color: var(--white);
 }
 
+.form-select.form-select-sm {
+  border-color: var(--medium-grey);
+  color: var(--dark-brown);
+}
+
 /* RWD 調整 */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-
   .product-list-item {
-    flex-direction: column; /* 小螢幕堆疊 */
+    flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
   .product-list-img {
-    width: 100%; /* 小螢幕圖片佔滿寬度 */
+    width: 100%;
     height: auto;
     border-right: none;
-    border-bottom: 1px solid var(--medium-grey); /* 底部邊框 */
-    margin-bottom: 10px;
-  }
-
-  .product-list-content {
+    border-bottom: 1px solid var(--medium-grey);
+    margin-bottom: 15px; /* 增加底部間距 */
     padding: 10px;
   }
 
+  .product-list-content {
+    padding: 15px;
+  }
+
   .product-list-bottom {
-    flex-direction: column; /* 小螢幕按鈕堆疊 */
+    flex-direction: column;
     gap: 10px;
+    width: 100%; /* 確保按鈕佔滿寬度 */
   }
 
   .product-list-price {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+  }
+
+  .btn-success {
+    width: 100%;
   }
 }
 
 @media (max-width: 576px) {
-  .hero-title {
-    font-size: 2rem;
+  .page-title {
+    font-size: 1.5rem;
   }
-  .hero-subtitle {
-    font-size: 0.9rem;
+
+  .page-title-underline {
+    width: 60px; /* 小螢幕調整下劃線長度 */
   }
 
   .category-filter-bar {
-    padding: 8px 0;
+    padding: 10px 0;
+    margin-bottom: 2rem;
   }
 
   .category-btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+
+  .product-list-img {
+    width: 150px; /* 小螢幕圖片寬度 */
+    height: 150px; /* 小螢幕圖片高度 */
+  }
+
+  .product-list-title {
+    font-size: 1.1rem;
+  }
+
+  .product-list-desc {
+    font-size: 0.85rem;
+  }
+
+  .product-list-price {
+    font-size: 1.2rem;
   }
 }
 </style> 
