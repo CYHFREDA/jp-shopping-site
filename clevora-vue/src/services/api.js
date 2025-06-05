@@ -35,8 +35,16 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response && error.response.status === 401) {
+      const userStore = useUserStore();
       const customerStore = useCustomerStore();
-      customerStore.logout();
+      
+      // 如果是管理員請求返回 401，清除管理員登錄狀態
+      if (error.config.url.startsWith('/api/admin')) {
+        userStore.logout();
+      } else {
+        // 如果是客戶請求返回 401，清除客戶登錄狀態
+        customerStore.logout();
+      }
     }
     return Promise.reject(error);
   }

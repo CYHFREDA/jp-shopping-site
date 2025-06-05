@@ -8,29 +8,7 @@ export const useUserStore = defineStore('user', () => {
   console.log('[UserStore Init] localStorage admin_token:', localStorage.getItem('admin_token'));
   console.log('[UserStore Init] admin_token.value initialized to:', admin_token.value);
 
-  const storedExpireAtString = localStorage.getItem('expire_at');
-  let initialExpireAtValue = null; // Default to null if not found or invalid
-
-  if (storedExpireAtString) {
-    if (storedExpireAtString === 'null' || storedExpireAtString === 'undefined') {
-      // If the string is "null" or "undefined", treat it as actual null
-      initialExpireAtValue = null;
-      console.log('[UserStore Init] localStorage expire_at string is "null" or "undefined", treating as null.');
-    } else {
-      const parsedValue = parseInt(storedExpireAtString, 10);
-      if (!isNaN(parsedValue)) {
-        initialExpireAtValue = parsedValue;
-        console.log('[UserStore Init] localStorage expire_at successfully parsed to number:', parsedValue);
-      } else {
-        console.warn('[UserStore Init] localStorage expire_at is a non-numeric string (and not "null"/"undefined"):', storedExpireAtString);
-        initialExpireAtValue = null; // Fallback to null if it's a garbage string
-      }
-    }
-  } else {
-    console.log('[UserStore Init] localStorage expire_at is empty or null.');
-  }
-
-  const expire_at = ref(initialExpireAtValue);
+  const expire_at = ref(parseInt(localStorage.getItem('expire_at')) || null);
   console.log('[UserStore Init] expire_at.value initialized to:', expire_at.value);
 
   const user = ref(null);
@@ -118,10 +96,14 @@ export const useUserStore = defineStore('user', () => {
         } else {
             console.log('[UserStore] setToken: route is not yet present, timer not reset.');
         }
+        localStorage.setItem('admin_token', tokenValue);
+        localStorage.setItem('expire_at', expireAtValue.toString());
     } else {
         console.log('[UserStore] setToken: tokenValue is empty, clearing inactivity timer and removing listeners.');
         clearInactivityTimer();
         removeActivityListeners();
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('expire_at');
     }
   }
 

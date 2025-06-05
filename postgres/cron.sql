@@ -33,7 +33,7 @@ FROM cron.job
 WHERE jobname = 'cleanup-expired-records';
 
 --  建立新的排程（每分鐘執行一次）
-SSELECT cron.schedule(
+SELECT cron.schedule(
   'cleanup-expired-records',
   '* * * * *',
   $$SELECT cleanup_expired_unverified_records();$$

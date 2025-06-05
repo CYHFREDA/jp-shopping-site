@@ -279,63 +279,52 @@ async function handleRegister() {
     return;
   }
 
-  const { username, name, email, phone, address, password } = registerForm.value;
-
   try {
     const res = await axios.post('/api/customers/register', registerForm.value);
-    if (res.data.message) {
-      if (res.data.message.includes('✅ 註冊成功')) {
-        registrationSuccessAndPendingVerification.value = true; // 設定為 true 顯示提示訊息
-        apiErrorMessage.value = res.data.message; // 顯示成功訊息
-        // 清除表單資料
-        registerForm.value = {
-          username: '',
-          name: '',
-          email: '',
-          phone: '',
-          address: '',
-          password: '',
-        };
-        // 清除錯誤訊息
-        usernameError.value = '';
-        nameError.value = '';
-        emailError.value = '';
-        phoneError.value = '';
-        addressError.value = '';
-        passwordError.value = '';
+    const data = res.data;
 
-        registrationEmail.value = email;
+    if (data.message) {
+      registrationSuccessAndPendingVerification.value = true;
+      apiErrorMessage.value = '✅ 註冊成功！請到您的信箱進行驗證。';
+      
+      // 清除表單資料
+      registerForm.value = {
+        username: '',
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        password: '',
+      };
+      
+      // 清除錯誤訊息
+      usernameError.value = '';
+      nameError.value = '';
+      emailError.value = '';
+      phoneError.value = '';
+      addressError.value = '';
+      passwordError.value = '';
 
-        // 啟動 5 分鐘的計時器，如果 Email 尚未驗證，則顯示註冊失敗
-        if (registrationTimer) {
-          clearTimeout(registrationTimer);
+      registrationEmail.value = registerForm.value.email;
+
+      // 啟動 5 分鐘的計時器
+      if (registrationTimer) {
+        clearTimeout(registrationTimer);
+      }
+      registrationTimer = setTimeout(() => {
+        if (registrationSuccessAndPendingVerification.value) {
+          registrationSuccessAndPendingVerification.value = false;
+          apiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊。';
         }
-        registrationTimer = setTimeout(() => {
-          // 只有當前頁面仍顯示註冊成功訊息時才更新狀態
-          if (registrationSuccessAndPendingVerification.value) {
-            registrationSuccessAndPendingVerification.value = false;
-            loginApiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊或嘗試登入。';
-            apiErrorMessage.value = ''; // 清除成功訊息
-          }
-        }, 5 * 60 * 1000); // 5 分鐘（毫秒）
-      } else {
-        apiErrorMessage.value = res.data.message; // 顯示非成功訊息
-      }
-    } else if (res.data.error) {
-      // 處理特定的錯誤訊息
-      if (res.data.error.includes('Email 已被使用')) {
+      }, 5 * 60 * 1000);
+    } else if (data.error) {
+      if (data.error.includes('Email 已被使用')) {
         emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
-      } else if (res.data.error.includes('Email 已被使用且尚待驗證')) {
-        emailError.value = '此 Email 已被註冊但尚未驗證，請檢查您的信箱或使用其他 Email。';
-      } else if (res.data.error.includes('使用者名稱已被使用')) {
+      } else if (data.error.includes('使用者名稱已被使用')) {
         usernameError.value = '此使用者名稱已被註冊，請使用其他名稱或嘗試登入。';
-      } else if (res.data.error.includes('使用者名稱已被使用且尚待驗證')) {
-        usernameError.value = '此使用者名稱已被註冊但尚未驗證，請稍後再試或使用其他名稱。';
       } else {
-        apiErrorMessage.value = res.data.error; // 顯示其他錯誤訊息
+        apiErrorMessage.value = data.error;
       }
-    } else {
-      apiErrorMessage.value = '❌ 註冊失敗！未知錯誤。';
     }
   } catch (error) {
     console.error('註冊錯誤：', error);
