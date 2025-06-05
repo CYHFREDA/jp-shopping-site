@@ -171,28 +171,30 @@ async function handleAddProduct() {
   try {
     const res = await api.post('/api/admin/products', { name, price, description, image_url, category });
 
-    const result = await res.json();
+    // 直接從 res.data 獲取結果，Axios 已自動解析
+    const result = res.data;
 
-    if (!res.ok) {
-       console.error('新增商品失敗：', result);
-       alert(result.error || '新增商品失敗！');
-    } else {
-       alert(result.message || '商品新增成功！');
-       // 清空表單
-       newProduct.value = {
-         name: '',
-         price: '',
-         description: '',
-         image_url: '',
-         categories: []
-       };
-       loadProducts(); // 更新成功後重新載入商品資料
-    }
+    // 如果請求成功（Axios 狀態碼在 2xx），執行以下邏輯
+    alert(result.message || '商品新增成功！'); // 彈出成功提示
+    // 清空表單
+    newProduct.value = {
+      name: '',
+      price: '',
+      description: '',
+      image_url: '',
+      categories: []
+    };
+    loadProducts(); // 重新載入商品資料
 
   } catch (error) {
+    // 處理錯誤，包括非 2xx 狀態碼
     console.error('新增商品時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
       alert('認證失敗，請重新登入！');
+    } else {
+      // 嘗試從錯誤響應中獲取後端返回的錯誤信息
+      const errorMessage = error.response?.data?.error || error.message || '新增商品失敗！';
+      alert(errorMessage);
     }
   }
 }

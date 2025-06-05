@@ -53,6 +53,10 @@ onMounted(() => {
 });
 
 async function loadAdmins() {
+  console.log('loadAdmins triggered.');
+  console.log('userStore.admin_token:', userStore.admin_token);
+  console.log('userStore.isAuthenticated:', userStore.isAuthenticated);
+
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
@@ -64,6 +68,7 @@ async function loadAdmins() {
     const res = await api.get('/api/admin/admins');
 
     const data = res.data;
+    console.log('從後端接收到的使用者數據:', data);
     admins.value = data;
   } catch (error) {
     console.error('無法載入使用者資料：', error);
