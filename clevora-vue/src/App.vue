@@ -4,22 +4,40 @@ import { clearCache } from './utils/cache';
 import NavBar from '@/components/NavBar.vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
-import { useRoute } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const cartStore = useCartStore();
 const customerStore = useCustomerStore();
+const userStore = useUserStore();
 
 let inactivityTimer;
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 分鐘 (毫秒)
+const showInactivityAlert = ref(false);
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimer);
-  if (customerStore.isAuthenticated) { // Only set timer if user is authenticated
+  // 會員或管理員登入時才啟動
+  if (customerStore.isAuthenticated || userStore.isAuthenticated) {
     inactivityTimer = setTimeout(() => {
-      console.log('使用者閒置，自動登出...');
-      customerStore.logout();
-      alert('已閒置30分鐘自動登出');
+      if (customerStore.isAuthenticated) {
+        customerStore.logout();
+      }
+      if (userStore.isAuthenticated) {
+        userStore.logout();
+      }
+      showInactivityAlert.value = true;
+      // 自動 3 秒後關閉通知並導向登入
+      setTimeout(() => {
+        showInactivityAlert.value = false;
+        if (route.path.startsWith('/admin')) {
+          router.push('/admin/login');
+        } else {
+          router.push('/login');
+        }
+      }, 3000);
     }, INACTIVITY_TIMEOUT);
   }
 }
@@ -83,6 +101,10 @@ onUnmounted(() => {
         <path d="M12 8L8 12H11V16H13V12H16L12 8Z" fill="white"/>
       </svg>
     </button>
+    <!-- 閒置自動登出通知 -->
+    <div v-if="showInactivityAlert" class="inactivity-alert">
+      <span>⏰ 已閒置 30 分鐘，自動登出！請重新登入。</span>
+    </div>
   </div>
 </template>
 
@@ -145,5 +167,23 @@ onUnmounted(() => {
     width: 22px;
     height: 22px;
   }
+}
+
+.inactivity-alert {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  background: #a18a7b;
+  color: #fff;
+  padding: 18px 32px;
+  border-radius: 32px;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 16px rgba(161,138,123,0.18);
+  z-index: 9999;
+  animation: fadeInUp 0.4s;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
