@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import OrderHistory from '@/views/OrderHistory.vue'; // 靜態導入
+import OrderHistory from '@/views/OrderHistory.vue'; 
 import Shipments from '@/views/admin/Shipments.vue';
 import Customers from '@/views/admin/Customers.vue';
-// import Admins from '@/views/admin/Admins.vue'; // 移除靜態導入
+import Admins from '@/views/admin/Admins.vue'; 
+import Settings from '@/views/admin/Settings.vue'; 
 import { useUserStore } from '@/stores/userStore';
 import { useCustomerStore } from '@/stores/customerStore';
 
@@ -81,13 +82,19 @@ const routes = [
         name: 'AdminAdmins',
         component: () => import('@/views/admin/Admins.vue'),
         meta: { title: 'Clevora 後台管理 - 使用者管理' }
+      },
+      {
+        path: 'settings',
+        name: 'AdminSettings',
+        component: Settings,
+        meta: { title: 'Clevora 後台管理 - 系統設定' }
       }
     ]
   },
   {
     path: '/orderHistory',
     name: 'OrderHistory',
-    component: OrderHistory, // 使用靜態導入的組件
+    component: OrderHistory,
     meta: { 
       title: 'Clevora 我的訂單',
       requiresCustomerAuth: true

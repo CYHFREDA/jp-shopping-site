@@ -66,8 +66,12 @@ const routes = [
         component: Customers 
       },
       { 
-        path: 'admin_users', 
+        path: 'admins', 
         component: AdminUsers 
+      },
+      { 
+        path: 'Settings', 
+        component: Settings 
       }
     ]
   }
