@@ -285,4 +285,17 @@ onMounted(() => {
     /* 移除 max-height */
   }
 }
+
+/* 確保註冊按鈕初始可見且顏色正確，並提供最高優先級 */
+.tab-pane.fade.show.active .d-grid .btn.btn-primary {
+  background-color: #38302e !important;
+  border-color: #38302e !important;
+  color: var(--white) !important;
+}
+
+/* 確保懸停時的顏色也正確 */
+.tab-pane.fade.show.active .d-grid .btn.btn-primary:hover {
+  background-color: #2a2523 !important;
+  border-color: #2a2523 !important;
+}
 </style>

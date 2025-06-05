@@ -35,6 +35,11 @@ const router = useRouter();
 const error = ref('');
 const userStore = useUserStore();
 
+// 如果用戶已經登入，則直接導向後台主控台頁面
+if (userStore.isAuthenticated) {
+  router.push('/admin');
+}
+
 // 登入功能
 const login = async () => {
   if (!username.value || !password.value) {

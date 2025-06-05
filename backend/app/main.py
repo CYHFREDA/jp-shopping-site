@@ -410,13 +410,15 @@ async def get_customer_orders(customer_id: int, request: Request, cursor=Depends
         
         # 將 datetime 物件轉換為字串以便 JSON 序列化
         formatted_orders = []
-        for order in orders:
-            # order 現在已經是字典般的物件了，直接使用
-            if order.get('created_at'):
-                order['created_at'] = order['created_at'].isoformat()
-            if order.get('paid_at'):
-                order['paid_at'] = order['paid_at'].isoformat()
-            formatted_orders.append(order)
+        for order_row in orders:
+            # 將 DictRow 轉換為標準 Python 字典
+            order_dict = dict(order_row)
+            # 格式化 datetime 物件為字串以便 JSON 序列化
+            if order_dict.get('created_at'):
+                order_dict['created_at'] = order_dict['created_at'].isoformat()
+            if order_dict.get('paid_at'):
+                order_dict['paid_at'] = order_dict['paid_at'].isoformat()
+            formatted_orders.append(order_dict)
 
         return JSONResponse(formatted_orders)
 
