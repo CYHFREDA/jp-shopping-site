@@ -17,6 +17,7 @@ import Shipments from '@/views/admin/Shipments.vue';
 import Customers from '@/views/admin/Customers.vue';
 import AdminUsers from '@/views/admin/Admins.vue';
 import Settings from '@/views/admin/Settings.vue';
+import ProductDetail from '@/views/ProductDetail.vue';
 import NotFound from '@/views/ErrorPage.vue';
 
 const routes = [
@@ -52,6 +53,12 @@ const routes = [
       title: 'Clevora 我的訂單',
       requiresCustomerAuth: true
     }
+  },
+  {
+    path: '/product/:id',
+    name: 'ProductDetail',
+    component: ProductDetail,
+    meta: { title: 'Clevora 商品詳細' }
   },
   {
     path: '/admin/login',
