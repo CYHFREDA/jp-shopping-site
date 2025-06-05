@@ -44,7 +44,7 @@ import api from '@/services/api';
 const shipments = ref([]);
 const userStore = useUserStore();
 const displayErrorMessage = ref('');
-const INACTIVITY_TIMEOUT = 30 * 1000; // 30 秒（測試用）
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
 async function loadShipments() {
   displayErrorMessage.value = '';
