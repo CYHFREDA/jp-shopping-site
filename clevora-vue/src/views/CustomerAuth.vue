@@ -15,47 +15,51 @@
       <div class="tab-content">
         <!-- 登入 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'login' }" id="login">
-          <div class="mb-3">
-            <label for="loginUsername" class="form-label">使用者名稱</label>
-            <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
-          </div>
-          <div class="mb-3">
-            <label for="loginPassword" class="form-label">密碼</label>
-            <input id="loginPassword" type="password" class="form-control" v-model="loginForm.password" />
-          </div>
-          <div class="d-grid">
-            <button class="btn btn-success" @click="handleLogin">登入</button>
+          <div class="form-content-scroll">
+            <div class="mb-3">
+              <label for="loginUsername" class="form-label">使用者名稱</label>
+              <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
+            </div>
+            <div class="mb-3">
+              <label for="loginPassword" class="form-label">密碼</label>
+              <input id="loginPassword" type="password" class="form-control" v-model="loginForm.password" />
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-success" @click="handleLogin">登入</button>
+            </div>
           </div>
         </div>
 
         <!-- 註冊 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
-          <div class="mb-3">
-            <label for="registerUsername" class="form-label">使用者名稱</label>
-            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
-          </div>
-          <div class="mb-3">
-            <label for="registerName" class="form-label">姓名</label>
-            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
-          </div>
-          <div class="mb-3">
-            <label for="registerEmail" class="form-label">Email</label>
-            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
-          </div>
-          <div class="mb-3">
-            <label for="registerPhone" class="form-label">電話</label>
-            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
-          </div>
-          <div class="mb-3">
-            <label for="registerAddress" class="form-label">地址</label>
-            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
-          </div>         
-          <div class="mb-3">
-            <label for="registerPassword" class="form-label">密碼</label>
-            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
-          </div>
-          <div class="d-grid">
-            <button class="btn btn-primary" @click="handleRegister">註冊</button>
+          <div class="form-content-scroll">
+            <div class="mb-3">
+              <label for="registerUsername" class="form-label">使用者名稱</label>
+              <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
+            </div>
+            <div class="mb-3">
+              <label for="registerName" class="form-label">姓名</label>
+              <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
+            </div>
+            <div class="mb-3">
+              <label for="registerEmail" class="form-label">Email</label>
+              <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
+            </div>
+            <div class="mb-3">
+              <label for="registerPhone" class="form-label">電話</label>
+              <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
+            </div>
+            <div class="mb-3">
+              <label for="registerAddress" class="form-label">地址</label>
+              <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
+            </div>         
+            <div class="mb-3">
+              <label for="registerPassword" class="form-label">密碼</label>
+              <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-primary" @click="handleRegister">註冊</button>
+            </div>
           </div>
         </div>
       </div>
@@ -254,6 +258,12 @@ onMounted(() => {
     color: var(--white);
 }
 
+.form-content-scroll {
+  max-height: 400px; /* 根據需要調整，以確保內容滾動 */
+  overflow-y: auto;
+  padding-right: 15px; /* 為滾動條留出空間 */
+}
+
 /* RWD 調整 */
 @media (max-width: 576px) {
   .auth-card {
@@ -267,6 +277,10 @@ onMounted(() => {
   .auth-tabs .nav-link {
       padding: 0.5rem; /* 小螢幕調整 tab 內邊距 */
       font-size: 0.9rem;
+  }
+
+  .form-content-scroll {
+    max-height: 300px; /* 小螢幕調整滾動區域高度 */
   }
 }
 </style>
