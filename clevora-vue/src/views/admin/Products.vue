@@ -119,24 +119,30 @@ async function loadProducts() {
   try {
     const res = await api.get('/api/admin/products');
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('無法載入商品資料：', res.status, errorText);
-      alert('無法載入商品資料！');
-      return;
+    // 直接使用 res.data 獲取數據，Axios 會自動解析 JSON
+    const data = res.data;
+
+    // Check if data is an array before mapping (optional but good practice)
+    if (Array.isArray(data)) {
+      products.value = data.map(p => ({
+        ...p,
+        // Ensure price is a number if needed for calculations/display
+        price: parseFloat(p.price) || 0,
+        // Split category string into an array of categories
+        categories: (p.category || "").split("#")
+      }));
+       console.log('經過處理後的商品數據 (products.value):', products.value);
+    } else {
+      console.error('從後端接收到的數據不是一個陣列:', data);
+      products.value = []; // Clear products if data format is unexpected
     }
 
-    const data = await res.json();
-    console.log('從後端接收到的原始商品數據:', data);
-    products.value = data.map(p => ({
-      ...p,
-      categories: (p.category || "").split("#")
-    }));
-    console.log('經過處理後的商品數據 (products.value):', products.value);
   } catch (error) {
     console.error('載入商品資料時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
       alert('認證失敗，請重新登入！');
+    } else {
+       alert('載入商品資料失敗！');
     }
   }
 }
