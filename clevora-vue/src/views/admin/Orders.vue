@@ -56,7 +56,15 @@ const loadOrders = async () => {
       },
     });
     console.log('從後端接收到的訂單數據:', res.data);
-    orders.value = res.data.orders;
+
+    // Log each order object for inspection
+    if (Array.isArray(res.data)) {
+      res.data.forEach((order, index) => {
+        console.log(`訂單 ${index}:`, order);
+      });
+    }
+
+    orders.value = res.data;
     isLoading.value = false;
   } catch (error) {
     console.error('載入訂單時發生錯誤:', error);
