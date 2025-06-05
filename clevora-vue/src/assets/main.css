@@ -195,12 +195,33 @@ footer {
   border-radius: 5px;
   border: none;
   margin-bottom: 1rem; /* 添加下方間距 */
+  text-align: center; /* 將警示文字置中 */
+  font-weight: bold; /* 將警示文字加粗 */
 }
 
 .alert-danger {
-  background-color: #f8d7da; /* Bootstrap 默認 danger 淺色背景 */
-  color: var(--danger-color); /* 保持紅色文字 */
-  border-color: #f5c6cb;
+  background-color: var(--danger-color); /* 直接使用 danger-color */
+  color: var(--white); /* 保持白色文字 */
+  border-color: var(--danger-color);
+}
+
+.alert-success {
+  background-color: var(--success-color); /* 直接使用 success-color */
+  color: var(--white); /* 保持白色文字 */
+  border-color: var(--success-color);
+}
+
+/* 登入表單的警示框特定樣式 */
+#login .alert-danger {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+  color: var(--white);
+}
+
+#login .alert-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: var(--white);
 }
 
 /* 容器樣式 */
