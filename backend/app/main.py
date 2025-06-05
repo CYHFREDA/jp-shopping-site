@@ -944,7 +944,7 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                     </p>
                     <p>如果按鈕無法點擊，請複製以下連結到您的瀏覽器中開啟：</p>
                     <p><code>{verification_link}</code></p>
-                    <p>此連結將在 24 小時內過期。</p>
+                    <p>此連結將在 5 分鐘內過期。</p>
                     <p>如果您沒有註冊此帳戶，請忽略此 Email。</p>
                 </div>
                 <div class="footer">
