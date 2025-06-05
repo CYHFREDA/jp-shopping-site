@@ -20,7 +20,7 @@
 
       <button class="btn btn-primary mt-3" @click="saveSettings">保存設定</button>
     </div>
-    <div v-else>
+    <div v-else class="text-center text-muted">
       載入設定中...
     </div>
   </div>
@@ -99,5 +99,46 @@ async function saveSettings() {
 </script>
 
 <style scoped>
-/* 可以添加一些 Settings.vue 特有的樣式 */
+/* 提升卡片的質感 */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  margin-top: 1.5rem; /* 添加一些頂部間距 */
+}
+
+/* 表單元素樣式微調 */
+.form-label {
+  font-weight: bold;
+  color: #495057; /* 標籤顏色 */
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  border-radius: 5px;
+  border-color: #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* 按鈕樣式微調 (使用 Bootstrap 標準按鈕類別) */
+/* 不需要在此重複定義 btn 樣式，Bootstrap 已提供 */
+
+/* 標題樣式微調 */
+.card-title {
+  color: #343a40; /* 深色標題 */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5rem; /* 調整標題字體大小 */
+}
+
+/* 載入中提示文字樣式 */
+.text-muted {
+  font-style: italic;
+}
 </style> 

@@ -81,34 +81,71 @@ const login = async () => {
   padding: 20px;
 }
 
+/* 提升卡片的質感 */
 .card {
   max-width: 400px; /* 調整最大寬度 */
   width: 90%; /* 確保在小螢幕上自適應 */
   margin: 0 auto; /* 水平置中 */
-  border-radius: 1rem; /* 圓角 */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* 柔和陰影 */
+  border: none; /* 移除預設邊框 */
+  border-radius: 10px; /* 柔和圓角 */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 更明顯的陰影 */
   background-color: #fff; /* 白色背景 */
   padding: 40px; /* 增加內邊距 */
 }
 
 .card-title {
   font-weight: 600;
-  color: #343a40;
+  color: #343a40; /* 深色標題 */
+  font-size: 1.75rem; /* 調整標題字體大小 */
+  margin-bottom: 1.5rem !important; /* 增加標題底部間距 */
+}
+
+/* 輸入框樣式微調 */
+.form-control {
+  border-radius: 5px;
+  border-color: #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
 }
 
 .form-control-lg {
   text-align: center; /* 輸入框文字置中 */
 }
 
+/* 按鈕樣式微調 */
+.btn {
+  border-radius: 5px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
 .btn-primary {
-  background-color: #6a89cc;
-  border-color: #6a89cc;
-  font-size: 1.25rem; /* 較大字體 */
-  padding: 0.5rem 1rem; /* 調整內邊距 */
+  background-color: #007bff; /* 使用標準 Bootstrap 主色 */
+  border-color: #007bff;
 }
 
 .btn-primary:hover {
-  background-color: #4a69bd;
-  border-color: #4a69bd;
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.btn-lg {
+    font-size: 1.25rem;
+    padding: 0.5rem 1rem;
+}
+
+/* 提示文字樣式 */
+.text-muted {
+    font-style: italic;
+    color: #6c757d !important; /* 調整提示文字顏色 */
+}
+
+/* 錯誤提示樣式 */
+.alert-danger {
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
 }
 </style> 
