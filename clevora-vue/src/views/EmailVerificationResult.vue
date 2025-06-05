@@ -52,7 +52,7 @@ onMounted(async () => {
       success.value = true;
       message.value = response.data.message;
       setTimeout(() => {
-        router.push('/customer-auth');
+        router.push('/login');
       }, 3000);
     } else {
       success.value = false;

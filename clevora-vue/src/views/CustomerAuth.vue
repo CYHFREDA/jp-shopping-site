@@ -31,9 +31,12 @@
         <!-- 註冊 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
           <div v-if="registrationSuccessAndPendingVerification" class="alert alert-info text-center" role="alert">
-            ✅ 註冊成功！請到您的信箱進行驗證。<br>驗證連結將在 5 分鐘內過期。<br>若未收到，請檢查垃圾郵件或稍後再試。<br>請注意：Email 驗證後，您才能進行登入！
+            ✅ 註冊成功！請到您的信箱進行驗證。<br>請勿關閉此頁面。待 Email 驗證完成後（透過點擊 Email 中的連結），系統會自動跳轉至登入畫面。<br>驗證連結將在 5 分鐘內過期。<br>若未收到，請檢查垃圾郵件或稍後再試。
           </div>
           <div v-else>
+            <div v-if="apiErrorMessage" class="alert" :class="{ 'alert-danger': apiErrorMessage.includes('❌'), 'alert-success': apiErrorMessage.includes('✅') }" role="alert">
+              {{ apiErrorMessage }}
+            </div>
             <div class="mb-2">
               <label for="registerUsername" class="form-label">使用者名稱</label>
               <input id="registerUsername" type="text" class="form-control" :class="{ 'is-invalid': usernameError }" v-model="registerForm.username" placeholder="username(必填)" />
@@ -100,6 +103,7 @@ const registerForm = ref({
 });
 
 const registrationSuccessAndPendingVerification = ref(false);
+const apiErrorMessage = ref(''); // 用於顯示後端 API 錯誤或成功訊息
 
 // 驗證錯誤訊息
 const usernameError = ref('');
@@ -249,6 +253,8 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
+  apiErrorMessage.value = ''; // 清除之前的訊息
+
   // 在這裡執行所有驗證
   const isUsernameValid = validateUsername();
   const isNameValid = validateName();
@@ -257,9 +263,8 @@ async function handleRegister() {
   const isAddressValid = validateAddress();
   const isPasswordValid = validatePassword();
 
-  // 如果有任何一個驗證失敗，則停止提交
   if (!isUsernameValid || !isNameValid || !isEmailValid || !isPhoneValid || !isAddressValid || !isPasswordValid) {
-    alert("請修正表單中的錯誤！");
+    apiErrorMessage.value = '❌ 請修正表單中的錯誤！';
     return;
   }
 
@@ -268,9 +273,9 @@ async function handleRegister() {
   try {
     const res = await axios.post('/api/customers/register', registerForm.value);
     if (res.data.message) {
-      // alert(res.data.message); // 不再彈出 alert，而是顯示在頁面上
       if (res.data.message.includes('✅ 註冊成功')) {
         registrationSuccessAndPendingVerification.value = true; // 設定為 true 顯示提示訊息
+        apiErrorMessage.value = res.data.message; // 顯示成功訊息
         // 清除表單資料
         registerForm.value = {
           username: '',
@@ -288,17 +293,19 @@ async function handleRegister() {
         addressError.value = '';
         passwordError.value = '';
       } else {
-        alert(res.data.message); // 如果不是成功訊息，仍用 alert 顯示
+        apiErrorMessage.value = res.data.message; // 顯示非成功訊息
       }
     } else if (res.data.error) {
-      alert(res.data.error);
+      apiErrorMessage.value = res.data.error; // 顯示錯誤訊息
+    } else {
+      apiErrorMessage.value = '❌ 註冊失敗！未知錯誤。';
     }
   } catch (error) {
     console.error('註冊錯誤：', error);
-    if (error.response && error.response.data && error.response.data.error) {
-      alert(error.response.data.error);
+    if (error.response) {
+      apiErrorMessage.value = error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
     } else {
-      alert('註冊失敗，請稍後再試。');
+      apiErrorMessage.value = '❌ 註冊失敗！網路錯誤，請稍後再試。';
     }
   }
 }
