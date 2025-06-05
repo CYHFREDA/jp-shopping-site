@@ -167,8 +167,8 @@ function handleSearch() {
 }
 
 .cart-badge {
-   background-color: var(--accent-brown) !important;  /* 徽章背景色使用強調棕色 */
-   color: var(--danger-color); /* 徽章文字顏色使用紅色 */
+   background-color: var(--danger-color) !important; /* 徽章背景色使用紅色 */
+   color: var(--white); /* 徽章文字顏色使用白色 */
    font-size: 0.75rem;
    top: -0.2rem !important; /* 微調位置 */
    right: -0.5rem !important;
