@@ -357,7 +357,7 @@ async def get_customer_orders(customer_id: int, request: Request, cursor=Depends
                 formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
             formatted_orders.append(formatted_order)
 
-        return formatted_orders
+        return JSONResponse(formatted_orders)
 
     except Exception as e:
         print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤： {e}")
@@ -380,7 +380,7 @@ async def admin_get_orders(auth=Depends(verify_admin_jwt), cursor=Depends(get_db
                 formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
             formatted_orders.append(formatted_order)
 
-        return formatted_orders
+        return JSONResponse(formatted_orders)
 
     except Exception as e:
         print(f"❌ 後端查詢訂單錯誤： {e}")

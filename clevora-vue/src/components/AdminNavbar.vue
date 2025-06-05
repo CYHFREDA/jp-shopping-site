@@ -3,7 +3,7 @@
     <div class="container-fluid">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
         <img src="/images/LOGO.png" alt="LOGO" class="me-2" />
-        <span>Clevora 後台管理</span>
+        <span>Clevora 首頁</span>
       </a>
       <button class="btn btn-danger btn-sm" @click="handleLogout">登出</button>
     </div>
