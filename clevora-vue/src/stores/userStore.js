@@ -12,7 +12,7 @@ export const useUserStore = defineStore('user', () => {
   const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
   const router = useRouter();
-  const route = useRoute();
+  const route = ref(null);
 
   const isAuthenticated = computed(() => {
     const token = admin_token.value;
@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function resetInactivityTimer() {
-    if (isAuthenticated.value && route.path.startsWith('/admin')) {
+    if (isAuthenticated.value && route.value && route.value.path.startsWith('/admin')) {
        startInactivityTimer();
     } else {
        clearInactivityTimer();
@@ -75,7 +75,9 @@ export const useUserStore = defineStore('user', () => {
     expire_at.value = expireAtValue;
     if (tokenValue) {
         addActivityListeners();
-        resetInactivityTimer();
+        if (route.value) {
+            resetInactivityTimer();
+        }
     }
   }
 
@@ -91,15 +93,17 @@ export const useUserStore = defineStore('user', () => {
   if (isAuthenticated.value) {
       console.log('Admin authenticated on load (via initial state), starting timer and listeners.');
       addActivityListeners();
-      resetInactivityTimer();
   } else if (localStorage.getItem('admin_token')) {
       console.log('Expired or invalid admin token found in localStorage on load.');
   }
 
-  watch(() => router.currentRoute.value.path, (newPath) => {
-    console.log('Route changed to:', newPath);
-    resetInactivityTimer();
-  });
+  watch(() => router.currentRoute.value, (newRoute) => {
+    if (newRoute) {
+      route.value = newRoute;
+      console.log('Route changed to:', newRoute.path);
+      resetInactivityTimer();
+    }
+  }, { immediate: true });
 
   return {
     admin_token,
