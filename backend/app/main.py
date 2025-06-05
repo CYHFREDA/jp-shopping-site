@@ -248,6 +248,34 @@ async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
     products = cursor.fetchall()
     return products
 
+# 後台：取得所有商品 (需要管理員權限)
+@app.get("/api/admin/products")
+async def admin_get_products(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("""
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+            ORDER BY created_at DESC
+        """)
+
+        products = []
+        for row in cursor.fetchall():
+             products.append({
+                "id": row[0],
+                "name": row[1],
+                "price": float(row[2]),
+                "description": row[3],
+                "image_url": row[4],
+                "created_at": row[5].isoformat() if row[5] else None,
+                "category": row[6]
+            })
+        
+        return JSONResponse(products)
+
+    except Exception as e:
+        print("❌ 後台載入商品資料錯誤：", str(e))
+        return JSONResponse({"error": "無法載入商品資料"}, status_code=500)
+
 #客戶註冊（前台用）
 @app.post("/api/customers/register")
 async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
