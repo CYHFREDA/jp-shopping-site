@@ -358,66 +358,75 @@ async def customer_register(request: Request):
             print("❌ [註冊] 註冊失敗: 缺少必要欄位") # Debugging line
             return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
 
-        # Check if username already exists BEFORE attempting insert to give a clearer error
-        cursor.execute("SELECT username FROM customers WHERE username ILIKE %s", (username,))
-        existing_user = cursor.fetchone()
-        if existing_user:
-            print(f"❌ [註冊] 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
-            return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+        # --- 檢查 Email 是否已存在並處理未驗證/過期情況 ---
+        cursor.execute("SELECT customer_id, username, is_verified, token_expiry FROM customers WHERE email = %s", (email,))
+        existing_email_record = cursor.fetchone()
+        if existing_email_record:
+            existing_customer_id, existing_username, is_verified_email, token_expiry_email = existing_email_record
+            if is_verified_email:
+                print(f"❌ [註冊] Email '{email}' 已被註冊且已驗證。")
+                return JSONResponse({"error": "Email 已被使用"}, status_code=400)
+            elif token_expiry_email and datetime.utcnow() > token_expiry_email.replace(tzinfo=None):
+                # Email 存在但未驗證且 Token 已過期：刪除舊記錄
+                print(f"⚠️ [註冊] Email '{email}' 已存在但未驗證且 Token 已過期，將刪除舊記錄。")
+                cursor.execute("DELETE FROM customers WHERE customer_id = %s", (existing_customer_id,))
+                conn.commit()
+                print(f"✅ [註冊] 已刪除過期的未驗證 Email '{email}' 的舊記錄。")
+                # 繼續執行，允許新註冊
+            else:
+                # Email 存在但未驗證，且 Token 仍有效：阻止註冊
+                print(f"❌ [註冊] Email '{email}' 已被使用且尚待驗證。")
+                return JSONResponse({"error": "Email 已被使用且尚待驗證，請檢查您的 Email 收件箱。"}, status_code=400)
 
-        # Check if email already exists
-        cursor.execute("SELECT email FROM customers WHERE email ILIKE %s", (email,))
-        existing_email = cursor.fetchone()
-        if existing_email:
-            print(f"❌ [註冊] Email '{email}' 已存在於資料庫中。") # Debugging line
-            return JSONResponse({"error": "Email 已被使用"}, status_code=400)
+        # --- 檢查使用者名稱是否已存在並處理未驗證/過期情況 ---
+        cursor.execute("SELECT customer_id, email, is_verified, token_expiry FROM customers WHERE username = %s", (username,))
+        existing_username_record = cursor.fetchone()
+        if existing_username_record:
+            existing_customer_id_un, existing_email_un, is_verified_username, token_expiry_username = existing_username_record
+            if is_verified_username:
+                print(f"❌ [註冊] 使用者名稱 '{username}' 已被註冊且已驗證。")
+                return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+            elif token_expiry_username and datetime.utcnow() > token_expiry_username.replace(tzinfo=None):
+                # 使用者名稱存在但未驗證且 Token 已過期：刪除舊記錄
+                print(f"⚠️ [註冊] 使用者名稱 '{username}' 已存在但未驗證且 Token 已過期，將刪除舊記錄。")
+                cursor.execute("DELETE FROM customers WHERE customer_id = %s", (existing_customer_id_un,))
+                conn.commit()
+                print(f"✅ [註冊] 已刪除過期的未驗證使用者名稱 '{username}' 的舊記錄。")
+                # 繼續執行，允許新註冊
+            else:
+                # 使用者名稱存在但未驗證，且 Token 仍有效：阻止註冊
+                print(f"❌ [註冊] 使用者名稱 '{username}' 已被使用且尚待驗證。")
+                return JSONResponse({"error": "使用者名稱已被使用且尚待驗證。"}, status_code=400)
 
-        # bcrypt 雜湊密碼
+        # --- 如果執行到這裡，表示 Email 和使用者名稱都可用於新註冊（舊的過期記錄已刪除）---
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        print("[註冊] 密碼已雜湊。")
-
-        # 生成驗證 token 和過期時間 (5 分鐘)
         verification_token = str(uuid.uuid4())
         token_expiry = datetime.utcnow() + timedelta(minutes=5)
 
-        print(f"[註冊] 生成驗證 token: {verification_token}, 過期時間: {token_expiry}")
+        cursor.execute(
+            """
+            INSERT INTO customers (username, email, password, name, phone, address,
+                                   is_verified, verification_token, token_expiry, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            """,
+            (username, email, hashed_password, name, phone, address,
+             False, verification_token, token_expiry)
+        )
+        conn.commit()
 
-        # 插入客戶資料，但不立即提交
-        print("[註冊] 嘗試插入客戶資料到資料庫 (未提交)。")
-        cursor.execute("""
-            INSERT INTO customers (username, name, email, phone, password, address, created_at, is_verified, verification_token, token_expiry)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
-        """, (username, name, email, phone, hashed_password, address, False, verification_token, token_expiry))
-        print("[註冊] 客戶資料已暫存資料庫。")
-
-        # 發送驗證 Email
         verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-        print(f"[註冊] 嘗試發送驗證 Email 到 {email}，連結: {verification_link}")
-        email_sent_successfully = await send_verification_email(email, username, verification_link)
+        email_sent = await send_verification_email(email, username, verification_link)
 
-        if email_sent_successfully:
-            conn.commit() # Email 發送成功才提交資料庫變更
-            print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證 Email 已發送並提交資料庫！")
+        if email_sent:
+            print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證信已發送。")
             return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
         else:
-            conn.rollback() # Email 發送失敗則回滾資料庫變更
+            conn.rollback()
             print(f"⚠️ [註冊] 使用者 '{username}' 註冊失敗：驗證 Email 發送失敗，已回滾資料庫。")
             return JSONResponse({"error": "註冊失敗，驗證 Email 未能發送。請檢查 Email 服務設定或稍後再試。"}, status_code=500)
 
-    except psycopg2.IntegrityError as e:
-        if conn: # 確保 conn 存在才回滾
-            conn.rollback()
-        print(f"❌ [註冊] 資料庫 IntegrityError (可能為唯一性約束)：{e}")
-        # 根據錯誤類型返回更具體的訊息
-        error_message = str(e)
-        if "duplicate key value violates unique constraint \"customers_username_key\"" in error_message:
-             return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
-        elif "duplicate key value violates unique constraint \"customers_email_key\"" in error_message:
-             return JSONResponse({"error": "Email 已被使用"}, status_code=400)
-        else:
-             return JSONResponse({"error": "註冊失敗，請確認資料無誤！"}, status_code=400)
     except Exception as e:
-        if conn: # 確保 conn 存在才回滾
+        if conn:
             conn.rollback()
         print(f"❌ [註冊] 註冊時發生其他未知錯誤：{e}")
         return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
@@ -425,7 +434,7 @@ async def customer_register(request: Request):
         if cursor:
             cursor.close()
         if conn:
-            global_pool.putconn(conn) # 確保連接被歸還到連接池
+            global_pool.putconn(conn)
             print("[註冊] 資料庫連接已歸還連接池。")
 
 #客戶登入（前台用）
