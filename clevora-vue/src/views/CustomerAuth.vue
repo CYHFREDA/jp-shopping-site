@@ -322,14 +322,35 @@ async function handleRegister() {
         apiErrorMessage.value = res.data.message; // 顯示非成功訊息
       }
     } else if (res.data.error) {
-      apiErrorMessage.value = res.data.error; // 顯示錯誤訊息
+      // 處理特定的錯誤訊息
+      if (res.data.error.includes('Email 已被使用')) {
+        emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
+      } else if (res.data.error.includes('Email 已被使用且尚待驗證')) {
+        emailError.value = '此 Email 已被註冊但尚未驗證，請檢查您的信箱或使用其他 Email。';
+      } else if (res.data.error.includes('使用者名稱已被使用')) {
+        usernameError.value = '此使用者名稱已被註冊，請使用其他名稱或嘗試登入。';
+      } else if (res.data.error.includes('使用者名稱已被使用且尚待驗證')) {
+        usernameError.value = '此使用者名稱已被註冊但尚未驗證，請稍後再試或使用其他名稱。';
+      } else {
+        apiErrorMessage.value = res.data.error; // 顯示其他錯誤訊息
+      }
     } else {
       apiErrorMessage.value = '❌ 註冊失敗！未知錯誤。';
     }
   } catch (error) {
     console.error('註冊錯誤：', error);
     if (error.response) {
-      apiErrorMessage.value = error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
+      if (error.response.data.detail) {
+        if (error.response.data.detail.includes('Email 已被使用')) {
+          emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
+        } else if (error.response.data.detail.includes('使用者名稱已被使用')) {
+          usernameError.value = '此使用者名稱已被註冊，請使用其他名稱或嘗試登入。';
+        } else {
+          apiErrorMessage.value = error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
+        }
+      } else {
+        apiErrorMessage.value = '❌ 註冊失敗！請稍後再試。';
+      }
     } else {
       apiErrorMessage.value = '❌ 註冊失敗！網路錯誤，請稍後再試。';
     }

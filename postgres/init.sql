@@ -91,3 +91,52 @@ COMMENT ON COLUMN admin_users.id IS '流水號';
 COMMENT ON COLUMN admin_users.username IS '管理員帳號';
 COMMENT ON COLUMN admin_users.password IS '密碼（bcrypt 雜湊）';
 COMMENT ON COLUMN admin_users.created_at IS '建立時間';
+
+---
+-- 创建扩展
+CREATE EXTENSION pg_cron;
+
+-- 创建清理过期未验证记录的函数
+CREATE OR REPLACE FUNCTION cleanup_expired_unverified_records()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM customers 
+    WHERE is_verified = FALSE 
+    AND token_expiry < CURRENT_TIMESTAMP;
+    
+    -- 记录清理结果
+    INSERT INTO cleanup_logs (operation, records_affected, executed_at)
+    VALUES ('cleanup_expired_unverified', ROW_COUNT, CURRENT_TIMESTAMP);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 创建清理日志表
+CREATE TABLE IF NOT EXISTS cleanup_logs (
+    id SERIAL PRIMARY KEY,
+    operation VARCHAR(50),
+    records_affected INTEGER,
+    executed_at TIMESTAMP
+);
+
+-- 设置定时任务，每分钟执行一次
+SELECT cron.schedule('cleanup-expired-records', '* * * * *', 'SELECT cleanup_expired_unverified_records()');
+
+-- 创建清理过期未验证记录的函数
+CREATE OR REPLACE FUNCTION cleanup_expired_unverified_records()
+RETURNS void AS $$
+BEGIN
+    -- 删除条件：
+    -- 1. is_verified = FALSE：用户尚未完成邮箱验证
+    -- 2. token_expiry < CURRENT_TIMESTAMP：验证链接已过期（超过5分钟）
+    DELETE FROM customers 
+    WHERE is_verified = FALSE 
+    AND token_expiry < CURRENT_TIMESTAMP;
+    
+    -- 记录清理结果，包括：
+    -- 1. 操作类型：cleanup_expired_unverified
+    -- 2. 影响的记录数：ROW_COUNT
+    -- 3. 执行时间：CURRENT_TIMESTAMP
+    INSERT INTO cleanup_logs (operation, records_affected, executed_at)
+    VALUES ('cleanup_expired_unverified', ROW_COUNT, CURRENT_TIMESTAMP);
+END;
+$$ LANGUAGE plpgsql;
