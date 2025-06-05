@@ -17,6 +17,10 @@ import psycopg2.extras
 import jwt
 import pytz
 from psycopg2.pool import SimpleConnectionPool
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+import uuid
 
 load_dotenv()
 app = FastAPI()
@@ -28,6 +32,17 @@ if not JWT_SECRET_KEY:
     JWT_SECRET_KEY = "super-secret-jwt-key-for-development"
 
 JWT_ALGORITHM = "HS256"
+
+# 新增 Email 設定
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USERNAME = os.getenv("EMAIL_USERNAME")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173") # 前端網址，用於 Email 驗證連結
+
+# 檢查 Email 設定是否完整
+if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL]):
+    print("⚠️ Email 設定不完整！請檢查 .env 中的 EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL。")
 
 # JWT 認證依賴項 (取代 Basic Auth)
 async def verify_admin_jwt(request: Request):
@@ -351,11 +366,22 @@ async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
         # bcrypt 雜湊密碼
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        cursor.execute("INSERT INTO customers (username, name, email, phone, password, address, created_at) VALUES (%s, %s, %s, %s, %s, %s, NOW())",
-                      (username, name, email, phone, hashed_password, address))
+        # 生成驗證 token 和過期時間
+        verification_token = str(uuid.uuid4())
+        token_expiry = datetime.utcnow() + timedelta(hours=24) # 驗證連結 24 小時後過期
+
+        cursor.execute("""
+            INSERT INTO customers (username, name, email, phone, password, address, created_at, is_verified, verification_token, token_expiry)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+        """, (username, name, email, phone, hashed_password, address, False, verification_token, token_expiry))
         cursor.connection.commit()
-        print(f"✅ 使用者 '{username}' 註冊成功！") # Debugging line
-        return JSONResponse({"message": "註冊成功"})
+
+        # 發送驗證 Email
+        verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
+        await send_verification_email(email, username, verification_link)
+
+        print(f"✅ 使用者 '{username}' 註冊成功，驗證 Email 已發送！") # Debugging line
+        return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
     except psycopg2.IntegrityError as e:
         print(f"❌ 資料庫 IntegrityError (可能為唯一性約束)：{e}") # Debugging line
         return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
@@ -833,3 +859,94 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
     return JSONResponse({"message": "登入成功", "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
+
+# 發送驗證 Email 的輔助函式
+async def send_verification_email(recipient_email: str, username: str, verification_link: str):
+    if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD]):
+        print("❌ 無法發送 Email：Email 服務設定不完整。")
+        return
+
+    sender_email = EMAIL_USERNAME
+    password = EMAIL_PASSWORD
+
+    message = MIMEText(f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }}
+                .header {{ background-color: #f0f0f0; padding: 10px 0; text-align: center; border-bottom: 1px solid #ddd; margin-bottom: 20px; }}
+                .content {{ padding: 0 20px; }}
+                .button {{ display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #007bff; color: white !important; text-decoration: none; border-radius: 5px; }}
+                .footer {{ text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h2>帳戶驗證通知</h2>
+                </div>
+                <div class="content">
+                    <p>哈囉，{username}！</p>
+                    <p>感謝您註冊我們的服務！為了確保您的帳戶安全，請點擊以下連結來驗證您的 Email 地址：</p>
+                    <p style="text-align: center;">
+                        <a href="{verification_link}" class="button">驗證您的 Email</a>
+                    </p>
+                    <p>如果按鈕無法點擊，請複製以下連結到您的瀏覽器中開啟：</p>
+                    <p><code>{verification_link}</code></p>
+                    <p>此連結將在 24 小時內過期。</p>
+                    <p>如果您沒有註冊此帳戶，請忽略此 Email。</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; {datetime.now().year} 您的公司名稱. 版權所有。</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    """.format(username=username, verification_link=verification_link), "html", "utf-8")
+
+    message["Subject"] = "請驗證您的 Email 地址"
+    message["From"] = sender_email
+    message["To"] = recipient_email
+
+    context = ssl.create_default_context()
+    try:
+        with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+        print(f"✅ 驗證 Email 已成功發送到 {recipient_email}")
+    except Exception as e:
+        print(f"❌ 發送 Email 失敗：{e}")
+
+# Email 驗證端點
+@app.get("/api/verify-email")
+async def verify_email(token: str, cursor=Depends(get_db_cursor)):
+    try:
+        # 查找匹配的 token
+        cursor.execute("SELECT customer_id, username, is_verified, token_expiry FROM customers WHERE verification_token = %s", (token,))
+        customer = cursor.fetchone()
+
+        if not customer:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="無效或已使用的驗證連結。")
+
+        customer_id, username, is_verified, token_expiry = customer
+
+        if is_verified:
+            return JSONResponse({"message": "您的 Email 已驗證成功，無需重複驗證。"})
+
+        # 檢查 token 是否過期
+        if token_expiry and datetime.utcnow() > token_expiry.replace(tzinfo=None):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="驗證連結已過期，請重新註冊或申請新連結。")
+
+        # 更新使用者為已驗證狀態，並清除 token
+        cursor.execute("UPDATE customers SET is_verified = TRUE, verification_token = NULL, token_expiry = NULL WHERE customer_id = %s", (customer_id,))
+        cursor.connection.commit()
+
+        return JSONResponse({"message": "✅ Email 驗證成功！您現在可以登入。"})
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"❌ Email 驗證時發生錯誤： {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Email 驗證失敗，請稍後再試！")

@@ -20,6 +20,7 @@ import Settings from '@/views/admin/Settings.vue';
 import ProductDetail from '@/views/ProductDetail.vue';
 import NotFound from '@/views/ErrorPage.vue';
 import ProductsListingPage from '@/views/ProductsListingPage.vue';
+import EmailVerificationResult from '@/views/EmailVerificationResult.vue';
 
 const routes = [
   {
@@ -129,6 +130,12 @@ const routes = [
     name: 'NotFound',
     component: NotFound,
     meta: { title: 'Clevora 發生錯誤' }
+  },
+  {
+    path: '/verify-email',
+    name: 'EmailVerification',
+    component: EmailVerificationResult,
+    meta: { title: 'Clevora Email 驗證' }
   }
 ];
 
