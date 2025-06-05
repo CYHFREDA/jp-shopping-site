@@ -19,6 +19,7 @@ import AdminUsers from '@/views/admin/Admins.vue';
 import Settings from '@/views/admin/Settings.vue';
 import ProductDetail from '@/views/ProductDetail.vue';
 import NotFound from '@/views/ErrorPage.vue';
+import ProductsListingPage from '@/views/ProductsListingPage.vue';
 
 const routes = [
   {
@@ -26,6 +27,12 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: { title: 'Clevora 日本代購' }
+  },
+  {
+    path: '/products',
+    name: 'ProductsListing',
+    component: ProductsListingPage,
+    meta: { title: 'Clevora 商品列表' }
   },
   {
     path: '/cart',
