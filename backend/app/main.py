@@ -367,18 +367,22 @@ async def get_customer_orders(customer_id: int, request: Request, cursor=Depends
 @app.get("/api/admin/orders")
 async def admin_get_orders(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     try:
-        cursor.execute("SELECT order_id, amount, item_names, status, created_at, paid_at FROM orders")
-        orders = cursor.fetchall()
+        cursor.execute("SELECT id, order_id, amount, item_names, status, created_at, paid_at FROM orders ORDER BY created_at DESC")
+        rows = cursor.fetchall()
 
-        # 將 datetime 物件轉換為字串以便 JSON 序列化
+        # 手動構建字典列表並格式化 datetime 欄位
         formatted_orders = []
-        for order in orders:
-            formatted_order = dict(order) # 將 Record 對象轉換為字典
-            if formatted_order.get('created_at'):
-                formatted_order['created_at'] = formatted_order['created_at'].isoformat()
-            if formatted_order.get('paid_at'):
-                formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
-            formatted_orders.append(formatted_order)
+        for row in rows:
+            order_dict = {
+                "id": row[0],
+                "order_id": row[1],
+                "amount": row[2],
+                "item_names": row[3],
+                "status": row[4],
+                "created_at": row[5].isoformat() if row[5] else None, # 格式化 datetime
+                "paid_at": row[6].isoformat() if row[6] else None    # 格式化 datetime
+            }
+            formatted_orders.append(order_dict)
 
         return JSONResponse(formatted_orders)
 
