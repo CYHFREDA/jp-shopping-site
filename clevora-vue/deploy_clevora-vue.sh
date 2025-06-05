@@ -31,6 +31,15 @@ kubectl set image deployment frontend frontend=$FULL_IMAGE_NAME
 echo "🧹 清理 Docker 映像檔..."
 docker image prune -a -f
 
+echo "🌐 清除 Cloudflare CDN 快取..."
+CLOUDFLARE_ZONE_ID="5cf3361fe47305e11f7d0efcc80a06db"
+CLOUDFLARE_API_TOKEN="TS6cT6rzsBLWgsWbJz2-pNd9GeaL2QshMfHVB42o"
+
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+     -H "Content-Type: application/json" \
+     --data '{"purge_everything":true}'
+
 echo "✅ Vue 前端部署腳本執行完成！"
 
 # 這裡可以選擇性地加上等待和檢查 Pod 狀態的命令
