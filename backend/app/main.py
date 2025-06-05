@@ -90,7 +90,7 @@ async def get_db_cursor():
     cursor = None
     try:
         conn = get_db_conn()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         yield cursor
     finally:
         if cursor:
@@ -411,12 +411,12 @@ async def get_customer_orders(customer_id: int, request: Request, cursor=Depends
         # 將 datetime 物件轉換為字串以便 JSON 序列化
         formatted_orders = []
         for order in orders:
-            formatted_order = dict(order) # 將 Record 對象轉換為字典
-            if formatted_order.get('created_at'):
-                formatted_order['created_at'] = formatted_order['created_at'].isoformat()
-            if formatted_order.get('paid_at'):
-                formatted_order['paid_at'] = formatted_order['paid_at'].isoformat()
-            formatted_orders.append(formatted_order)
+            # order 現在已經是字典般的物件了，直接使用
+            if order.get('created_at'):
+                order['created_at'] = order['created_at'].isoformat()
+            if order.get('paid_at'):
+                order['paid_at'] = order['paid_at'].isoformat()
+            formatted_orders.append(order)
 
         return JSONResponse(formatted_orders)
 

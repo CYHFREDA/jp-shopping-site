@@ -202,8 +202,8 @@ onMounted(() => {
   box-sizing: border-box; /* 添加 box-sizing */
   display: flex; /* 設置為彈性容器 */
   flex-direction: column; /* 子元素垂直排列 */
-  max-height: calc(100vh - 100px); /* 精確計算的最大高度 */
-  overflow: hidden; /* 隱藏整個卡片的溢出，讓內部的 tab-content 負責滾動 */
+  max-height: calc(100vh - 60px); /* 限制卡片總高度，留出頂部和底部間距 */
+  overflow-y: auto; /* 讓卡片本身在需要時滾動 */
 }
 
 .auth-title {
@@ -240,7 +240,7 @@ onMounted(() => {
 /* tab-content 的滾動樣式 */
 .tab-content {
   flex-grow: 1; /* 讓其彈性增長，佔滿剩餘空間 */
-  overflow-y: auto; /* 啟用垂直滾動 */
+  overflow-y: auto; /* 啟用垂直滾動，但由 auth-card 決定是否溢出 */
 }
 
 /* 表單元素樣式 - 繼承 main.css 中的全局樣式 */
@@ -269,24 +269,20 @@ onMounted(() => {
 }
 
 /* RWD 調整 */
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .auth-card {
-    padding: 20px;
-    max-height: calc(100vh - 60px); /* 小螢幕調整最大高度 */
+    padding: 20px; /* Adjust padding for smaller screens */
+    max-height: calc(100vh - 40px); /* 小螢幕調整卡片最大高度 */
   }
-
   .auth-title {
     font-size: 1.5rem;
   }
-
   .auth-tabs .nav-link {
-      padding: 0.5rem;
-      font-size: 0.9rem;
+    padding: 0.5rem;
+    font-size: 0.9rem;
   }
-
-  /* tab-content 的小螢幕樣式調整 */
   .tab-content {
-    /* 移除 padding-right 和 max-height */
+    /* 移除 max-height */
   }
 }
 </style>
