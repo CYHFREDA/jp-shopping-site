@@ -50,6 +50,15 @@ function handleLogout() {
 </script>
 
 <style scoped>
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+}
+
 .navbar {
   padding: 0.5rem 1rem;
 }
@@ -58,25 +67,33 @@ function handleLogout() {
   height: 40px;
 }
 
+.nav-tabs {
+  border-bottom: 1px solid var(--light-brown); /* 調整底部邊框顏色 */
+}
+
 .nav-tabs .nav-link {
-  color: #6c757d;
+  color: var(--dark-brown); /* 非激活鏈接文字顏色 */
   border: none;
   padding: 0.75rem 1.25rem;
   margin-right: 0.5rem;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 .nav-tabs .nav-link.active {
-  color: #007bff;
-  border-bottom: 2px solid #007bff;
-  background-color: #e9ecef;
+  color: var(--white); /* 激活鏈接文字顏色 */
+  border-bottom: 2px solid var(--light-brown); /* 激活底部邊框顏色 */
+  background-color: var(--light-brown); /* 激活背景色 */
   font-weight: bold;
-  transition: all 0.3s ease;
 }
 
 .nav-tabs .nav-link:hover {
-  color: #0056b3;
-  background-color: #f8f9fa;
+  color: var(--light-brown); /* 懸停時文字顏色 */
+  background-color: var(--light-grey); /* 懸停時淺色背景 */
   border-color: transparent;
 }
+
+/* 可以針對整個 Dashboard 容器添加一些基礎樣式 */
+/* 例如：背景色、字體等 */
+/* body { font-family: 'Arial', sans-serif; } */
+/* .container { background-color: #fff; } */
 </style> 

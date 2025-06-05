@@ -1,12 +1,12 @@
 <template>
   <div class="return-page d-flex align-items-center justify-content-center py-5">
-    <div class="card bg-white p-4 p-md-5 shadow-lg text-center">
+    <div class="card bg-white p-4 p-md-5 shadow-lg text-center return-card">
       <div class="icon-container mb-4">
         <i :class="iconClass"></i>
       </div>
-      <h1 class="mb-3">{{ message }}</h1>
-      <p v-if="subMessage" class="text-muted mb-4">{{ subMessage }}</p>
-      <button @click="goHome" class="btn btn-primary btn-lg">返回Clevora首頁</button>
+      <h1 class="mb-3 return-title">{{ message }}</h1>
+      <p v-if="subMessage" class="text-muted mb-4 return-submessage">{{ subMessage }}</p>
+      <button @click="goHome" class="btn btn-primary btn-lg return-home-btn">返回Clevora首頁</button>
     </div>
   </div>
 </template>
@@ -98,17 +98,37 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.return-page {
-  background-color: #f0f2f5; /* 淺灰色背景 */
-  min-height: calc(100vh - var(--navbar-height, 0px) - var(--footer-height, 0px)); /* 考慮 NavBar 和 Footer 高度 */
-  padding: 20px;
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
+  --success-color: #28a745; /* 保留成功的綠色 */
+  --danger-color: #dc3545; /* 保留失敗的紅色 */
+  --primary-color: var(--dark-brown); /* 主按鈕使用深棕色 */
 }
 
-.card {
-  border-radius: 16px; /* 更圓潤的邊角 */
+.return-page {
+  background-color: var(--light-grey); /* 淺灰色背景，與其他頁面協調 */
+  min-height: calc(100vh - 60px); /* 確保覆蓋視窗高度，扣除 footer 高度 */
+  padding: 20px;
+  display: flex; /* 確保內容居中 */
+  justify-content: center;
+  align-items: center;
+}
+
+.return-card {
+  border-radius: 8px; /* 圓角 */
   /* box-shadow: 0 4px 12px rgba(0,0,0,0.1); */ /* 使用 Bootstrap 的 shadow-lg */
   max-width: 450px; /* 稍微放寬最大寬度 */
   width: 90%;
+  background-color: var(--white); /* 白色背景 */
+  border: 1px solid var(--medium-grey); /* 添加邊框 */
+  padding: 30px; /* 內邊距 */
 }
 
 .icon-container {
@@ -117,17 +137,17 @@ onMounted(async () => {
 }
 
 .check-icon {
-  color: #28a745; /* Bootstrap success color */
+  color: var(--success-color); /* 使用定義的成功顏色 */
   animation: scaleAndFadeIn 0.8s ease-out;
 }
 
 .fail-icon {
-  color: #dc3545; /* Bootstrap danger color */
+  color: var(--danger-color); /* 使用定義的失敗顏色 */
   animation: shake 0.5s ease-in-out, scaleAndFadeIn 0.8s ease-out;
 }
 
 .fa-spinner {
-  color: #0d6efd; /* Bootstrap primary color */
+  color: var(--accent-brown); /* 處理中圖標使用強調棕色 */
   animation: spin 1.5s linear infinite;
 }
 
@@ -147,40 +167,38 @@ onMounted(async () => {
   100% { transform: rotate(360deg); }
 }
 
-h1 {
+.return-title {
   margin-top: 0; /* 移除默認的 margin-top */
   margin-bottom: 12px; /* 增加標題下方的間距 */
-  font-size: 1.8rem; /* 加大標題字體 */
-  color: #333; /* 預設文字顏色 */
+  font-size: 2rem; /* 加大標題字體 */
+  color: var(--dark-brown); /* 標題使用深棕色 */
+  font-weight: bold; /* 加粗 */
 }
 
-.check-icon ~ h1 {
-  color: #28a745; /* 成功時標題顏色 */
+/* 根據圖標類別應用標題顏色 */
+.check-icon ~ .return-title {
+  color: var(--success-color); /* 成功時標題顏色 */
 }
 
-.fail-icon ~ h1 {
-  color: #dc3545; /* 失敗時標題顏色 */
+.fail-icon ~ .return-title {
+  color: var(--danger-color); /* 失敗時標題顏色 */
 }
 
-p {
-  color: #555; /* 子訊息文字顏色 */
+.return-submessage {
+  color: var(--disabled-text); /* 子訊息文字顏色使用禁用文字顏色 */
   margin-bottom: 30px; /* 增加子訊息下方的間距 */
   font-size: 1.1rem;
 }
 
-.btn-primary {
-  padding: 12px 30px; /* 加大按鈕內邊距 */
-  font-size: 1.1rem; /* 加大按鈕字體 */
-  border-radius: 8px; /* 圓潤按鈕邊角 */
-  transition: all 0.3s ease; /* 添加過渡效果 */
+/* 返回首頁按鈕 - 應用 main.css 中的 .btn-primary 樣式 */
+.return-home-btn {
+  /* 繼承 main.css 中的 .btn 和 .btn-primary 樣式 */
+  padding: 10px 30px; /* 調整內邊距 */
+  font-size: 1.2rem; /* 調整字體大小 */
 }
 
-.btn-primary:hover {
-  transform: translateY(-3px); /* 滑鼠懸停時上移 */
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* 滑鼠懸停時陰影變大 */
-}
-
-/* 確保頁面內容不會被 NavBar 和 Footer 遮擋 */
+/* 確保頁面內容不會被 NavBar 和 Footer 遮擋 - 已在 App.vue 或 main.css 中處理 */
+/*
 body {
   display: flex;
   flex-direction: column;
@@ -195,5 +213,30 @@ body {
 
 main {
   flex-grow: 1;
+}
+*/
+
+/* RWD 調整 */
+@media (max-width: 576px) {
+  .return-card {
+    padding: 20px; /* 小螢幕調整內邊距 */
+  }
+
+  .icon-container {
+      font-size: 60px; /* 小螢幕調整圖標大小 */
+  }
+
+  .return-title {
+    font-size: 1.6rem; /* 小螢幕調整標題字體大小 */
+  }
+
+  .return-submessage {
+    font-size: 1rem; /* 小螢幕調整字體大小 */
+  }
+
+  .return-home-btn {
+      font-size: 1rem; /* 小螢幕調整按鈕字體大小 */
+      padding: 8px 20px; /* 小螢幕調整按鈕內邊距 */
+  }
 }
 </style> 

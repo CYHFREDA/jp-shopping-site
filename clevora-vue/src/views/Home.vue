@@ -1,11 +1,20 @@
 <template>
   <div>
-    <div class="bg-white border-bottom shadow-sm">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container d-flex flex-column justify-content-center align-items-center text-center">
+        <h1 class="hero-title">探索日本好物，盡在 Clevora</h1>
+        <p class="hero-subtitle">我們為您精選最新、最熱門的日本商品</p>
+        <router-link to="/" class="btn btn-lg btn-light-brown mt-3">立即選購</router-link>
+      </div>
+    </section>
+
+    <div class="category-filter-bar border-bottom shadow-sm">
       <div class="container py-2 d-flex flex-wrap gap-2 justify-content-center">
         <button
           v-for="category in categories"
           :key="category.value"
-          class="btn btn-outline-secondary btn-sm category-btn"
+          class="btn btn-sm category-btn"
           :class="{ active: selectedCategory === category.value }"
           @click="filterCategory(category.value)"
         >
@@ -15,7 +24,7 @@
     </div>
 
     <div class="container py-4">
-      <h1 class="mb-4 fw-bold text-center">商品列表</h1>
+      <h1 class="page-title mb-4 fw-bold text-center">商品列表</h1>
       <div v-if="filteredProducts.length" class="row row-cols-1 g-3">
         <div v-for="product in filteredProducts" :key="product.id" class="col">
           <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
@@ -26,7 +35,7 @@
             </div>
             <div class="product-list-content">
               <h5 class="product-list-title mb-2">
-                <router-link :to="`/product/${product.id}`" class="text-decoration-none text-dark">
+                <router-link :to="`/product/${product.id}`" class="text-decoration-none">
                   {{ product.name }}
                 </router-link>
               </h5>
@@ -145,86 +154,253 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 可以在這裡添加 Home.vue 特有的樣式 */
-/* 參考 index.css 中的商品列表等相關樣式 */
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
+}
+
+/* 英雄區域樣式 */
+.hero-section {
+  background: linear-gradient(rgba(56, 48, 46, 0.7), rgba(56, 48, 46, 0.7)), url('/images/hero-bg.jpg'); /* 深棕色半透明疊加圖片背景 */
+  background-size: cover;
+  background-position: center;
+  color: var(--white); /* 白色文字 */
+  padding: 80px 15px; /* 內邊距 */
+  margin-bottom: 2rem; /* 底部間距 */
+}
+
+.hero-title {
+  font-size: 3rem; /* 加大字體 */
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: var(--white); /* 白色標題 */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* 添加文字陰影 */
+}
+
+.hero-subtitle {
+  font-size: 1.5rem; /* 加大副標題字體 */
+  margin-bottom: 20px;
+  color: var(--light-brown); /* 淺棕色副標題 */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* 添加文字陰影 */
+}
+
+/* 立即選購按鈕，使用 light-brown 風格 */
+.btn-light-brown {
+  background-color: var(--light-brown); /* 淺棕色背景 */
+  border-color: var(--light-brown); /* 淺棕色邊框 */
+  color: var(--dark-brown); /* 深棕色文字 */
+  font-weight: bold;
+  padding: 10px 30px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-light-brown:hover {
+  background-color: #8b7a6c; /* 懸停時深一點的淺棕色 */
+  border-color: #8b7a6c;
+  color: var(--dark-brown);
+}
+
+/* 分類篩選欄樣式 */
+.category-filter-bar {
+  background-color: var(--light-grey); /* 淺色背景 */
+  border-bottom: 1px solid var(--medium-grey); /* 底部邊框 */
+  margin-bottom: 2rem; /* 添加底部間距 */
+}
+
+.category-btn {
+  border-radius: 20px; /* 藥丸形狀按鈕 */
+  padding: 0.375rem 1rem; /* 調整內邊距 */
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+/* 非激活按鈕 */
+.category-btn {
+  color: var(--dark-brown); /* 文字顏色 */
+  border-color: var(--light-brown); /* 邊框顏色 */
+  background-color: transparent; /* 透明背景 */
+}
+
+.category-btn:hover {
+  color: var(--white); /* 懸停文字顏色 */
+  background-color: var(--accent-brown); /* 懸停背景色 */
+  border-color: var(--accent-brown); /* 懸停邊框顏色 */
+}
+
+/* 激活按鈕 */
+.category-btn.active {
+  color: var(--white); /* 激活文字顏色 */
+  background-color: var(--light-brown); /* 激活背景色 */
+  border-color: var(--light-brown); /* 激活邊框顏色 */
+  font-weight: bold;
+}
+
+/* 頁面標題樣式 */
+.page-title {
+  color: var(--dark-brown); /* 深棕色標題 */
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px; /* 標題與線的間距 */
+  margin-bottom: 20px; /* 標題與內容的間距 */
+  font-size: 2rem; /* 調整字體大小 */
+}
+
+/* 商品列表項樣式 */
 .product-list-item {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap; /* 允許在小螢幕換行 */
   align-items: flex-start;
-  gap: 1rem;
+  gap: 1.5rem; /* 增加間距 */
+  background-color: var(--white); /* 白色背景 */
+  border: 1px solid var(--light-grey); /* 淺灰色邊框 */
+  border-radius: 8px; /* 圓角 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 細微陰影 */
+  transition: box-shadow 0.3s ease;
+  padding: 20px; /* 內邊距 */
+}
+
+.product-list-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 懸停時更明顯陰影 */
 }
 
 .product-list-img {
-  flex: 0 0 150px;
-  max-width: 150px;
+  flex: 0 0 auto; /* 不固定寬度 */
+  max-width: 200px; /* 調整圖片最大寬度 */
+  border-radius: 8px; /* 圖片圓角 */
+  overflow: hidden; /* 確保圖片圓角生效 */
 }
 
 .product-list-img img {
+  display: block; /* 移除圖片底部的空隙 */
   width: 100%;
   height: auto;
-  object-fit: contain;
-  border-radius: 0.25rem;
+  object-fit: cover; /* 圖片適應容器 */
   transition: transform 0.3s ease;
 }
 
 .product-list-img img:hover {
-  transform: scale(1.1);
+  transform: scale(1.05); /* 懸停時輕微放大 */
 }
 
 .product-list-content {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1; /* 佔據剩餘空間 */
 }
 
 .product-list-title {
-  font-size: 1.2rem;
+  font-size: 1.4rem; /* 調整標題字體大小 */
   font-weight: bold;
-  color: #333;
+  margin-bottom: 0.5rem; /* 調整間距 */
+}
+
+.product-list-title a {
+    color: var(--dark-brown); /* 標題連結顏色 */
+    text-decoration: none; /* 移除下劃線 */
+    transition: color 0.2s ease;
+}
+
+.product-list-title a:hover {
+    color: var(--light-brown); /* 懸停時變色 */
 }
 
 .product-list-desc {
-  font-size: 0.95rem;
-  color: #555;
-  flex-grow: 1;
+    font-size: 1rem; /* 調整描述字體大小 */
+    color: var(--disabled-text); /* 使用禁用文字顏色 */
+    margin-bottom: 1rem; /* 調整間距 */
 }
 
 .product-list-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto; /* 推到底部 */
 }
 
 .product-list-price {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #d63384;
+    font-size: 1.2rem; /* 調整價格字體大小 */
+    font-weight: bold;
+    color: var(--accent-brown); /* 使用強調棕色 */
 }
 
-#searchInput {
-  width: 120px;
+/* 加入購物車按鈕 */
+.btn-success {
+   background-color: var(--dark-brown); /* 按鈕背景色 */
+   border-color: var(--dark-brown); /* 按鈕邊框顏色 */
+   color: var(--white); /* 按鈕文字顏色 */
+   border-radius: 5px;
+   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
-/* Removed .bg-white override as it should be a global style */
-/* .bg-white {
-  background-color: #9c8282;
-} */
-
-#categoryFilters label {
-  display: inline-flex;
-  align-items: center;
+.btn-success:hover {
+    background-color: #2a2523; /* 懸停時深一點的棕色 */
+    border-color: #2a2523;
+    color: var(--white);
 }
 
-/* RWD */
-@media (max-width: 576px) {
-  .product-list-item {
-    flex-direction: column;
-    align-items: flex-start;
+/* 無資料提示文字樣式 */
+.text-muted {
+  font-style: italic;
+  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 60px 15px; /* 小螢幕調整內邊距 */
   }
+
+  .hero-title {
+    font-size: 2.2rem; /* 小螢幕調整字體大小 */
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem; /* 小螢幕調整字體大小 */
+  }
+
+  .product-list-item {
+    flex-direction: column; /* 小螢幕圖片和內容垂直排列 */
+    align-items: center; /* 小螢幕居中 */
+  }
+
   .product-list-img {
-    margin-right: 0;
-    margin-bottom: 1rem;
+    max-width: 150px; /* 小螢幕調整圖片最大寬度 */
+    margin-bottom: 1rem; /* 小螢幕圖片下方間距 */
+    margin-right: 0; /* 移除右側間距 */
+  }
+
+  .product-list-content {
+    text-align: center; /* 小螢幕內容文字居中 */
+    width: 100%; /* 小螢幕佔滿寬度 */
+  }
+
+  .product-list-bottom {
+    flex-direction: column; /* 小螢幕價格和按鈕垂直排列 */
+    align-items: center; /* 小螢幕居中 */
+    gap: 10px; /* 添加間距 */
+  }
+
+  .product-list-price {
+      margin-bottom: 0.5rem; /* 小螢幕價格下方間距 */
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-section {
+    padding: 40px 10px; /* 更小的螢幕調整內邊距 */
+  }
+
+  .hero-title {
+    font-size: 1.8rem; /* 更小的螢幕調整字體大小 */
+  }
+
+  .hero-subtitle {
+    font-size: 1rem; /* 更小的螢幕調整字體大小 */
   }
 }
 </style>

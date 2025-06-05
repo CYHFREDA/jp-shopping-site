@@ -122,52 +122,90 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+}
+
+/* 提升卡片的質感 */
 .card {
   border: none;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-   margin-top: 1.5rem;
+  background-color: var(--white); /* 使用白色背景 */
+   margin-top: 1.5rem; /* 保留一些頂部間距 */
 }
 
+/* 表格樣式優化 - 與 Products.vue 保持一致 */
 .table {
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--light-grey); /* 淺灰色邊框 */
   border-radius: 8px;
-  overflow: hidden;
-   margin-bottom: 1rem;
+  overflow: hidden; /* 確保圓角生效 */
+   margin-bottom: 1rem; /* 添加底部間距 */
+   background-color: var(--white); /* 表格背景色 */
 }
 
 .table th,
 .table td {
-  padding: 12px 15px;
-  border-top: 1px solid #e0e0e0;
+  padding: 12px 15px; /* 調整單元格內邊距 */
+  border-top: 1px solid var(--light-grey); /* 單元格頂部邊框 */
 }
 
 .table thead th {
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: var(--dark-brown); /* 表頭背景色 */
+  color: var(--white); /* 表頭文字顏色 */
   font-weight: bold;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid var(--light-brown); /* 表頭底部邊框 */
 }
 
+/* 偶數行條紋 */
 .table-striped tbody tr:nth-of-type(even) {
-  background-color: #f2f2f2;
+  background-color: var(--light-grey); /* 淺灰色條紋 */
 }
 
+/* 懸停效果 */
 .table tbody tr:hover {
-  background-color: #e9ecef;
+  background-color: var(--medium-grey); /* 懸停時變色 */
 }
 
+/* 按鈕樣式微調 - 與 Products.vue 保持一致 */
+.btn {
+  border-radius: 5px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* 主要按鈕 (修改) */
+.btn-primary {
+  background-color: var(--light-brown); /* 主要按鈕背景色 */
+  border-color: var(--light-brown); /* 主要按鈕邊框顏色 */
+  color: var(--dark-brown); /* 主要按鈕文字顏色 */
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-brown); /* 主要按鈕懸停背景色 */
+  border-color: var(--accent-brown); /* 主要按鈕懸停邊框顏色 */
+  color: var(--white); /* 主要按鈕懸停文字顏色 */
+}
+
+/* 標題樣式微調 - 與 Orders.vue 保持一致 */
 .card-title {
-  color: #343a40;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-   font-size: 1.5rem;
+  color: var(--dark-brown); /* 深棕色標題 */
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px; /* 標題與線的間距 */
+  margin-bottom: 20px; /* 標題與內容的間距 */
+   font-size: 1.5rem; /* 保持原有的字體大小 */
 }
 
+/* 無資料提示文字樣式 */
 .text-muted {
   font-style: italic;
+  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
 </style> 

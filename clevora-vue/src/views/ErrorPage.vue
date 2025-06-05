@@ -1,11 +1,11 @@
 <template>
   <div class="error-page">
-    <div class="card bg-white">
-      <h1>發生錯誤</h1>
-      <p>抱歉，您要查看的頁面目前無法使用。<br/>請稍後再試一次。</p>
-      <p>如果您是系統管理員，請查看錯誤日誌以獲取詳細資訊。</p>
-      <p><em>Faithfully yours.</em></p>
-      <button @click="goHome" class="btn btn-primary mt-3">返回首頁</button>
+    <div class="card bg-white error-card">
+      <h1 class="error-title">發生錯誤</h1>
+      <p class="error-message">抱歉，您要查看的頁面目前無法使用。<br/>請稍後再試一次。</p>
+      <p class="error-message">如果您是系統管理員，請查看錯誤日誌以獲取詳細資訊。</p>
+      <p class="error-signature"><em>Faithfully yours.</em></p>
+      <button @click="goHome" class="btn btn-primary mt-3 error-home-btn">返回首頁</button>
     </div>
   </div>
 </template>
@@ -21,64 +21,75 @@ function goHome() {
 </script>
 
 <style scoped>
-/* 可以在這裡添加 ErrorPage.vue 特有的樣式 */
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
+  --danger-color: #dc3545; /* 保留失敗的紅色 */
+  --primary-color: var(--dark-brown); /* 主按鈕使用深棕色 */
+}
+
 .error-page {
-  background-color: #f8f9fa;
+  background-color: var(--light-grey); /* 淺灰色背景 */
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - var(--navbar-height, 0px) - var(--footer-height, 0px)); /* 考慮 NavBar 和 Footer 高度 */
+  min-height: calc(100vh - 60px); /* 確保覆蓋視窗高度，扣除 footer 高度 */
   padding: 20px;
 }
 
-.card {
+.error-card {
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   text-align: center;
   max-width: 500px;
   width: 90%;
+  background-color: var(--white); /* 白色背景 */
+  border: 1px solid var(--medium-grey); /* 添加邊框 */
 }
 
-h1 {
-  font-size: 32px;
-  color: #dc3545; /* Bootstrap danger color */
+.error-title {
+  font-size: 2.5rem; /* 調整字體大小 */
+  color: var(--dark-brown); /* 標題使用深棕色 */
   margin-bottom: 20px;
+  font-weight: bold;
 }
 
-p {
-  color: #555;
-  margin-bottom: 20px;
+.error-message {
+  color: var(--dark-brown); /* 段落文字使用深棕色 */
+  margin-bottom: 15px; /* 調整下方間距 */
+  font-size: 1.1rem;
 }
 
-em {
-  color: #888;
+.error-signature {
+  color: var(--disabled-text); /* 簽名字使用禁用文字顏色 */
+  margin-bottom: 30px; /* 增加下方間距 */
+  font-style: italic;
 }
 
-.btn-primary {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+/* 返回首頁按鈕 - 應用 main.css 中的 .btn-primary 樣式 */
+.error-home-btn {
+  /* 繼承 main.css */
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-}
+/* RWD 調整 */
+@media (max-width: 576px) {
+  .error-card {
+    padding: 20px; /* 小螢幕調整內邊距 */
+  }
 
-/* Removed general layout styles that were moved to main.css */
-/*
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+  .error-title {
+    font-size: 1.8rem; /* 小螢幕調整字體大小 */
+  }
 
-#app {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  .error-message {
+    font-size: 1rem; /* 小螢幕調整字體大小 */
+  }
 }
-
-main {
-  flex-grow: 1;
-}
-*/
 </style> 

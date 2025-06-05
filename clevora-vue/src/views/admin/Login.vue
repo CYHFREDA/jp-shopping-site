@@ -72,8 +72,18 @@ const login = async () => {
 </script>
 
 <style scoped>
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+}
+
 .admin-login-page {
-  background-color: #f8f9fa; /* 淺灰色背景 */
+  background-color: var(--light-grey); /* 淺灰色背景，與後台其他頁面協調 */
   display: flex;
   justify-content: center;
   align-items: center; /* 垂直置中 */
@@ -81,7 +91,7 @@ const login = async () => {
   padding: 20px;
 }
 
-/* 提升卡片的質感 */
+/* 提升卡片的質感 - 與其他頁面保持一致 */
 .card {
   max-width: 400px; /* 調整最大寬度 */
   width: 90%; /* 確保在小螢幕上自適應 */
@@ -89,47 +99,57 @@ const login = async () => {
   border: none; /* 移除預設邊框 */
   border-radius: 10px; /* 柔和圓角 */
   box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 更明顯的陰影 */
-  background-color: #fff; /* 白色背景 */
+  background-color: var(--white); /* 白色背景 */
   padding: 40px; /* 增加內邊距 */
 }
 
+/* 標題樣式微調 - 與其他頁面保持一致 */
 .card-title {
   font-weight: 600;
-  color: #343a40; /* 深色標題 */
+  color: var(--dark-brown); /* 深棕色標題 */
   font-size: 1.75rem; /* 調整標題字體大小 */
   margin-bottom: 1.5rem !important; /* 增加標題底部間距 */
 }
 
-/* 輸入框樣式微調 */
+/* 輸入框樣式微調 - 與其他頁面保持一致 */
 .form-control {
   border-radius: 5px;
-  border-color: #ced4da;
+  border-color: var(--light-brown); /* 輸入框邊框顏色 */
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: var(--dark-brown); /* 輸入框文字顏色 */
+}
+
+.form-control::placeholder {
+  color: var(--light-brown); /* Placeholder 文字顏色 */
+  opacity: 0.8; /* 調整透明度 */
 }
 
 .form-control:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+  border-color: var(--accent-brown); /* 聚焦時邊框顏色 */
+  box-shadow: 0 0 0 0.25rem rgba(161, 138, 123, 0.25); /* 根據 light-brown 調整陰影顏色 */
 }
 
 .form-control-lg {
   text-align: center; /* 輸入框文字置中 */
 }
 
-/* 按鈕樣式微調 */
+/* 按鈕樣式微調 - 與其他頁面保持一致 */
 .btn {
   border-radius: 5px;
   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+/* 主要按鈕 (登入) */
 .btn-primary {
-  background-color: #007bff; /* 使用標準 Bootstrap 主色 */
-  border-color: #007bff;
+  background-color: var(--light-brown); /* 主要按鈕背景色 */
+  border-color: var(--light-brown); /* 主要按鈕邊框顏色 */
+  color: var(--dark-brown); /* 主要按鈕文字顏色 */
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #004085;
+  background-color: var(--accent-brown); /* 主要按鈕懸停背景色 */
+  border-color: var(--accent-brown); /* 主要按鈕懸停邊框顏色 */
+  color: var(--white); /* 主要按鈕懸停文字顏色 */
 }
 
 .btn-lg {
@@ -140,12 +160,16 @@ const login = async () => {
 /* 提示文字樣式 */
 .text-muted {
     font-style: italic;
-    color: #6c757d !important; /* 調整提示文字顏色 */
+    color: #6c757d !important; /* 調整提示文字顏色，保持灰色協調 */
 }
 
-/* 錯誤提示樣式 */
+/* 錯誤提示樣式 - 保持紅色 */
 .alert-danger {
     font-size: 0.9rem;
     padding: 0.75rem 1rem;
+    color: #721c24; /* 錯誤文字顏色 */
+    background-color: #f8d7da; /* 錯誤背景色 */
+    border-color: #f5c6cb; /* 錯誤邊框顏色 */
+    border-radius: 5px;
 }
 </style> 

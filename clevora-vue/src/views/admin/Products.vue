@@ -80,7 +80,7 @@
             </td>
           </tr>
           <tr v-if="products.length === 0">
-            <td colspan="6" class="text-center">沒有找到商品資料。</td>
+            <td colspan="6" class="text-center text-muted">沒有找到商品資料。</td>
           </tr>
         </tbody>
       </table>
@@ -274,13 +274,23 @@ async function handleDeleteProduct(id) {
 </script>
 
 <style scoped>
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+}
+
 /* 提升卡片的質感 */
 .card {
   border: none;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   /* 可以添加一些背景色或者留白 */
-  background-color: #fff;
+  background-color: var(--white); /* 使用白色背景 */
 }
 
 /* 表格樣式優化 */
@@ -288,44 +298,45 @@ async function handleDeleteProduct(id) {
   border-collapse: separate;
   border-spacing: 0;
   /* 調整表格邊框顏色和樣式 */
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--light-grey); /* 淺灰色邊框 */
   border-radius: 8px;
   overflow: hidden; /* 確保圓角生效 */
+  margin-bottom: 1rem; /* 添加底部間距 */
 }
 
 .table th,
 .table td {
   padding: 12px 15px; /* 調整單元格內邊距 */
-  border-top: 1px solid #e0e0e0; /* 單元格頂部邊框 */
+  border-top: 1px solid var(--light-grey); /* 單元格頂部邊框 */
 }
 
 .table thead th {
-  background-color: #f8f9fa; /* 表頭背景色 */
-  color: #495057; /* 表頭文字顏色 */
+  background-color: var(--dark-brown); /* 表頭背景色 */
+  color: var(--white); /* 表頭文字顏色 */
   font-weight: bold;
-  border-bottom: 2px solid #dee2e6; /* 表頭底部邊框 */
+  border-bottom: 2px solid var(--light-brown); /* 表頭底部邊框 */
 }
 
 /* 偶數行條紋 */
 .table-striped tbody tr:nth-of-type(even) {
-  background-color: #f2f2f2; /* 淺灰色條紋 */
+  background-color: var(--light-grey); /* 淺灰色條紋 */
 }
 
 /* 懸停效果 */
 .table tbody tr:hover {
-  background-color: #e9ecef; /* 懸停時變色 */
+  background-color: var(--medium-grey); /* 懸停時變色 */
 }
 
 /* 輸入框樣式微調 */
 .form-control {
   border-radius: 5px;
-  border-color: #ced4da;
+  border-color: var(--light-brown); /* 輸入框邊框顏色 */
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .form-control:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+  border-color: var(--accent-brown); /* 聚焦時邊框顏色 */
+  box-shadow: 0 0 0 0.25rem rgba(161, 138, 123, 0.25); /* 根據 light-brown 調整陰影顏色 */
 }
 
 /* 按鈕樣式微調 */
@@ -334,34 +345,43 @@ async function handleDeleteProduct(id) {
   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+/* 主要按鈕 (保存) */
 .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
+  background-color: var(--light-brown); /* 主要按鈕背景色 */
+  border-color: var(--light-brown); /* 主要按鈕邊框顏色 */
+  color: var(--dark-brown); /* 主要按鈕文字顏色 */
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #004085;
+  background-color: var(--accent-brown); /* 主要按鈕懸停背景色 */
+  border-color: var(--accent-brown); /* 主要按鈕懸停邊框顏色 */
+  color: var(--white); /* 主要按鈕懸停文字顏色 */
 }
 
+/* 成功按鈕 (新增商品) */
 .btn-success {
-   background-color: #28a745;
-   border-color: #28a745;
+   background-color: var(--dark-brown); /* 新增按鈕背景色 */
+   border-color: var(--dark-brown); /* 新增按鈕邊框顏色 */
+   color: var(--white); /* 新增按鈕文字顏色 */
 }
 
 .btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
+    background-color: #2a2523; /* 新增按鈕懸停顏色 (深一點的棕色) */
+    border-color: #2a2523;
+    color: var(--white);
 }
 
+/* 危險按鈕 (刪除) */
 .btn-danger {
-   background-color: #dc3545;
+   background-color: #dc3545; /* 保留紅色，作為危險操作的標準顏色 */
    border-color: #dc3545;
+   color: var(--white);
 }
 
 .btn-danger:hover {
     background-color: #c82333;
     border-color: #bd2130;
+    color: var(--white);
 }
 
 /* 分類 checkbox 間距調整 */
@@ -373,6 +393,12 @@ async function handleDeleteProduct(id) {
 
 .category-checkboxes input[type="checkbox"] {
   margin-right: 5px; /* 調整 checkbox 與文字間距 */
+}
+
+/* 無資料提示文字樣式 */
+.text-muted {
+  font-style: italic;
+  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
 
 /* 響應式調整表格 */

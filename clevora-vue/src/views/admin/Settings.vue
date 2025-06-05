@@ -99,46 +99,75 @@ async function saveSettings() {
 </script>
 
 <style scoped>
-/* 提升卡片的質感 */
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+}
+
+/* 提升卡片的質感 - 與其他頁面保持一致 */
 .card {
   border: none;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  background-color: var(--white); /* 使用白色背景 */
   margin-top: 1.5rem; /* 添加一些頂部間距 */
 }
 
 /* 表單元素樣式微調 */
 .form-label {
   font-weight: bold;
-  color: #495057; /* 標籤顏色 */
+  color: var(--dark-brown); /* 標籤顏色使用深棕色 */
   margin-bottom: 0.5rem;
 }
 
 .form-control {
   border-radius: 5px;
-  border-color: #ced4da;
+  border-color: var(--light-brown); /* 輸入框邊框顏色 */
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: var(--dark-brown); /* 輸入框文字顏色 */
 }
 
 .form-control:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+  border-color: var(--accent-brown); /* 聚焦時邊框顏色 */
+  box-shadow: 0 0 0 0.25rem rgba(161, 138, 123, 0.25); /* 根據 light-brown 調整陰影顏色 */
 }
 
-/* 按鈕樣式微調 (使用 Bootstrap 標準按鈕類別) */
-/* 不需要在此重複定義 btn 樣式，Bootstrap 已提供 */
+/* 按鈕樣式微調 - 與其他頁面保持一致 */
+.btn {
+  border-radius: 5px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
 
-/* 標題樣式微調 */
+/* 主要按鈕 (保存) */
+.btn-primary {
+  background-color: var(--light-brown); /* 主要按鈕背景色 */
+  border-color: var(--light-brown); /* 主要按鈕邊框顏色 */
+  color: var(--dark-brown); /* 主要按鈕文字顏色 */
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-brown); /* 主要按鈕懸停背景色 */
+  border-color: var(--accent-brown); /* 主要按鈕懸停邊框顏色 */
+  color: var(--white); /* 主要按鈕懸停文字顏色 */
+}
+
+/* 標題樣式微調 - 與其他頁面保持一致 */
 .card-title {
-  color: #343a40; /* 深色標題 */
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  font-size: 1.5rem; /* 調整標題字體大小 */
+  color: var(--dark-brown); /* 深棕色標題 */
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px; /* 標題與線的間距 */
+  margin-bottom: 20px; /* 標題與內容的間距 */
+  font-size: 1.5rem; /* 保持原有的字體大小 */
 }
 
 /* 載入中提示文字樣式 */
 .text-muted {
   font-style: italic;
+  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
 </style> 

@@ -1,17 +1,17 @@
 <template>
-  <main class="container my-5">
-    <h1 class="text-center mb-4"><i class="fas fa-history"></i> 我的訂單</h1>
+  <main class="container my-5 order-history-page-container">
+    <h1 class="text-center mb-4 page-title"><i class="fas fa-history"></i> 我的訂單</h1>
 
-    <div v-if="loading" class="text-center text-muted">載入中...</div>
+    <div v-if="loading" class="text-center text-muted loading-message">載入中...</div>
 
-    <div v-else-if="error" class="alert alert-danger text-center">{{ error }}</div>
+    <div v-else-if="error" class="alert alert-danger text-center error-message">{{ error }}</div>
 
-    <div v-else-if="orders.length === 0" class="text-center text-muted">您還沒有任何訂單。</div>
+    <div v-else-if="orders.length === 0" class="text-center text-muted empty-message">您還沒有任何訂單。</div>
 
     <div v-else>
       <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
-          <thead class="table-dark">
+        <table class="table table-bordered table-striped align-middle order-history-table">
+          <thead>
             <tr>
               <th>訂單編號</th>
               <th>訂單日期</th>
@@ -158,67 +158,100 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 在這裡添加 OrderHistory.vue 特有的樣式 */
-.table th,
-.table td {
-  vertical-align: middle;
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
+  --success-color: #28a745; /* 保留成功的綠色 */
+  --danger-color: #dc3545; /* 保留失敗的紅色 */
+  --info-color: #6c757d; /* 用於 pending 狀態的灰色 */
 }
 
-/* 可以根據需要調整表格列寬度 */
-/*
-.table th:nth-child(1) { width: 150px; }
-.table th:nth-child(2) { width: 180px; }
-.table th:nth-child(3) { width: 100px; }
-.table th:nth-child(4) { width: 80px; }
-.table th:nth-child(5) {  }
-*/
+.order-history-page-container {
+  background-color: var(--white); /* 容器背景色 */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  border: 1px solid var(--medium-grey); /* 添加邊框 */
+}
 
+.page-title {
+  color: var(--dark-brown); /* 深棕色標題 */
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 2rem; /* 調整字體大小 */
+  font-weight: bold; /* 確保加粗 */
+}
+
+/* 表格樣式優化 - 主要使用 main.css 中的 .table 樣式 */
+/* .order-history-table 將應用 main.css 中的 .table 規則 */
+.order-history-table {
+  /* 可以在這裡添加訂單歷史表格特有的樣式，但盡量利用全局樣式 */
+}
+
+/* 移除 Bootstrap 默認的 table-striped 樣式 */
+.order-history-table.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--white); /* 奇數行白色背景 */
+}
+
+/* 狀態徽章顏色 */
+.badge {
+  font-size: 0.9em;
+}
+
+.badge.bg-secondary {
+    background-color: var(--info-color) !important; /* Pending 狀態使用 info 灰色 */
+}
+
+.badge.bg-success {
+    background-color: var(--success-color) !important; /* Success 狀態使用綠色 */
+}
+
+.badge.bg-danger {
+    background-color: var(--danger-color) !important; /* Fail 狀態使用紅色 */
+}
+
+/* 商品清單樣式 */
+.order-history-table ul {
+    padding-left: 20px; /* 添加左邊距 */
+    text-align: left; /* 左對齊 */
+    margin-bottom: 0; /* 移除底部默認間距 */
+}
+
+.order-history-table li {
+    word-break: break-word; /* 長單字換行 */
+}
+
+/* 載入中、錯誤、空狀態提示文字樣式 - 應用 main.css 的 .text-muted */
+.loading-message,
+.empty-message {
+    font-style: italic;
+    color: var(--disabled-text); /* 使用禁用文字顏色 */
+    margin-top: 40px; /* 添加頂部間距 */
+    font-size: 1.2rem;
+}
+
+.error-message {
+    /* 繼承 main.css 中的 .alert 和 .alert-danger 樣式 */
+    margin-top: 20px;
+}
+
+/* RWD 調整 */
 @media (max-width: 768px) {
-  .table thead {
-    display: none;
-  }
-  .table tr {
-    display: block;
-    margin-bottom: 1rem;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-  }
-  .table td {
-    display: block;
-    text-align: right;
-    position: relative;
-    padding-left: 50%;
-    text-align: left;
-    border: none;
-  }
-  .table td::before {
-    position: absolute;
-    top: 0;
-    left: 12px;
-    width: 45%;
-    padding-right: 10px;
-    white-space: nowrap;
-    font-weight: bold;
-  }
-  .table td:nth-of-type(1)::before { content: "訂單編號"; }
-  .table td:nth-of-type(2)::before { content: "訂單日期"; }
-  .table td:nth-of-type(3)::before { content: "總金額"; }
-  .table td:nth-of-type(4)::before { content: "狀態"; }
-  .table td:nth-of-type(5)::before { content: "商品清單"; }
+    .order-history-page-container {
+        padding: 20px; /* 小螢幕調整內邊距 */
+    }
 
-  .table td:first-child {
-    border-top-left-radius: 0.25rem;
-    border-top-right-radius: 0.25rem;
-  }
-  .table td:last-child {
-    border-bottom-left-radius: 0.25rem;
-    border-bottom-right-radius: 0.25rem;
-    border-bottom: none; /* 最後一個 td 不需要底部邊框 */
-  }
+    .page-title {
+        font-size: 1.8rem; /* 小螢幕調整字體大小 */
+    }
 
-  .table tr td:first-child {
-    border-top: 1px solid #dee2e6; /* 在小螢幕上為每個訂單的開頭添加頂部邊框 */
-  }
+    /* 表格在小螢幕下的響應式處理主要依靠 .table-responsive */
 }
-
 </style> 

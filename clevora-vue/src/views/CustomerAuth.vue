@@ -1,14 +1,14 @@
 <template>
   <main class="auth-main">
     <div class="card auth-card">
-      <h3 class="text-center mb-4">會員登入 / 註冊</h3>
+      <h3 class="text-center mb-4 auth-title">會員登入 / 註冊</h3>
 
-      <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+      <ul class="nav nav-tabs mb-3 auth-tabs" id="authTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link" :class="{ active: activeTab === 'login' }" @click="activeTab = 'login'">登入</button>
+          <button class="nav-link auth-tab-link" :class="{ active: activeTab === 'login' }" @click="activeTab = 'login'">登入</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" :class="{ active: activeTab === 'register' }" @click="activeTab = 'register'">註冊</button>
+          <button class="nav-link auth-tab-link" :class="{ active: activeTab === 'register' }" @click="activeTab = 'register'">註冊</button>
         </li>
       </ul>
 
@@ -168,12 +168,27 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
+  --success-color: #28a745; /* 保留成功的綠色 */
+  --primary-color: var(--dark-brown); /* 主按鈕使用深棕色 */
+}
+
 .auth-main {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to right, #f8f9fa, #e9ecef);
+  background-color: var(--light-grey); /* 淺灰色背景，與其他頁面協調 */
+  padding: 20px; /* 添加內邊距 */
+  min-height: calc(100vh - 60px); /* 確保覆蓋視窗高度，扣除 footer 高度 */
 }
 
 .auth-card {
@@ -181,19 +196,77 @@ onMounted(() => {
   width: 90%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--white); /* 白色背景 */
   padding: 30px;
+  border: 1px solid var(--medium-grey); /* 添加邊框 */
 }
 
-.nav-tabs .nav-link.active {
+.auth-title {
+  color: var(--dark-brown); /* 深棕色標題 */
   font-weight: bold;
-  color: #0d6efd;
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.8rem; /* 調整字體大小 */
 }
 
+/* Nav Tabs 樣式 - 與 main.css 中的全局樣式一致 */
+.auth-tabs .nav-link {
+    color: var(--dark-brown); /* 非激活標籤文字顏色 */
+    border: none;
+    border-bottom: 2px solid transparent; /* 預設透明底部邊框 */
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
+}
+
+.auth-tabs .nav-link.active {
+  font-weight: bold;
+  color: var(--light-brown); /* 激活標籤文字顏色 */
+  border-bottom-color: var(--light-brown); /* 激活底部邊框顏色 */
+  background-color: transparent; /* 移除背景色 */
+}
+
+.auth-tabs .nav-link:hover {
+    color: var(--accent-brown); /* 懸停時變色 */
+}
+
+/* 表單元素樣式 - 繼承 main.css 中的全局樣式 */
+.form-label {
+  font-weight: bold;
+  color: var(--dark-brown); /* 標籤顏色使用深棕色 */
+  margin-bottom: 0.5rem;
+}
+
+/* .form-control 樣式繼承 main.css */
+
+/* 按鈕樣式 - 繼承 main.css 中的全局樣式 */
+/* 登入按鈕使用 btn-success 或 btn-primary，註冊按鈕使用 btn-primary */
+.btn-success {
+    /* 繼承 main.css */
+}
+.btn-primary {
+    background-color: var(--primary-color); /* 使用深棕色 */
+    border-color: var(--primary-color);
+    color: var(--white);
+}
+.btn-primary:hover {
+    background-color: #2a2523;
+    border-color: #2a2523;
+    color: var(--white);
+}
+
+/* RWD 調整 */
 @media (max-width: 576px) {
   .auth-card {
-    margin: 20px auto;
-    padding: 20px;
+    padding: 20px; /* 小螢幕調整內邊距 */
+  }
+
+  .auth-title {
+    font-size: 1.5rem; /* 小螢幕調整標題字體大小 */
+  }
+
+  .auth-tabs .nav-link {
+      padding: 0.5rem; /* 小螢幕調整 tab 內邊距 */
+      font-size: 0.9rem;
   }
 }
 </style>

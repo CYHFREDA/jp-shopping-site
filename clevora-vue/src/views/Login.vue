@@ -1,15 +1,15 @@
 <template>
-  <main class="my-5">
+  <main class="my-5 auth-main">
     <!-- 登入 / 註冊卡片 -->
     <div class="card auth-card mx-auto">
-      <h3 class="text-center mb-4">會員登入 / 註冊</h3>
+      <h3 class="text-center mb-4 auth-title">會員登入 / 註冊</h3>
 
-      <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+      <ul class="nav nav-tabs mb-3 auth-tabs" id="authTab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">登入</button>
+          <button class="nav-link auth-tab-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">登入</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">註冊</button>
+          <button class="nav-link auth-tab-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">註冊</button>
         </li>
       </ul>
 
@@ -170,15 +170,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 可以在這裡添加 Login.vue 特有的樣式 */
-/* 參考 login.css 中的 auth-card 等相關樣式 */
-main {
+/* 使用新的棕色調 */
+:root {
+  --dark-brown: #38302e; /* 深棕色 */
+  --light-brown: #a18a7b; /* 淺棕色/米色 */
+  --white: #ffffff; /* 白色 */
+  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
+  --medium-grey: #e9ecef; /* 中等灰色 */
+  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
+}
+
+.auth-main {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 參考 login.css 的背景樣式 */
-  background: linear-gradient(to right, #f8f9fa, #e9ecef);
+  background-color: var(--light-grey); /* 淺灰色背景，與其他頁面協調 */
+  padding: 20px; /* 添加內邊距 */
+  min-height: 100vh; /* 確保覆蓋整個視窗高度 */
 }
 
 .auth-card {
@@ -186,18 +195,95 @@ main {
   width: 90%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--white); /* 白色背景 */
   padding: 30px;
 }
 
-.nav-tabs .nav-link.active {
+.auth-title {
+  color: var(--dark-brown); /* 深棕色標題 */
   font-weight: bold;
-  color: #0d6efd;
+  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 
+.auth-tabs .nav-link {
+    color: var(--dark-brown); /* 非激活標籤文字顏色 */
+    border: none;
+    border-bottom: 2px solid transparent; /* 預設透明底部邊框 */
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
+}
+
+.auth-tabs .nav-link.active {
+  font-weight: bold;
+  color: var(--light-brown); /* 激活標籤文字顏色 */
+  border-bottom-color: var(--light-brown); /* 激活底部邊框顏色 */
+}
+
+.auth-tabs .nav-link:hover {
+    color: var(--accent-brown); /* 懸停時變色 */
+}
+
+/* 表單元素樣式微調 - 與其他頁面保持一致 */
+.form-label {
+  font-weight: bold;
+  color: var(--dark-brown); /* 標籤顏色使用深棕色 */
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  border-radius: 5px;
+  border-color: var(--light-brown); /* 輸入框邊框顏色 */
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  color: var(--dark-brown); /* 輸入框文字顏色 */
+}
+
+.form-control::placeholder {
+  color: var(--light-brown); /* Placeholder 文字顏色 */
+  opacity: 0.8; /* 調整透明度 */
+}
+
+.form-control:focus {
+  border-color: var(--accent-brown); /* 聚焦時邊框顏色 */
+  box-shadow: 0 0 0 0.25rem rgba(161, 138, 123, 0.25); /* 根據 light-brown 調整陰影顏色 */
+}
+
+/* 按鈕樣式微調 - 與其他頁面保持一致 */
+.btn {
+  border-radius: 5px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+/* 登入按鈕 (success) */
+.btn-success {
+   background-color: var(--dark-brown); /* 深棕色 */
+   border-color: var(--dark-brown); /* 深棕色 */
+   color: var(--white); /* 白色文字 */
+}
+
+.btn-success:hover {
+    background-color: #2a2523; /* 懸停時深一點的棕色 */
+    border-color: #2a2523;
+    color: var(--white);
+}
+
+/* 註冊按鈕 (primary) */
+.btn-primary {
+  background-color: var(--light-brown); /* 淺棕色 */
+  border-color: var(--light-brown); /* 淺棕色 */
+  color: var(--dark-brown); /* 深棕色文字 */
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-brown); /* 強調棕色 */
+  border-color: var(--accent-brown); /* 強調棕色 */
+  color: var(--white); /* 白色文字 */
+}
+
+/* RWD 調整 */
 @media (max-width: 576px) {
   .auth-card {
-    margin: 20px auto;
+    margin: 20px auto; /* 在小螢幕上添加上下間距 */
     padding: 20px;
   }
 }
