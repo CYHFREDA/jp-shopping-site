@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function resetInactivityTimer() {
-    if (isAuthenticated.value && route.value && route.value.path.startsWith('/admin')) {
+    if (isAuthenticated.value) {
        startInactivityTimer();
     } else {
        clearInactivityTimer();
