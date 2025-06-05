@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Depends, HTTPException, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -334,7 +334,7 @@ async def admin_get_products(auth=Depends(verify_admin_jwt), cursor=Depends(get_
 
 #客戶註冊（前台用）
 @app.post("/api/customers/register")
-async def customer_register(request: Request):
+async def customer_register(request: Request, background_tasks: BackgroundTasks):
     data = await request.json()
     username = data.get("username")
     name = data.get("name")
@@ -415,15 +415,11 @@ async def customer_register(request: Request):
         conn.commit()
 
         verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-        email_sent = await send_verification_email(email, username, verification_link)
+        # 改為背景寄信
+        background_tasks.add_task(send_verification_email, email, username, verification_link)
 
-        if email_sent:
-            print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證信已發送。")
-            return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
-        else:
-            conn.rollback()
-            print(f"⚠️ [註冊] 使用者 '{username}' 註冊失敗：驗證 Email 發送失敗，已回滾資料庫。")
-            return JSONResponse({"error": "註冊失敗，驗證 Email 未能發送。請檢查 Email 服務設定或稍後再試。"}, status_code=500)
+        print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證信已排入背景任務。")
+        return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
 
     except Exception as e:
         if conn:
