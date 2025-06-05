@@ -24,9 +24,20 @@
     </div>
 
     <div class="container py-4">
-      <h1 class="page-title mb-4 fw-bold text-center">商品列表</h1>
-      <div v-if="filteredProducts.length" class="row row-cols-1 g-3">
-        <div v-for="product in filteredProducts" :key="product.id" class="col">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title fw-bold">商品列表</h1>
+        <div class="d-flex align-items-center">
+           <label for="itemsPerPage" class="form-label me-2 mb-0">每頁顯示:</label>
+           <select id="itemsPerPage" v-model="itemsPerPage" class="form-select form-select-sm w-auto">
+             <option :value="20">20</option>
+             <option :value="50">50</option>
+             <option :value="100">100</option>
+           </select>
+        </div>
+      </div>
+      
+      <div v-if="paginatedProducts.length" class="row row-cols-1 g-3">
+        <div v-for="product in paginatedProducts" :key="product.id" class="col">
           <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
             <div class="product-list-img me-3 mb-3 mb-md-0">
               <router-link :to="`/product/${product.id}`">
@@ -49,6 +60,24 @@
         </div>
       </div>
       <p v-else class="text-center text-muted">找不到符合條件的商品</p>
+      
+      <!-- 分頁控制項 -->
+      <div v-if="filteredProducts.length > itemsPerPage" class="d-flex justify-content-center mt-4">
+        <nav>
+          <ul class="pagination">
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <button class="page-link" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">上一頁</button>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">{{ currentPage }} / {{ totalPages }}</span>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+              <button class="page-link" @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">下一頁</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
     </div>
   </div>
 </template>
@@ -81,15 +110,32 @@ const categories = ref([
   { label: '親子育兒', value: 'baby' },
 ]);
 
-// 監聽路由變化以更新搜尋查詢
+// --- 分頁相關狀態 ---
+const currentPage = ref(1); // 當前頁碼
+const itemsPerPage = ref(20); // 每頁顯示數量
+
+// 監聽路由變化以更新搜尋查詢和分頁
 watch(() => route.query.search, (newSearch) => {
   if (newSearch) {
     searchQuery.value = newSearch;
   } else {
     searchQuery.value = '';
   }
+  currentPage.value = 1; // 搜尋或分類變化時回到第一頁
 }, { immediate: true });
 
+watch(() => route.query.category, (newCategory) => {
+  selectedCategory.value = newCategory || '';
+  searchQuery.value = '';
+  currentPage.value = 1; // 搜尋或分類變化時回到第一頁
+}, { immediate: true });
+
+// 監聽每頁顯示數量變化，回到第一頁
+watch(itemsPerPage, () => {
+    currentPage.value = 1;
+});
+
+// 根據篩選條件計算過濾後的商品
 const filteredProducts = computed(() => {
   let products = allProducts.value;
 
@@ -111,6 +157,26 @@ const filteredProducts = computed(() => {
   return products;
 });
 
+// 計算總頁數
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / itemsPerPage.value);
+});
+
+// 計算當前頁顯示的商品
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return filteredProducts.value.slice(start, end);
+});
+
+// 切換頁碼
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+// --- 分頁相關狀態結束 ---
+
 const loadProducts = async () => {
   try {
     console.log('開始載入商品...');
@@ -125,6 +191,10 @@ const loadProducts = async () => {
       created_at: p[5],
       category: p[6]
     }));
+     // 初始化時根據路由設定分類
+     if (route.query.category) {
+        selectedCategory.value = route.query.category;
+     }
   } catch (error) {
     console.error('載入商品時發生錯誤：', error);
     if (error.response) {
@@ -139,13 +209,15 @@ const loadProducts = async () => {
 };
 
 const filterCategory = (category) => {
-  selectedCategory.value = category;
+  // 不再直接修改 selectedCategory，而是通過路由監聽來更新
+  // selectedCategory.value = category;
   searchQuery.value = '';
   router.push({ path: '/', query: { category: category === '' ? undefined : category } });
 };
 
 const addToCart = (product) => {
   cartStore.addItem(product);
+  alert('✅ 已加入購物車！');
 };
 
 onMounted(() => {
@@ -247,7 +319,8 @@ onMounted(() => {
   border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
   padding-bottom: 10px; /* 標題與線的間距 */
   margin-bottom: 20px; /* 標題與內容的間距 */
-  font-size: 2rem; /* 調整字體大小 */
+  font-size: 1.8rem; /* 調整字體大小 */
+  text-align: left; /* 文字靠左對齊 */
 }
 
 /* 商品列表項樣式 */

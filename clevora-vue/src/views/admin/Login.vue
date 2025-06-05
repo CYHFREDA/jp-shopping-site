@@ -10,10 +10,10 @@
       </div>
       
       <div class="mb-2">
-        <input v-model="username" class="form-control form-control-lg text-center" placeholder="Username">
+        <input v-model="username" class="form-control form-control-lg" placeholder="Username">
       </div>
       <div class="mb-3">
-        <input v-model="password" type="password" class="form-control form-control-lg text-center" placeholder="Password">
+        <input v-model="password" type="password" class="form-control form-control-lg" placeholder="Password">
       </div>
       <div class="d-grid">
         <button class="btn btn-primary btn-lg" @click="login">登入</button>

@@ -172,6 +172,9 @@ function handleSearch() {
    font-size: 0.75rem;
    top: -0.2rem !important; /* 微調位置 */
    right: -0.5rem !important;
+   display: flex; /* 使用 Flexbox */
+   justify-content: center; /* 水平置中 */
+   align-items: center; /* 垂直置中 */
 }
 
 /* RWD 調整 */
