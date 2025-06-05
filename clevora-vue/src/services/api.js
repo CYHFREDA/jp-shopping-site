@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useCustomerStore } from '@/stores/customerStore';
+import { useUserStore } from '@/stores/userStore';
 
 const api = axios.create({
   baseURL: '/',
@@ -10,9 +11,18 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     const customerStore = useCustomerStore();
-    if (customerStore.isAuthenticated) {
+    const userStore = useUserStore();
+
+    // 優先使用管理員令牌（如果存在且已認證）
+    if (userStore.isAuthenticated) {
+      config.headers.Authorization = `Bearer ${userStore.admin_token}`;
+    }
+    // 否則檢查客戶令牌（如果存在且已認證）
+    else if (customerStore.isAuthenticated) {
       config.headers.Authorization = `Bearer ${customerStore.token}`;
     }
+    // 如果兩者都不存在，則不附加 Authorization 頭
+
     return config;
   },
   error => {
