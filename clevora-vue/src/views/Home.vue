@@ -26,14 +26,6 @@
     <div class="container py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-title fw-bold">商品列表</h1>
-        <div class="d-flex align-items-center">
-           <label for="itemsPerPage" class="form-label me-2 mb-0">每頁顯示:</label>
-           <select id="itemsPerPage" v-model="itemsPerPage" class="form-select form-select-sm w-auto">
-             <option :value="20">20</option>
-             <option :value="50">50</option>
-             <option :value="100">100</option>
-           </select>
-        </div>
       </div>
       
       <div v-if="paginatedProducts.length" class="row row-cols-1 g-3">
@@ -61,10 +53,10 @@
       </div>
       <p v-else class="text-center text-muted">找不到符合條件的商品</p>
       
-      <!-- 分頁控制項 -->
-      <div v-if="filteredProducts.length > itemsPerPage" class="d-flex justify-content-center mt-4">
-        <nav>
-          <ul class="pagination">
+      <!-- 分頁控制項 和 每頁顯示控制項 -->
+      <div v-if="filteredProducts.length > 0" class="d-flex justify-content-between align-items-center mt-4">
+        <nav v-if="filteredProducts.length > itemsPerPage">
+          <ul class="pagination mb-0">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
               <button class="page-link" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">上一頁</button>
             </li>
@@ -76,6 +68,17 @@
             </li>
           </ul>
         </nav>
+
+        <div class="d-flex align-items-center">
+           <span class="me-2">共 {{ filteredProducts.length }} 項</span>
+           <label for="itemsPerPage" class="form-label me-2 mb-0">每頁顯示:</label>
+           <select id="itemsPerPage" v-model="itemsPerPage" class="form-select form-select-sm w-auto">
+             <option :value="20">20</option>
+             <option :value="50">50</option>
+             <option :value="100">100</option>
+           </select>
+        </div>
+
       </div>
 
     </div>
@@ -316,11 +319,22 @@ onMounted(() => {
 /* 頁面標題樣式 */
 .page-title {
   color: var(--dark-brown); /* 深棕色標題 */
-  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
   padding-bottom: 10px; /* 標題與線的間距 */
   margin-bottom: 20px; /* 標題與內容的間距 */
   font-size: 1.8rem; /* 調整字體大小 */
   text-align: left; /* 文字靠左對齊 */
+  position: relative; /* Added position: relative for pseudo-element positioning */
+}
+
+.page-title::after {
+  content: '';
+  display: block;
+  width: 150px; /* Set a fixed width for the underline */
+  height: 2px; /* Same height as the original border */
+  background-color: var(--light-brown); /* Same color as the original border */
+  position: absolute;
+  left: 0;
+  bottom: 0; /* Position the underline at the bottom */
 }
 
 /* 商品列表項樣式 */
