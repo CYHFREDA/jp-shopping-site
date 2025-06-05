@@ -5,7 +5,7 @@
       <div class="container d-flex flex-column justify-content-center align-items-center text-center">
         <h1 class="hero-title">探索日本好物，盡在 Clevora</h1>
         <p class="hero-subtitle">我們為您精選最新、最熱門的日本商品</p>
-        <router-link to="/" class="btn btn-lg btn-light-brown mt-3">立即選購</router-link>
+        <router-link to="/products" class="btn btn-lg btn-light-brown mt-3">立即選購</router-link>
       </div>
     </section>
 

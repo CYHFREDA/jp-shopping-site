@@ -28,7 +28,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--light-grey); /* 使用淺灰色背景 */
+  background-color: #8F8A80; /* 修改頁面背景顏色 */
   color: var(--dark-brown); /* 默認文字顏色 */
 }
 

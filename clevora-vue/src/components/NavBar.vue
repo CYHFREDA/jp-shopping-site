@@ -93,6 +93,9 @@ function handleSearch() {
 .navbar-brand img {
   height: 40px;
   /* 可能需要調整 LOGO 在深色背景下的可見性 */
+  background-color: #8F8A80; /* 修改 LOGO 背景顏色 */
+  padding: 5px; /* 增加一些內邊距 */
+  border-radius: 5px; /* 添加圓角 */
 }
 
 /* 搜尋表單樣式 */
