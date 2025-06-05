@@ -19,27 +19,25 @@
       <div class="page-title-underline"></div>
     </div>
     
-    <div v-if="paginatedProducts.length" class="row row-cols-1 g-3">
+    <div v-if="paginatedProducts.length" class="row row-cols-1 row-cols-md-3 g-4">
       <div v-if="addToCartMessage" class="alert alert-success text-center mb-3" role="alert">
         {{ addToCartMessage }}
       </div>
       <div v-for="product in paginatedProducts" :key="product.id" class="col">
-        <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
-          <div class="product-list-img me-3 mb-3 mb-md-0">
-            <router-link :to="`/product/${product.id}`">
-              <img :src="product.image_url || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'" :alt="product.name" class="img-fluid" />
-            </router-link>
-          </div>
-          <div class="product-list-content">
-            <h5 class="product-list-title mb-2">
+        <div class="product-grid-card shadow-sm rounded bg-white h-100 d-flex flex-column align-items-center">
+          <router-link :to="`/product/${product.id}`" class="product-grid-img-wrapper">
+            <img :src="product.image_url || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'" :alt="product.name" class="product-grid-img" />
+          </router-link>
+          <div class="product-grid-content flex-grow-1 d-flex flex-column justify-content-between p-2 w-100">
+            <h6 class="product-grid-title mb-1 text-center">
               <router-link :to="`/product/${product.id}`" class="text-decoration-none">
                 {{ product.name }}
               </router-link>
-            </h5>
-            <p class="product-list-desc mb-2">{{ product.description || '' }}</p>
-            <div class="product-list-bottom">
-              <div class="product-list-price">NT$ {{ product.price?.toFixed(0) || '未定價' }}</div>
-              <button class="btn btn-success btn-sm" @click="addToCart(product)">加入購物車</button>
+            </h6>
+            <div class="product-grid-desc mb-2 text-center">{{ product.description || '' }}</div>
+            <div class="product-grid-bottom mt-auto">
+              <div class="product-grid-price mb-2 text-center">NT$ {{ product.price?.toFixed(0) || '未定價' }}</div>
+              <button class="btn btn-success btn-sm w-100" @click="addToCart(product)">加入購物車</button>
             </div>
           </div>
         </div>
@@ -275,72 +273,61 @@ const addToCart = (product) => {
 }
 
 /* 商品列表項樣式 */
-.product-list-item {
-  display: flex;
-  align-items: flex-start; /* 讓圖片和內容從頂部對齊 */
+.product-grid-card {
   border: 1px solid var(--medium-grey);
-  border-radius: 10px; /* 增加圓角 */
-  overflow: hidden; 
+  border-radius: 10px;
+  overflow: hidden;
   background-color: var(--white);
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加過渡效果 */
-}
-
-.product-list-item:hover {
-  transform: translateY(-5px); /* 懸停時上浮 */
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 懸停時更明顯陰影 */
-}
-
-.product-list-img {
-  flex-shrink: 0;
-  width: 180px; /* 增加圖片寬度 */
-  height: 180px; /* 增加圖片高度 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--light-grey);
-  border-right: 1px solid var(--medium-grey);
-  padding: 15px; /* 增加圖片內邊距 */
-}
-
-.product-list-img img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.product-list-content {
-  flex-grow: 1;
-  padding: 20px; /* 增加內容內邊距 */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.product-list-title {
-  color: var(--dark-brown);
-  font-size: 1.25rem; /* 調整標題字體大小 */
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-}
-
-.product-list-desc {
-  color: var(--disabled-text); /* 使用主題禁用文字顏色 */
-  font-size: 0.95rem; /* 調整描述字體大小 */
-  line-height: 1.6;
-  flex-grow: 1;
-}
-
-.product-list-bottom {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 1.25rem; /* 增加與描述的間距 */
+  height: 100%;
+  transition: box-shadow 0.3s;
 }
-
-.product-list-price {
-  font-size: 1.4rem; /* 調整價格字體大小 */
+.product-grid-card:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+.product-grid-img-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--light-grey);
+  padding: 16px 0 0 0;
+}
+.product-grid-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.3s;
+}
+.product-grid-card:hover .product-grid-img {
+  transform: scale(1.08);
+}
+.product-grid-title {
+  color: var(--dark-brown);
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.product-grid-desc {
+  color: var(--disabled-text);
+  font-size: 0.9rem;
+  min-height: 2.5em;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.product-grid-price {
+  font-size: 1.1rem;
   font-weight: bold;
   color: var(--accent-brown);
+  text-align: center;
+}
+.product-grid-bottom {
+  width: 100%;
 }
 
 /* 加入購物車按鈕樣式 */
@@ -390,38 +377,20 @@ const addToCart = (product) => {
 }
 
 /* RWD 調整 */
+@media (max-width: 992px) {
+  .row-cols-md-3 > .col {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
 @media (max-width: 768px) {
-  .product-list-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  .row-cols-md-3 > .col {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
-
-  .product-list-img {
-    width: 100%;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--medium-grey);
-    margin-bottom: 15px; /* 增加底部間距 */
-    padding: 10px;
-  }
-
-  .product-list-content {
-    padding: 15px;
-  }
-
-  .product-list-bottom {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%; /* 確保按鈕佔滿寬度 */
-  }
-
-  .product-list-price {
-    margin-bottom: 10px;
-  }
-
-  .btn-success {
-    width: 100%;
+  .product-grid-img {
+    width: 90px;
+    height: 90px;
   }
 }
 
@@ -444,20 +413,20 @@ const addToCart = (product) => {
     font-size: 0.9rem;
   }
 
-  .product-list-img {
+  .product-grid-img {
     width: 150px; /* 小螢幕圖片寬度 */
     height: 150px; /* 小螢幕圖片高度 */
   }
 
-  .product-list-title {
+  .product-grid-title {
     font-size: 1.1rem;
   }
 
-  .product-list-desc {
+  .product-grid-desc {
     font-size: 0.85rem;
   }
 
-  .product-list-price {
+  .product-grid-price {
     font-size: 1.2rem;
   }
 }

@@ -23,7 +23,7 @@
         </template>
         <template v-else>
           <router-link to="/login" class="me-3 nav-link-text text-decoration-none">會員登入</router-link>
-          <router-link to="/admin/login" class="me-3 nav-link-text text-decoration-none">管理員登入</router-link>
+          <router-link to="/admin/login" class="me-3 nav-link-text text-decoration-none">後台登入</router-link>
         </template>
         <router-link to="/cart" class="cart-icon-link text-decoration-none position-relative">
           <i class="fas fa-shopping-cart"></i>
