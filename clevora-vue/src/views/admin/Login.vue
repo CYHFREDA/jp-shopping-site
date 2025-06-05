@@ -65,7 +65,7 @@ const login = async () => {
       error.value = '❌ 帳號或密碼錯誤！';
     } else {
       console.error('後台登入時發生網路錯誤：', err);
-      error.value = '後台登入失敗！請檢查網路連線。';
+    error.value = '後台登入失敗！請檢查網路連線。';
     }
   }
 };

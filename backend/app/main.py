@@ -626,9 +626,26 @@ async def create_admin(request: Request, auth=Depends(verify_admin_jwt), cursor=
 #顯示後台使用者
 @app.get("/api/admin/admin_users")
 async def admin_get_admin_users(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
-    cursor.execute("SELECT username, created_at FROM admin_users ORDER BY created_at")
+    # 讀取 id, username, created_at 和 notes 欄位
+    cursor.execute("SELECT id, username, created_at, notes FROM admin_users ORDER BY created_at")
     rows = cursor.fetchall()
-    return [{"username": r[0], "created_at": str(r[1])} for r in rows]
+    # 返回包含 id 和 notes 的使用者列表
+    return [{"id": r[0], "username": r[1], "created_at": str(r[2]), "notes": r[3]} for r in rows]
+
+# 修改管理員資訊 (例如備註)
+@app.post("/api/admin/update_admin")
+async def admin_update_admin(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    admin_id = data.get("id") # 從前端傳入管理員 ID
+    notes = data.get("notes")
+
+    if not admin_id:
+        raise HTTPException(status_code=400, detail="❌ 缺少管理員 ID")
+    
+    # 注意：這裡只允許更新 notes 欄位，如果需要更新其他欄位，需要修改這裡的 SQL 語句
+    cursor.execute("UPDATE admin_users SET notes=%s WHERE id=%s", (notes, admin_id))
+    cursor.connection.commit()
+    return JSONResponse({"message": "✅ 管理員資料已更新！"})
 
 #修改使用者密碼
 @app.post("/api/admin/update_admin_password")
@@ -645,6 +662,31 @@ async def update_admin_password(request: Request, auth=Depends(verify_admin_jwt)
     cursor.execute("UPDATE admin_users SET password=%s WHERE username=%s", (hashed_password, username))
     cursor.connection.commit()
     return JSONResponse({"message": "✅ 密碼已更新！"})
+
+# 後台管理員重置密碼
+@app.post("/api/admin/reset_admin_password")
+async def admin_reset_admin_password(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    username = data.get("username")
+
+    if not username:
+        raise HTTPException(status_code=400, detail="❌ 缺少使用者名稱")
+
+    # 生成一個新的隨機密碼 (例如 8 個字元的英數字混合)
+    new_password = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=8))
+
+    # bcrypt 雜湊新密碼
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    try:
+        # 更新資料庫中的密碼
+        cursor.execute("UPDATE admin_users SET password=%s WHERE username=%s", (hashed_password, username))
+        cursor.connection.commit()
+        # 返回新生成的明文密碼給前端 (請注意安全性)
+        return JSONResponse({"message": "✅ 密碼已重置！", "new_password": new_password})
+    except Exception as e:
+        print(f"❌ 重置管理員密碼時出錯: {e}")
+        raise HTTPException(status_code=500, detail="❌ 重置密碼失敗，請稍後再試！")
 
 # 後台管理員登入 (新增 JWT 認證)
 @app.post("/api/admin/login")
