@@ -917,9 +917,9 @@ async def send_verification_email(recipient_email: str, username: str, verificat
         return False
 
     sender_email = EMAIL_USERNAME
-    password = EMAIL_PASSWORD
+    sender_password = EMAIL_PASSWORD
 
-    if not sender_email or not password:
+    if not sender_email or not sender_password:
         print("❌ [Email服務] 錯誤：SMTP 環境變數未完整設定。")
         raise ValueError("SMTP environment variables are not fully set.")
 
@@ -929,129 +929,35 @@ async def send_verification_email(recipient_email: str, username: str, verificat
     msg["From"] = sender_email
     msg["To"] = recipient_email
 
-    # Email 的純文字內容
-    text = f"""
-        哈囉 {username},
-        感謝您註冊我們的服務！
-        請點擊以下連結驗證您的 Email：
-        {verification_link}
-        此連結將於 5 分鐘內過期。
-        如果您沒有註冊，請忽略此 Email。
-        """
+    # 從外部 HTML 模板檔案讀取內容
+    template_path = os.path.join(os.path.dirname(__file__), "email_templates", "verification_email.html")
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            html_template = f.read()
+        # 使用 .format() 填充模板變數
+        html = html_template.format(username=username, verification_link=verification_link)
+    except FileNotFoundError:
+        print(f"❌ [Email服務] 錯誤：Email 模板檔案未找到：{template_path}")
+        # 如果模板檔案找不到，退回使用基本 HTML 內容
+        html = f"""
+            <html><body><p>哈囉 {username},</p><p>感謝您註冊我們的服務！請點擊以下連結驗證您的 Email：</p><p><a href=\"{verification_link}\">{verification_link}</a></p><p>此連結將於 5 分鐘內過期。</p><p>如果您沒有註冊，請忽略此 Email。</p></body></html>
+            """
+    except Exception as e:
+        print(f"❌ [Email服務] 讀取或格式化 Email 模板失敗：{e}")
+        # 如果處理模板失敗，退回使用基本 HTML 內容
+        html = f"""
+            <html><body><p>哈囉 {username},</p><p>感謝您註冊我們的服務！請點擊以下連結驗證您的 Email：</p><p><a href=\"{verification_link}\">{verification_link}</a></p><p>此連結將於 5 分鐘內過期。</p><p>如果您沒有註冊，請忽略此 Email。</p></body></html>
+              """
 
-    # Email 的 HTML 內容 (所有 CSS 花括號都需要雙倍逸出)
-    html = f"""
-        <!DOCTYPE html>
-        <html lang="zh-TW">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>帳戶驗證通知</title>
-            <style>
-                body {{{{ /* 雙倍花括號逸出 */
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    line-height: 1.6;
-                    color: #333333;
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f7f7f7;
-                }}}}
-                .email-wrapper {{{{ /* 雙倍花括號逸出 */
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background-color: #ffffff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                    overflow: hidden;
-                }}}}
-                .header {{{{ /* 雙倍花括號逸出 */
-                    background-color: #007bff;
-                    color: #ffffff;
-                    padding: 25px 30px;
-                    text-align: center;
-                }}}}
-                .header h1 {{{{ /* 雙倍花括號逸出 */
-                    margin: 0;
-                    font-size: 28px;
-                    font-weight: 600;
-                }}}}
-                .content {{{{ /* 雙倍花括號逸出 */
-                    padding: 30px;
-                }}}}
-                .content p {{{{ /* 雙倍花括號逸出 */
-                    margin-bottom: 20px;
-                    font-size: 16px;
-                }}}}
-                .button-container {{{{ /* 雙倍花括號逸出 */
-                    text-align: center;
-                    margin: 30px 0;
-                }}}}
-                .button {{{{ /* 雙倍花括號逸出 */
-                    background-color: #28a745; /* Green for success */
-                    color: white !important; /* !important to override client styles */
-                    padding: 15px 30px;
-                    text-align: center;
-                    text-decoration: none;
-                    display: inline-block;
-                    border-radius: 25px; /* Pill-shaped button */
-                    font-weight: bold;
-                    font-size: 18px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                    transition: background-color 0.3s ease;
-                }}}}
-                .button:hover {{{{ /* 雙倍花括號逸出 */
-                    background-color: #218838;
-                }}}}
-                .expiry-text {{{{ /* 雙倍花括號逸出 */
-                    color: #dc3545; /* Red for emphasis */
-                    font-weight: bold;
-                    font-size: 15px;
-                }}}}
-                .footer {{{{ /* 雙倍花括號逸出 */
-                    text-align: center;
-                    padding: 20px 30px;
-                    margin-top: 30px;
-                    border-top: 1px solid #eeeeee;
-                    font-size: 12px;
-                    color: #777777;
-                    background-color: #fdfdfd;
-                }}}}
-            </style>
-        </head>
-        <body>
-            <div class="email-wrapper">
-                <div class="header">
-                    <h1>帳戶驗證通知</h1>
-                </div>
-                <div class="content">
-                    <p>哈囉 <strong>{username}</strong>,</p>
-                    <p>感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的連結進行 Email 驗證。</p>
-                    <div class="button-container">
-                        <a href="{verification_link}" class="button">立即驗證您的 Email</a>
-                    </div>
-                    <p style="text-align: center;">此驗證連結將於 <span class="expiry-text">5 分鐘</span> 內過期，請盡快完成驗證。</p>
-                    <p>如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
-                </div>
-                <div class="footer">
-                    <p>此為系統自動發送 Email，請勿直接回覆。</p>
-                    <p>&copy; 2023 CleVora. 版權所有.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-    # 將純文字和 HTML 內容附加到 MIMEMultipart 物件
-    part1 = MIMEText(text, "plain")
+    # 將 HTML 內容附加到 MIMEMultipart 物件
     part2 = MIMEText(html, "html")
 
-    msg.attach(part1)
     msg.attach(part2)
 
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, context=context) as server:
-            server.login(sender_email, password)
+            server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
         print(f"✅ [Email服務] 驗證信成功寄送給 {recipient_email}")
         return True
@@ -1095,3 +1001,57 @@ async def verify_email(token: str, cursor=Depends(get_db_cursor)):
     except Exception as e:
         print(f"❌ [Email 驗證] 發生未知錯誤：{e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Email 驗證失敗，請稍後再試！")
+
+# 重新發送驗證 Email 端點
+@app.post("/api/customers/resend-verification-email")
+async def resend_verification_email_endpoint(request: Request, cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    email = data.get("email")
+
+    if not email:
+        print("❌ [重新發送驗證信] 請求缺少 Email。")
+        return JSONResponse({"error": "缺少 Email 地址"}, status_code=400)
+
+    try:
+        print(f"[重新發送驗證信] 收到重新發送請求，Email: {email}")
+        cursor.execute("SELECT customer_id, username, is_verified FROM customers WHERE email = %s", (email,))
+        customer = cursor.fetchone()
+
+        if not customer:
+            print(f"❌ [重新發送驗證信] Email '{email}' 未註冊或不存在。")
+            return JSONResponse({"error": "此 Email 地址未註冊。"}, status_code=404)
+
+        customer_id, username, is_verified = customer
+
+        if is_verified:
+            print(f"✅ [重新發送驗證信] Email '{email}' 已驗證，無需重新發送。")
+            return JSONResponse({"message": "您的 Email 已驗證成功，無需重新發送。"}, status_code=200)
+
+        # 生成新的驗證 token 和過期時間
+        verification_token = str(uuid.uuid4())
+        token_expiry = datetime.utcnow() + timedelta(minutes=5) # 5 分鐘過期
+
+        print(f"[重新發送驗證信] 為 Email '{email}' 生成新 token: {verification_token}, 過期時間: {token_expiry}")
+
+        # 更新資料庫中的 token 和過期時間
+        cursor.execute(
+            "UPDATE customers SET verification_token = %s, token_expiry = %s WHERE customer_id = %s",
+            (verification_token, token_expiry, customer_id)
+        )
+        cursor.connection.commit()
+        print(f"✅ [重新發送驗證信] 資料庫已更新 Email '{email}' 的驗證 token。")
+
+        # 重新發送驗證 Email
+        verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
+        email_sent = await send_verification_email(email, username, verification_link)
+
+        if email_sent:
+            print(f"✅ [重新發送驗證信] 驗證信已成功重新發送給 {email}。")
+            return JSONResponse({"message": "✅ 驗證信已成功重新發送，請檢查您的 Email 收件箱。"}, status_code=200)
+        else:
+            print(f"❌ [重新發送驗證信] 重新發送驗證信給 {email} 失敗。")
+            return JSONResponse({"error": "重新發送驗證信失敗，請稍後再試。"}, status_code=500)
+
+    except Exception as e:
+        print(f"❌ [重新發送驗證信] 發生錯誤：{e}")
+        return JSONResponse({"error": "內部伺服器錯誤"}, status_code=500)

@@ -81,13 +81,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCustomerStore } from '@/stores/customerStore';
 import axios from 'axios';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 const customerStore = useCustomerStore();
+const userStore = useUserStore();
 
 const activeTab = ref('login');
 
@@ -116,6 +118,9 @@ const emailError = ref('');
 const phoneError = ref('');
 const addressError = ref('');
 const passwordError = ref('');
+
+const registrationEmail = ref(''); // 新增一個 ref 來儲存註冊成功的 Email
+let registrationTimer = null; // 用於儲存計時器 ID
 
 // 驗證函式
 function validateUsername() {
@@ -298,6 +303,21 @@ async function handleRegister() {
         phoneError.value = '';
         addressError.value = '';
         passwordError.value = '';
+
+        registrationEmail.value = email;
+
+        // 啟動 5 分鐘的計時器，如果 Email 尚未驗證，則顯示註冊失敗
+        if (registrationTimer) {
+          clearTimeout(registrationTimer);
+        }
+        registrationTimer = setTimeout(() => {
+          // 只有當前頁面仍顯示註冊成功訊息時才更新狀態
+          if (registrationSuccessAndPendingVerification.value) {
+            registrationSuccessAndPendingVerification.value = false;
+            loginApiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊或嘗試登入。';
+            apiErrorMessage.value = ''; // 清除成功訊息
+          }
+        }, 5 * 60 * 1000); // 5 分鐘（毫秒）
       } else {
         apiErrorMessage.value = res.data.message; // 顯示非成功訊息
       }
@@ -315,6 +335,44 @@ async function handleRegister() {
     }
   }
 }
+
+// 新增重新發送驗證信函式
+const resendVerificationEmail = async () => {
+  if (!registrationEmail.value) {
+    loginApiErrorMessage.value = '❌ 無法重新發送：沒有可用的 Email 地址。';
+    return;
+  }
+  try {
+    const response = await axios.post('/api/customers/resend-verification-email', {
+      email: registrationEmail.value
+    });
+    apiErrorMessage.value = response.data.message; // 顯示成功訊息
+    loginApiErrorMessage.value = ''; // 清除錯誤訊息
+    // 重啟計時器，給予用戶新的 5 分鐘時間
+    if (registrationTimer) {
+        clearTimeout(registrationTimer);
+    }
+    registrationTimer = setTimeout(() => {
+        if (registrationSuccessAndPendingVerification.value) {
+            registrationSuccessAndPendingVerification.value = false;
+            loginApiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊或嘗試登入。';
+            apiErrorMessage.value = '';
+        }
+    }, 5 * 60 * 1000); // 5 分鐘（毫秒）
+
+  } catch (error) {
+    console.error('重新發送驗證信失敗:', error);
+    loginApiErrorMessage.value = error.response?.data?.error || '重新發送驗證信失敗，請稍後再試。';
+    apiErrorMessage.value = ''; // 清除成功訊息
+  }
+};
+
+// 在組件卸載時清除計時器，防止記憶體洩漏
+onUnmounted(() => {
+  if (registrationTimer) {
+    clearTimeout(registrationTimer);
+  }
+});
 
 onMounted(() => {
   if (localStorage.getItem('redirectAfterLogin')) {
