@@ -55,7 +55,7 @@ function handleLogout() {
 
 function handleSearch() {
   if (searchQuery.value.trim()) {
-    router.push({ path: '/', query: { search: searchQuery.value.trim() } });
+    router.push({ path: '/products', query: { search: searchQuery.value.trim() } });
     searchQuery.value = ''; // 清空搜尋框
   }
 }
