@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
@@ -35,10 +35,12 @@ const router = useRouter();
 const error = ref('');
 const userStore = useUserStore();
 
-// 如果用戶已經登入，則直接導向後台主控台頁面
-if (userStore.isAuthenticated) {
-  router.push('/admin');
-}
+// 監聽 userStore.isAuthenticated 的變化，如果為 true 則導向後台主控台頁面
+watch(() => userStore.isAuthenticated, (newVal) => {
+  if (newVal) {
+    router.push('/admin');
+  }
+}, { immediate: true }); // immediate: true 確保在組件初始化時也執行一次檢查
 
 // 登入功能
 const login = async () => {

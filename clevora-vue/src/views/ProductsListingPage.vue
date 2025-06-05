@@ -233,7 +233,7 @@ const addToCart = (product) => {
 .page-title-underline {
   content: '';
   display: block;
-  width: 80px; /* 調整下劃線長度 */
+  width: 100%; /* 調整下劃線長度 */
   height: 3px; /* 調整下劃線粗細 */
   background-color: var(--light-brown);
   position: absolute;
