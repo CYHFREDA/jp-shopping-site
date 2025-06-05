@@ -130,7 +130,7 @@ const login = async () => {
 }
 
 .form-control-lg {
-  text-align: center; /* 輸入框文字置中 */
+  text-align: left; /* 輸入框文字靠左對齊 */
 }
 
 /* 按鈕樣式微調 - 與其他頁面保持一致 */

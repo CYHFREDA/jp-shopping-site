@@ -5,7 +5,7 @@
         <img src="/images/LOGO.png" alt="LOGO" class="me-2" />
         <span>Clevora 首頁</span>
       </a>
-      <button class="btn btn-danger btn-sm" @click="handleLogout">登出</button>
+      <button v-if="userStore.admin_token" class="btn btn-danger btn-sm" @click="handleLogout">登出</button>
     </div>
   </nav>
 </template>

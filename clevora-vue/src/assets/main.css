@@ -181,6 +181,7 @@ footer {
 .form-control::placeholder {
   color: var(--light-brown); /* Placeholder 文字顏色 */
   opacity: 0.8; /* 調整透明度 */
+  font-style: italic; /* 設定為斜體 */
 }
 
 .form-control:focus {
