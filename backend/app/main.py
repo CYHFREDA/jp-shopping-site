@@ -341,6 +341,13 @@ async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
             print(f"❌ 註冊失敗: 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
             return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
 
+        # Check if email already exists
+        cursor.execute("SELECT email FROM customers WHERE email ILIKE %s", (email,))
+        existing_email = cursor.fetchone()
+        if existing_email:
+            print(f"❌ 註冊失敗: Email '{email}' 已存在於資料庫中。") # Debugging line
+            return JSONResponse({"error": "Email 已被使用"}, status_code=400)
+
         # bcrypt 雜湊密碼
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 

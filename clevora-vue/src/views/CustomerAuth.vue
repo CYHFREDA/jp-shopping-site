@@ -32,27 +32,33 @@
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
           <div class="mb-2">
             <label for="registerUsername" class="form-label">使用者名稱</label>
-            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
+            <input id="registerUsername" type="text" class="form-control" :class="{ 'is-invalid': usernameError }" v-model="registerForm.username" placeholder="username(必填)" />
+            <div v-if="usernameError" class="invalid-feedback">{{ usernameError }}</div>
           </div>
           <div class="mb-2">
             <label for="registerName" class="form-label">姓名</label>
-            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
+            <input id="registerName" type="text" class="form-control" :class="{ 'is-invalid': nameError }" v-model="registerForm.name" placeholder="name(必填)" />
+            <div v-if="nameError" class="invalid-feedback">{{ nameError }}</div>
           </div>
           <div class="mb-2">
             <label for="registerEmail" class="form-label">Email</label>
-            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
+            <input id="registerEmail" type="email" class="form-control" :class="{ 'is-invalid': emailError }" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
+            <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
           </div>
           <div class="mb-2">
             <label for="registerPhone" class="form-label">電話</label>
-            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
+            <input id="registerPhone" type="text" class="form-control" :class="{ 'is-invalid': phoneError }" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
+            <div v-if="phoneError" class="invalid-feedback">{{ phoneError }}</div>
           </div>
           <div class="mb-2">
             <label for="registerAddress" class="form-label">地址</label>
-            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
+            <input id="registerAddress" type="text" class="form-control" :class="{ 'is-invalid': addressError }" v-model="registerForm.address" placeholder="address(必填)" />
+            <div v-if="addressError" class="invalid-feedback">{{ addressError }}</div>
           </div>         
           <div class="mb-2">
             <label for="registerPassword" class="form-label">密碼</label>
-            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
+            <input id="registerPassword" type="password" class="form-control" :class="{ 'is-invalid': passwordError }" v-model="registerForm.password" placeholder="password(必填)" />
+            <div v-if="passwordError" class="invalid-feedback">{{ passwordError }}</div>
           </div>
           <div class="d-grid">
             <button class="btn btn-primary" @click="handleRegister">註冊</button>
@@ -64,9 +70,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCustomerStore } from '@/stores/customerStore';
+import axios from 'axios';
 
 const router = useRouter();
 const customerStore = useCustomerStore();
@@ -86,6 +93,117 @@ const registerForm = ref({
   address: '',
   password: '',
 });
+
+// 驗證錯誤訊息
+const usernameError = ref('');
+const nameError = ref('');
+const emailError = ref('');
+const phoneError = ref('');
+const addressError = ref('');
+const passwordError = ref('');
+
+// 驗證函式
+function validateUsername() {
+  const username = registerForm.value.username;
+  if (username.length < 4 || username.length > 20) {
+    usernameError.value = '使用者名稱長度需為 4~20 字元！';
+    return false;
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    usernameError.value = '使用者名稱只能包含英文、數字、底線！';
+    return false;
+  }
+  if (/^\d+$/.test(username)) {
+    usernameError.value = '使用者名稱不可全為數字！';
+    return false;
+  }
+  usernameError.value = '';
+  return true;
+}
+
+function validateName() {
+  const name = registerForm.value.name;
+  if (name.length < 2 || name.length > 30) {
+    nameError.value = '姓名長度需為 2~30 字元！';
+    return false;
+  }
+  if (!/^[\u4e00-\u9fa5a-zA-Z]+$/.test(name)) {
+    nameError.value = '姓名只能包含中文或英文！';
+    return false;
+  }
+  nameError.value = '';
+  return true;
+}
+
+function validateEmail() {
+  const email = registerForm.value.email;
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+    emailError.value = '請輸入有效的 Email 格式！';
+    return false;
+  }
+  emailError.value = '';
+  return true;
+}
+
+function validatePhone() {
+  const phone = registerForm.value.phone;
+  if (!/^09\d{8}$/.test(phone)) {
+    phoneError.value = '請輸入有效的台灣手機號碼 (09 開頭共 10 碼)！';
+    return false;
+  }
+  if (/^(0)+[0-9]{9}$/.test(phone) && new Set(phone.split('')).size === 1) {
+    phoneError.value = '電話號碼不可全為相同數字！';
+    return false;
+  }
+  phoneError.value = '';
+  return true;
+}
+
+function validateAddress() {
+  const address = registerForm.value.address;
+  if (address.length < 10 || address.length > 100) {
+    addressError.value = '地址長度需為 10~100 字元！';
+    return false;
+  }
+  if (!/^[\u4e00-\u9fa5a-zA-Z0-9]+$/.test(address)) {
+    addressError.value = '地址只能包含中文、英文、數字！';
+    return false;
+  }
+   if (/^\d+$/.test(address)) {
+    addressError.value = '地址不可全為數字！';
+    return false;
+  }
+  addressError.value = '';
+  return true;
+}
+
+function validatePassword() {
+  const password = registerForm.value.password;
+  const username = registerForm.value.username;
+
+  if (password.length < 8 || password.length > 20) {
+    passwordError.value = '密碼長度需為 8~20 字元！';
+    return false;
+  }
+  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/.test(password)) {
+    passwordError.value = '密碼需包含大小寫英文、數字、特殊字元！';
+    return false;
+  }
+  if (password === username) {
+    passwordError.value = '密碼不可與使用者名稱相同！';
+    return false;
+  }
+  passwordError.value = '';
+  return true;
+}
+
+// 監聽 registerForm 欄位變化，即時清除錯誤訊息
+watch(() => registerForm.value.username, validateUsername);
+watch(() => registerForm.value.name, validateName);
+watch(() => registerForm.value.email, validateEmail);
+watch(() => registerForm.value.phone, validatePhone);
+watch(() => registerForm.value.address, validateAddress);
+watch(() => registerForm.value.password, validatePassword);
 
 async function handleLogin() {
   const { username, password } = loginForm.value;
@@ -124,23 +242,30 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
-  const { username, name, email, phone, address, password } = registerForm.value;
+  // 在這裡執行所有驗證
+  const isUsernameValid = validateUsername();
+  const isNameValid = validateName();
+  const isEmailValid = validateEmail();
+  const isPhoneValid = validatePhone();
+  const isAddressValid = validateAddress();
+  const isPasswordValid = validatePassword();
 
-  if (!username || !name || !email || !phone || !address || !password) {
-    alert("請填寫所有必填欄位！");
+  // 如果有任何一個驗證失敗，則停止提交
+  if (!isUsernameValid || !isNameValid || !isEmailValid || !isPhoneValid || !isAddressValid || !isPasswordValid) {
+    alert("請修正表單中的錯誤！");
     return;
   }
 
+  const { username, name, email, phone, address, password } = registerForm.value;
+
   try {
-    const res = await fetch('/api/customers/register', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, name, email, phone, address, password })
+    const res = await axios.post('/api/customers/register', {
+      username, name, email, phone, address, password
     });
 
-    const data = await res.json();
+    const data = await res.data;
 
-    if (res.ok) {
+    if (res.status === 200) {
       alert("✅ 註冊成功！請切換到登入分頁登入");
       registerForm.value = {
         username: '',
