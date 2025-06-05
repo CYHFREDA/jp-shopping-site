@@ -1,6 +1,10 @@
 <template>
   <div class="card p-4">
     <h5 class="card-title mb-3">👤 使用者管理</h5>
+    <!-- 訊息提示 -->
+    <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
+      {{ displayMessage }}
+    </div>
     <div class="row g-2 mb-3">
       <div class="col-md-6"><input v-model="newAdmin.username" class="form-control" placeholder="使用者名稱"></div>
       <div class="col-md-6"><input v-model="newAdmin.password" type="password" class="form-control" placeholder="密碼"></div>
@@ -45,6 +49,7 @@ import api from '@/services/api';
 
 const admins = ref([]);
 const userStore = useUserStore();
+const displayMessage = ref(''); // 新增響應式變數用於顯示訊息
 
 const newAdmin = ref({
   username: '',
@@ -53,6 +58,7 @@ const newAdmin = ref({
 
 onMounted(() => {
   loadAdmins();
+  displayMessage.value = ''; // 在組件載入時清除訊息
 });
 
 async function loadAdmins() {
@@ -60,10 +66,11 @@ async function loadAdmins() {
   console.log('userStore.admin_token:', userStore.admin_token);
   console.log('userStore.isAuthenticated:', userStore.isAuthenticated);
 
+  displayMessage.value = ''; // 清除之前的訊息
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -76,23 +83,24 @@ async function loadAdmins() {
   } catch (error) {
     console.error('無法載入使用者資料：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     }
   }
 }
 
 async function addAdmin() {
+  displayMessage.value = ''; // 清除之前的訊息
   const { username, password } = newAdmin.value;
 
   if (!username || !password) {
-    alert("請填寫完整使用者名稱與密碼！");
+    displayMessage.value = "❌ 請填寫完整使用者名稱與密碼！";
     return;
   }
 
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -102,7 +110,7 @@ async function addAdmin() {
     const result = res.data;
 
     if (res.status === 200) {
-      alert(result.message || '使用者新增成功！');
+      displayMessage.value = result.message || '✅ 使用者新增成功！';
       newAdmin.value = {
         username: '',
         password: '',
@@ -110,29 +118,33 @@ async function addAdmin() {
       loadAdmins();
     } else {
       console.error('新增使用者失敗：', result);
-      alert(result.error || '新增使用者失敗！');
+      displayMessage.value = result.error || '❌ 新增使用者失敗！';
     }
   } catch (error) {
     console.error('新增使用者時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-      alert(error.response.data.error);
+      displayMessage.value = error.response.data.error;
     } else if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
-      alert('新增使用者時發生未知錯誤！');
+      displayMessage.value = '❌ 新增使用者時發生未知錯誤！';
     }
   }
 }
 
 async function saveAdmin(admin) {
-  if (admin.username === 'admin') return;
+  displayMessage.value = ''; // 清除之前的訊息
+  if (admin.username === 'admin') {
+    displayMessage.value = '❌ 無法修改 admin 帳號！';
+    return;
+  }
 
   const { id, notes } = admin;
 
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -142,32 +154,39 @@ async function saveAdmin(admin) {
     const result = res.data;
 
     if (res.status === 200) {
-      alert(result.message || '備註更新成功！');
+      displayMessage.value = result.message || '✅ 備註更新成功！';
     } else {
       console.error('更新備註失敗：', result);
-      alert(result.error || '更新備註失敗！');
+      displayMessage.value = result.error || '❌ 更新備註失敗！';
     }
   } catch (error) {
     console.error('更新備註時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-      alert(error.response.data.error);
+      displayMessage.value = error.response.data.error;
     } else if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
-      alert('更新備註時發生未知錯誤！');
+      displayMessage.value = '❌ 更新備註時發生未知錯誤！';
     }
   }
 }
 
 async function resetPassword(admin) {
-  if (admin.username === 'admin') return;
+  displayMessage.value = ''; // 清除之前的訊息
+  if (admin.username === 'admin') {
+    displayMessage.value = '❌ 無法重置 admin 帳號的密碼！';
+    return;
+  }
 
-  if (!confirm(`確定要重置使用者 ${admin.username} 的密碼嗎？`)) return;
+  if (!confirm(`確定要重置使用者 ${admin.username} 的密碼嗎？`)) {
+    displayMessage.value = '取消重置密碼！';
+    return;
+  }
 
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -177,36 +196,40 @@ async function resetPassword(admin) {
     const result = res.data;
 
     if (res.status === 200 && result.new_password) {
-      alert(`使用者 ${admin.username} 的新密碼為：${result.new_password}`);
+      displayMessage.value = `✅ 使用者 ${admin.username} 的新密碼為：${result.new_password}`;
     } else {
       console.error('重置密碼失敗：', result);
-      alert(result.error || '重置密碼失敗！');
+      displayMessage.value = result.error || '❌ 重置密碼失敗！';
     }
   } catch (error) {
     console.error('重置密碼時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-      alert(error.response.data.error);
+      displayMessage.value = error.response.data.error;
     } else if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
-      alert('重置密碼時發生未知錯誤！');
+      displayMessage.value = '❌ 重置密碼時發生未知錯誤！';
     }
   }
 }
 
 async function deleteAdmin(id) {
+  displayMessage.value = ''; // 清除之前的訊息
   const adminToDelete = admins.value.find(a => a.id === id);
   if (adminToDelete && adminToDelete.username === 'admin') {
-    alert('無法刪除 admin 帳號！');
+    displayMessage.value = '❌ 無法刪除 admin 帳號！';
     return;
   }
 
-  if (!confirm("確定刪除這個使用者？")) return;
+  if (!confirm("確定刪除這個使用者？")) {
+    displayMessage.value = '取消刪除使用者！';
+    return;
+  }
 
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -216,22 +239,22 @@ async function deleteAdmin(id) {
     const result = res.data;
 
     if (res.status === 200) {
-      alert(result.message || '使用者刪除成功！');
+      displayMessage.value = result.message || '✅ 使用者刪除成功！';
       loadAdmins();
     } else {
       console.error('刪除使用者失敗：', result);
-      alert(result.error || '刪除使用者失敗！');
+      displayMessage.value = result.error || '❌ 刪除使用者失敗！';
     }
   } catch (error) {
     console.error('刪除使用者時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-      alert(error.response.data.error);
+      displayMessage.value = error.response.data.error;
     } else if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else if (error.response && error.response.status === 405) {
-      alert('後端不支援刪除管理員的功能。');
+      displayMessage.value = '❌ 後端不支援刪除管理員的功能。';
     } else {
-      alert('刪除使用者時發生未知錯誤！');
+      displayMessage.value = '❌ 刪除使用者時發生未知錯誤！';
     }
   }
 }

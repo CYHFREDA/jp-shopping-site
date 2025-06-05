@@ -24,17 +24,6 @@ const router = useRouter();
 </script>
 
 <style scoped>
-/* 使用新的棕色調 */
-:root {
-  --dark-brown: #38302e; /* 深棕色 */
-  --light-brown: #a18a7b; /* 淺棕色/米色 */
-  --white: #ffffff; /* 白色 */
-  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
-  --medium-grey: #e9ecef; /* 中等灰色 */
-  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
-  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
-}
-
 /* 英雄區域樣式 */
 .hero-section {
   background: linear-gradient(rgba(56, 48, 46, 0.7), rgba(56, 48, 46, 0.7)), url('/images/hero-bg.jpg'); /* 深棕色半透明疊加圖片背景 */

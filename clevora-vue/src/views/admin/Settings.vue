@@ -2,6 +2,11 @@
   <div class="card p-4">
     <h5 class="card-title mb-3">⚙️ 系統設定</h5>
     
+    <!-- 訊息提示 -->
+    <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
+      {{ displayMessage }}
+    </div>
+
     <div v-if="settings">
       <div class="mb-3">
         <label for="siteTitle" class="form-label">網站標題：</label>
@@ -33,16 +38,19 @@ import api from '@/services/api'; // 引入 api 實例
 
 const settings = ref(null);
 const userStore = useUserStore();
+const displayMessage = ref(''); // 新增響應式變數用於顯示訊息
 
 onMounted(() => {
   loadSettings();
+  displayMessage.value = ''; // 在組件載入時清除訊息
 });
 
 async function loadSettings() {
+  displayMessage.value = ''; // 清除之前的訊息
   const token = userStore.admin_token; // 使用 userStore 中的 admin_token
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -56,17 +64,18 @@ async function loadSettings() {
     console.error('載入設定資料時發生錯誤：', error);
     // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
       // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
     }
   }
 }
 
 async function saveSettings() {
+  displayMessage.value = ''; // 清除之前的訊息
   const token = userStore.admin_token; // 使用 userStore 中的 admin_token
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayMessage.value = '❌ 請先登入！';
      return;
   }
 
@@ -80,9 +89,9 @@ async function saveSettings() {
 
     if (res.status !== 200) { // 檢查響應狀態碼
        console.error('保存設定失敗：', result);
-       alert(result.error || '保存設定失敗！');
+       displayMessage.value = result.error || '❌ 保存設定失敗！';
     } else {
-       alert(result.message || '設定保存成功！');
+       displayMessage.value = result.message || '✅ 設定保存成功！';
        // 保存成功後可以選擇重新載入設定或更新本地狀態
        loadSettings(); 
     }
@@ -91,7 +100,7 @@ async function saveSettings() {
     console.error('保存設定時發生錯誤：', error);
     // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
       // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
     }
   }

@@ -62,16 +62,6 @@ function handleSearch() {
 </script>
 
 <style scoped>
-/* 使用新的棕色調 */
-:root {
-  --dark-brown: #38302e; /* 深棕色 */
-  --light-brown: #a18a7b; /* 淺棕色/米色 */
-  --white: #ffffff; /* 白色 */
-  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
-  --medium-grey: #e9ecef; /* 中等灰色 */
-  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
-}
-
 .navbar {
   padding: 0.8rem 1rem; /* 增加垂直內邊距 */
   background-color: var(--dark-brown) !important; /* 導航列背景色 */

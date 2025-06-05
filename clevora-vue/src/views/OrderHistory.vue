@@ -6,6 +6,10 @@
 
     <div v-else-if="error" class="alert alert-danger text-center error-message">{{ error }}</div>
 
+    <div v-if="displayErrorMessage" class="alert alert-danger text-center mt-3" role="alert">
+      {{ displayErrorMessage }}
+    </div>
+
     <div v-else-if="orders.length === 0" class="text-center text-muted empty-message">您還沒有任何訂單。</div>
 
     <div v-else>
@@ -59,6 +63,7 @@ const orders = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const customerStore = useCustomerStore();
+const displayErrorMessage = ref(null);
 
 // 格式化日期時間
 function formatDateTime(dateTimeString) {
@@ -121,7 +126,7 @@ onMounted(async () => {
 
       if (err.response) {
         if (err.response.status === 401) {
-          error.value = '認證已過期，請重新登入。';
+          displayErrorMessage.value = '認證已過期，請重新登入。';
           customerStore.logout();
         } else if (err.response.status === 404) {
           error.value = '找不到訂單記錄。';
@@ -158,20 +163,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 使用新的棕色調 */
-:root {
-  --dark-brown: #38302e; /* 深棕色 */
-  --light-brown: #a18a7b; /* 淺棕色/米色 */
-  --white: #ffffff; /* 白色 */
-  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
-  --medium-grey: #e9ecef; /* 中等灰色 */
-  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
-  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
-  --success-color: #28a745; /* 保留成功的綠色 */
-  --danger-color: #dc3545; /* 保留失敗的紅色 */
-  --info-color: #6c757d; /* 用於 pending 狀態的灰色 */
-}
-
 .order-history-page-container {
   background-color: var(--white); /* 容器背景色 */
   border-radius: 8px;

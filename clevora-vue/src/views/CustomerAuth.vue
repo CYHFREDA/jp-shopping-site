@@ -15,6 +15,9 @@
       <div class="tab-content">
         <!-- 登入 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'login' }" id="login">
+          <div v-if="loginApiErrorMessage" class="alert" :class="{ 'alert-danger': loginApiErrorMessage.includes('❌'), 'alert-success': loginApiErrorMessage.includes('✅') }" role="alert">
+            {{ loginApiErrorMessage }}
+          </div>
           <div class="mb-2">
             <label for="loginUsername" class="form-label">使用者名稱</label>
             <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
@@ -104,6 +107,7 @@ const registerForm = ref({
 
 const registrationSuccessAndPendingVerification = ref(false);
 const apiErrorMessage = ref(''); // 用於顯示後端 API 錯誤或成功訊息
+const loginApiErrorMessage = ref(''); // 新增用於顯示登入表單的後端 API 錯誤或成功訊息
 
 // 驗證錯誤訊息
 const usernameError = ref('');
@@ -217,9 +221,11 @@ watch(() => registerForm.value.address, validateAddress);
 watch(() => registerForm.value.password, validatePassword);
 
 async function handleLogin() {
+  loginApiErrorMessage.value = ''; // 清除之前的訊息
+
   const { username, password } = loginForm.value;
   if (!username || !password) {
-    alert("請填寫完整使用者名稱和密碼！");
+    loginApiErrorMessage.value = "❌ 請填寫完整使用者名稱和密碼！";
     return;
   }
 
@@ -233,7 +239,7 @@ async function handleLogin() {
     const data = await res.json();
 
     if (res.ok) {
-      alert("✅ 登入成功！");
+      loginApiErrorMessage.value = "✅ 登入成功！";
       customerStore.setCustomer(
         { id: data.customer_id, name: data.name },
         data.token,
@@ -244,11 +250,11 @@ async function handleLogin() {
       localStorage.removeItem("redirectAfterLogin");
       router.push(redirectURL);
     } else {
-      alert(data.error || '登入失敗！');
+      loginApiErrorMessage.value = data.error || '❌ 登入失敗！';
     }
   } catch (error) {
     console.error('登入錯誤：', error);
-    alert('登入失敗，請稍後再試');
+    loginApiErrorMessage.value = '❌ 登入失敗，請稍後再試。';
   }
 }
 

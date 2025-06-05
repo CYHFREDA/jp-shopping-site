@@ -1,6 +1,9 @@
 <template>
   <div class="card p-4">
-    <h5 class="card-title mb-3">👥 客戶管理</h5>
+    <h5 class="card-title mb-3">�� 客戶管理</h5>
+    <div v-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
+      {{ displayErrorMessage }}
+    </div>
     <div class="table-responsive">
       <table class="table table-striped table-bordered">
         <thead class="table-dark">
@@ -43,12 +46,14 @@ import api from '@/services/api';
 
 const customers = ref([]);
 const userStore = useUserStore();
+const displayErrorMessage = ref('');
 
 async function loadCustomers() {
+  displayErrorMessage.value = '';
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayErrorMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -61,7 +66,7 @@ async function loadCustomers() {
   } catch (error) {
     console.error('載入客戶資料時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
     }
   }
 }
@@ -71,17 +76,17 @@ async function editCustomer(customerId) {
   if (!customer) return;
 
   const name = prompt("請輸入姓名：", customer.name);
-  if (!name) { alert("❌ 請輸入姓名！"); return; }
+  if (!name) { displayErrorMessage.value = "❌ 請輸入姓名！"; return; }
 
   const phone = prompt("請輸入電話：", customer.phone);
-  if (!phone) { alert("❌ 請輸入電話！"); return; }
+  if (!phone) { displayErrorMessage.value = "❌ 請輸入電話！"; return; }
 
   const address = prompt("請輸入地址：", customer.address || '');
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayErrorMessage.value = '❌ 請先登入！';
      return;
   }
 
@@ -92,28 +97,29 @@ async function editCustomer(customerId) {
 
     if (res.status !== 200) {
        console.error('更新客戶資料失敗：', result);
-       alert(result.error || '更新客戶資料失敗！');
+       displayErrorMessage.value = result.error || '❌ 更新客戶資料失敗！';
     } else {
-       alert(result.message || '客戶資料更新成功！');
+       displayErrorMessage.value = result.message || '✅ 客戶資料更新成功！';
        loadCustomers();
     }
 
   } catch (error) {
     console.error('更新客戶資料時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
     }
   }
 }
 
 async function resetPassword(customerId) {
+  displayErrorMessage.value = '';
   const new_password = prompt("請輸入新密碼：");
-  if (!new_password) { alert("❌ 請輸入新密碼！"); return; }
+  if (!new_password) { displayErrorMessage.value = "❌ 請輸入新密碼！"; return; }
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayErrorMessage.value = '❌ 請先登入！';
      return;
   }
 
@@ -124,18 +130,20 @@ async function resetPassword(customerId) {
 
     if (res.status !== 200) {
        console.error('重置密碼失敗：', result);
-       alert(result.error || '重置密碼失敗！');
+       displayErrorMessage.value = result.error || '❌ 重置密碼失敗！';
     } else {
-       alert(result.message || '密碼重置成功！');
+       displayErrorMessage.value = result.message || '✅ 密碼重置成功！';
     }
 
   } catch (error) {
     console.error('重置密碼時發生錯誤：', error);
+    displayErrorMessage.value = '❌ 重置密碼時發生未知錯誤！';
   }
 }
 
 onMounted(() => {
   loadCustomers();
+  displayErrorMessage.value = '';
 });
 </script>
 

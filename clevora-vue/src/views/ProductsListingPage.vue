@@ -20,6 +20,9 @@
     </div>
     
     <div v-if="paginatedProducts.length" class="row row-cols-1 g-3">
+      <div v-if="addToCartMessage" class="alert alert-success text-center mb-3" role="alert">
+        {{ addToCartMessage }}
+      </div>
       <div v-for="product in paginatedProducts" :key="product.id" class="col">
         <div class="product-list-item shadow-sm rounded mb-3 p-3 bg-white">
           <div class="product-list-img me-3 mb-3 mb-md-0">

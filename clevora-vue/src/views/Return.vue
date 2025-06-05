@@ -98,20 +98,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 使用新的棕色調 */
-:root {
-  --dark-brown: #38302e; /* 深棕色 */
-  --light-brown: #a18a7b; /* 淺棕色/米色 */
-  --white: #ffffff; /* 白色 */
-  --light-grey: #f8f9fa; /* 淺灰色，用於背景或邊框 */
-  --medium-grey: #e9ecef; /* 中等灰色 */
-  --accent-brown: #c8a99a; /* 介於深淺之間的強調棕色 */
-  --disabled-text: #6c757d; /* 用於禁用文字的顏色 */
-  --success-color: #28a745; /* 保留成功的綠色 */
-  --danger-color: #dc3545; /* 保留失敗的紅色 */
-  --primary-color: var(--dark-brown); /* 主按鈕使用深棕色 */
-}
-
 .return-page {
   background-color: var(--light-grey); /* 淺灰色背景，與其他頁面協調 */
   min-height: calc(100vh - 60px); /* 確保覆蓋視窗高度，扣除 footer 高度 */

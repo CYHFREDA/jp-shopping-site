@@ -9,6 +9,10 @@
         <p class="product-price fs-4">NT$ {{ product.price }}</p>
         <p class="product-description">{{ product.description || '無商品描述' }}</p>
         
+        <div v-if="errorMessage" class="alert alert-danger text-center mt-3 mb-3" role="alert">
+          {{ errorMessage }}
+        </div>
+
         <div class="mb-3">
           <label for="quantity" class="form-label product-quantity-label">數量：</label>
           <input type="number" id="quantity" v-model.number="quantity" min="1" class="form-control w-auto product-quantity-input">
@@ -35,11 +39,14 @@ const cartStore = useCartStore();
 
 const product = ref(null);
 const quantity = ref(1);
+const errorMessage = ref(''); // 新增響應式變數用於顯示錯誤訊息
 
 async function loadProductDetail() {
+  errorMessage.value = ''; // 清除之前的訊息
   const productId = route.params.id;
   if (!productId) {
     console.error('商品 ID 未提供！');
+    errorMessage.value = '❌ 商品 ID 未提供！';
     return;
   }
   
@@ -51,19 +58,20 @@ async function loadProductDetail() {
       const errorText = await res.text();
       console.error(`無法載入商品 ID ${productId} 的資料：`, res.status, errorText);
       product.value = null; // 表示商品不存在或載入失敗
-      alert('無法載入商品資料！');
+      errorMessage.value = '❌ 無法載入商品資料！';
       return;
     }
 
     product.value = await res.json();
   } catch (error) {
     console.error(`載入商品 ID ${productId} 資料時發生錯誤：`, error);
-    alert('載入商品資料時發生錯誤！');
+    errorMessage.value = '❌ 載入商品資料時發生錯誤！';
     product.value = null; // 表示商品不存在或載入失敗
   }
 }
 
 function addItemToCart() {
+  errorMessage.value = ''; // 清除之前的訊息
   if (!product.value) return;
   
   // 確保添加到購物車的商品物件包含必要的屬性
@@ -75,11 +83,13 @@ function addItemToCart() {
   };
   
   cartStore.addItem(productToAdd);
-  alert(`${product.value.name} 已加入購物車！`);
+  // 替換 alert 為內部訊息，這裡可以顯示成功訊息
+  errorMessage.value = `✅ ${product.value.name} 已加入購物車！`;
 }
 
 onMounted(() => {
   loadProductDetail();
+  errorMessage.value = ''; // 在組件載入時清除錯誤訊息
 });
 </script>
 

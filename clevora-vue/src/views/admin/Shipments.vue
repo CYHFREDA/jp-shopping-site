@@ -1,6 +1,9 @@
 <template>
   <div class="card p-4">
-    <h5 class="card-title mb-3">🚚 出貨管理</h5>
+    <h5 class="card-title mb-3">�� 出貨管理</h5>
+    <div v-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
+      {{ displayErrorMessage }}
+    </div>
     <div class="table-responsive">
       <table class="table table-striped table-bordered">
         <thead class="table-dark">
@@ -40,12 +43,14 @@ import api from '@/services/api';
 
 const shipments = ref([]);
 const userStore = useUserStore();
+const displayErrorMessage = ref('');
 
 async function loadShipments() {
+  displayErrorMessage.value = '';
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayErrorMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -57,11 +62,11 @@ async function loadShipments() {
   } catch (error) {
     console.error('載入出貨資料時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-        alert(error.response.data.error);
+        displayErrorMessage.value = error.response.data.error;
      } else if (error.response && error.response.status === 401) {
-        alert('認證失敗，請重新登入！');
+        displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
      } else {
-        alert('載入出貨資料時發生未知錯誤！');
+        displayErrorMessage.value = '❌ 載入出貨資料時發生未知錯誤！';
      }
   }
 }
@@ -71,18 +76,18 @@ async function editShipment(shipmentId) {
   if (!shipmentToEdit) return;
 
   const recipient_name = prompt("請輸入收件人姓名：", shipmentToEdit.recipient_name);
-  if (!recipient_name) { alert("❌ 請輸入收件人姓名！"); return; }
+  if (!recipient_name) { displayErrorMessage.value = "❌ 請輸入收件人姓名！"; return; }
 
   const address = prompt("請輸入收件人地址：", shipmentToEdit.address);
-  if (!address) { alert("❌ 請輸入收件人地址！"); return; }
+  if (!address) { displayErrorMessage.value = "❌ 請輸入收件人地址！"; return; }
 
   const status = prompt("請輸入狀態（pending, shipped, completed）：", shipmentToEdit.status);
-  if (!status) { alert("❌ 請輸入狀態！"); return; }
+  if (!status) { displayErrorMessage.value = "❌ 請輸入狀態！"; return; }
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayErrorMessage.value = '❌ 請先登入！';
      return;
   }
 
@@ -97,27 +102,28 @@ async function editShipment(shipmentId) {
     const result = res.data;
 
     if (res.status === 200) {
-       alert(result.message || '出貨資料更新成功！');
+       displayErrorMessage.value = result.message || '✅ 出貨資料更新成功！';
        loadShipments();
     } else {
        console.error('更新出貨資料失敗：', result);
-       alert(result.error || '更新出貨資料失敗！');
+       displayErrorMessage.value = result.error || '❌ 更新出貨資料失敗！';
     }
 
   } catch (error) {
     console.error('更新出貨資料時發生錯誤：', error);
     if (error.response && error.response.data && error.response.data.error) {
-        alert(error.response.data.error);
+        displayErrorMessage.value = error.response.data.error;
      } else if (error.response && error.response.status === 401) {
-        alert('認證失敗，請重新登入！');
+        displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
      } else {
-        alert('更新出貨資料時發生未知錯誤！');
+        displayErrorMessage.value = '❌ 更新出貨資料時發生未知錯誤！';
      }
   }
 }
 
 onMounted(() => {
   loadShipments();
+  displayErrorMessage.value = '';
 });
 </script>
 

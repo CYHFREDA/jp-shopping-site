@@ -2,6 +2,9 @@
   <div class="container mt-4">
     <h2 class="mb-3">📦 訂單管理</h2>
     <div v-if="isLoading" class="text-center text-muted">載入中...</div>
+    <div v-else-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
+      {{ displayErrorMessage }}
+    </div>
     <div v-else>
       <div class="table-responsive">
         <table class="table table-striped table-bordered">

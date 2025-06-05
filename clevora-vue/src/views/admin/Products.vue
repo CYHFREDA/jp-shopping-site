@@ -2,6 +2,11 @@
   <div class="card p-4">
     <h5 class="card-title mb-3">🛍️ 商品管理</h5>
     
+    <!-- 訊息提示 -->
+    <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
+      {{ displayMessage }}
+    </div>
+
     <!-- 新增商品表單 -->
     <div class="row g-2 mb-3">
       <div class="col-md-3">
@@ -95,6 +100,7 @@ import api from '@/services/api';
 
 const products = ref([]);
 const userStore = useUserStore();
+const displayMessage = ref(''); // 新增響應式變數用於顯示訊息
 
 const newProduct = ref({
   name: '',
@@ -106,13 +112,15 @@ const newProduct = ref({
 
 onMounted(() => {
   loadProducts();
+  displayMessage.value = ''; // 在組件載入時清除訊息
 });
 
 async function loadProducts() {
+  displayMessage.value = ''; // 清除之前的訊息
   const token = userStore.admin_token;
   if (!token) {
     console.error('未找到認證 token！');
-    alert('請先登入！');
+    displayMessage.value = '❌ 請先登入！';
     return;
   }
 
@@ -140,31 +148,32 @@ async function loadProducts() {
   } catch (error) {
     console.error('載入商品資料時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
-       alert('載入商品資料失敗！');
+       displayMessage.value = '❌ 載入商品資料失敗！';
     }
   }
 }
 
 async function handleAddProduct() {
+  displayMessage.value = ''; // 清除之前的訊息
   const { name, price, description, image_url, categories } = newProduct.value;
 
   if (!name || !price) {
-    alert("請填寫完整商品名稱與價格！");
+    displayMessage.value = "❌ 請填寫完整商品名稱與價格！";
     return;
   }
 
   const category = categories.join("#");
   if (category.length > 255) {
-    alert("❌ 分類超過 255 字元限制，請刪減分類！");
+    displayMessage.value = "❌ 分類超過 255 字元限制，請刪減分類！";
     return;
   }
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayMessage.value = '❌ 請先登入！';
      return;
   }
 
@@ -175,7 +184,7 @@ async function handleAddProduct() {
     const result = res.data;
 
     // 如果請求成功（Axios 狀態碼在 2xx），執行以下邏輯
-    alert(result.message || '商品新增成功！'); // 彈出成功提示
+    displayMessage.value = result.message || '✅ 商品新增成功！'; // 彈出成功提示
     // 清空表單
     newProduct.value = {
       name: '',
@@ -190,84 +199,94 @@ async function handleAddProduct() {
     // 處理錯誤，包括非 2xx 狀態碼
     console.error('新增商品時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
       // 嘗試從錯誤響應中獲取後端返回的錯誤信息
       const errorMessage = error.response?.data?.error || error.message || '新增商品失敗！';
-      alert(errorMessage);
+      displayMessage.value = `❌ ${errorMessage}`;
     }
   }
 }
 
 async function handleSaveProduct(product) {
+  displayMessage.value = ''; // 清除之前的訊息
   const { name, price, description, image_url, categories } = product;
   const category = categories.join("#");
 
   if (!name || !price) {
-    alert("請填寫完整商品名稱與價格！");
+    displayMessage.value = "❌ 請填寫完整商品名稱與價格！";
     return;
   }
 
   if (category.length > 255) {
-    alert("❌ 分類超過 255 字元限制，請刪減分類！");
+    displayMessage.value = "❌ 分類超過 255 字元限制，請刪減分類！";
     return;
   }
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayMessage.value = '❌ 請先登入！';
      return;
   }
 
   try {
     const res = await api.put(`/api/admin/products/${product.id}`, { name, price, description, image_url, category });
 
-    const result = await res.json();
+    const result = res.data; // Axios 已自動解析為 JSON
 
-    if (!res.ok) {
+    if (res.status !== 200) {
        console.error('更新商品失敗：', result);
-       alert(result.error || '更新商品失敗！');
+       displayMessage.value = result.error || '❌ 更新商品失敗！';
     } else {
-       alert(result.message || '商品更新成功！');
+       displayMessage.value = result.message || '✅ 商品更新成功！';
        loadProducts(); // 更新成功後重新載入商品資料
     }
 
   } catch (error) {
     console.error('更新商品時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
+    } else {
+      const errorMessage = error.response?.data?.error || error.message || '更新商品失敗！';
+      displayMessage.value = `❌ ${errorMessage}`;
     }
   }
 }
 
 async function handleDeleteProduct(id) {
-  if (!confirm("確定刪除這個商品？")) return;
+  displayMessage.value = ''; // 清除之前的訊息
+  if (!confirm("確定刪除這個商品？")) {
+    displayMessage.value = '取消刪除商品！';
+    return;
+  }
 
   const token = userStore.admin_token;
   if (!token) {
      console.error('未找到認證 token！');
-     alert('請先登入！');
+     displayMessage.value = '❌ 請先登入！';
      return;
   }
 
   try {
     const res = await api.delete(`/api/admin/products/${id}`);
 
-    const result = await res.json();
+    const result = res.data; // Axios 已自動解析為 JSON
 
-    if (!res.ok) {
-       console.error('刪除商品失敗：', result);
-       alert(result.error || '刪除商品失敗！');
+    if (res.status !== 200) {
+      console.error('刪除商品失敗：', result);
+      displayMessage.value = result.error || '❌ 刪除商品失敗！';
     } else {
-       alert(result.message || '商品刪除成功！');
-       loadProducts(); // 更新成功後重新載入商品資料
+      displayMessage.value = result.message || '✅ 商品刪除成功！';
+      loadProducts(); // 刪除成功後重新載入商品資料
     }
-
   } catch (error) {
     console.error('刪除商品時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
-      alert('認證失敗，請重新登入！');
+      displayMessage.value = '❌ 認證失敗，請重新登入！';
+    } else {
+      const errorMessage = error.response?.data?.error || error.message || '刪除商品失敗！';
+      displayMessage.value = `❌ ${errorMessage}`;
     }
   }
 }

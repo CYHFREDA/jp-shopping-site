@@ -33,6 +33,10 @@
 
     <p v-else class="text-center text-muted empty-cart-message">購物車是空的！</p>
 
+    <div v-if="checkoutErrorMessage" class="alert alert-danger text-center mt-3" role="alert">
+      {{ checkoutErrorMessage }}
+    </div>
+
     <div class="text-end mb-3 fs-4 fw-bold total-amount" v-if="cart.length">
       總金額：{{ totalAmount }} 元
     </div>
@@ -83,6 +87,7 @@ const customerStore = useCustomerStore();
 
 const cart = computed(() => cartStore.items);
 const totalAmount = computed(() => cartStore.totalAmount);
+const checkoutErrorMessage = ref('');
 
 function updateQuantity(index) {
   const item = cart.value[index];
@@ -99,15 +104,8 @@ function saveRedirect() {
 }
 
 function checkout() {
-  // 在這裡不再需要檢查登入，因為未登入時會顯示連結而非按鈕
-  // if (!customerStore.isAuthenticated) {
-  //   const authModal = new Modal(document.getElementById('authModal'));
-  //   authModal.show();
-  //   return;
-  // }
-
   if (cartStore.items.length === 0) {
-    alert("❌ 購物車是空的！");
+    checkoutErrorMessage.value = "❌ 購物車是空的！";
     return;
   }
 
@@ -141,17 +139,18 @@ function checkout() {
       document.body.appendChild(form);
       form.submit();
     } else {
-      alert("❌ 發起付款失敗！");
+      checkoutErrorMessage.value = "❌ 發起付款失敗！";
     }
   })
   .catch(err => {
-    alert("❌ 發起付款錯誤！");
+    checkoutErrorMessage.value = "❌ 發起付款錯誤！";
     console.error(err);
   });
 }
 
 onMounted(() => {
   cartStore.loadCart();
+  checkoutErrorMessage.value = '';
 });
 </script>
 
