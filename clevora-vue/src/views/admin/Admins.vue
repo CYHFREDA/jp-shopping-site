@@ -61,7 +61,7 @@ async function loadAdmins() {
   }
 
   try {
-    const res = await api.get('/admin/admins');
+    const res = await api.get('/api/admin/admins');
 
     const data = res.data;
     admins.value = data;
@@ -89,7 +89,7 @@ async function addAdmin() {
   }
 
   try {
-    const res = await api.post('/admin/admins', { username, password, name });
+    const res = await api.post('/api/admin/admins', { username, password, name });
 
     const result = res.data;
 
@@ -132,7 +132,7 @@ async function saveAdmin(id) {
   }
 
   try {
-    const res = await api.put(`/admin/admins/${id}`, { username, name });
+    const res = await api.put(`/api/admin/admins/${id}`, { username, name });
 
     const result = res.data;
 
@@ -162,7 +162,7 @@ async function deleteAdmin(id) {
   }
 
   try {
-    const res = await api.delete(`/admin/admins/${id}`);
+    const res = await api.delete(`/api/admin/admins/${id}`);
 
     const result = res.data;
 

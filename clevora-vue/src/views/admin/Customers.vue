@@ -53,9 +53,10 @@ async function loadCustomers() {
   }
 
   try {
-    const res = await api.get('/admin/customers');
+    const res = await api.get('/api/admin/customers');
 
     const data = res.data;
+    console.log('從後端接收到的客戶數據:', data);
     customers.value = data;
   } catch (error) {
     console.error('載入客戶資料時發生錯誤：', error);

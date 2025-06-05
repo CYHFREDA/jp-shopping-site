@@ -1,5 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import OrderHistory from '@/views/OrderHistory.vue'; // 靜態導入
+import Shipments from '@/views/admin/Shipments.vue';
+import Customers from '@/views/admin/Customers.vue';
+import Admins from '@/views/admin/Admins.vue';
+import { useUserStore } from '@/stores/userStore';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const routes = [
   {
@@ -58,6 +63,24 @@ const routes = [
         name: 'AdminOrders',
         component: () => import('@/views/admin/Orders.vue'),
         meta: { title: 'Clevora 後台管理 - 訂單管理' }
+      },
+      {
+        path: 'shipments',
+        name: 'AdminShipments',
+        component: Shipments,
+        meta: { title: 'Clevora 後台管理 - 出貨管理' }
+      },
+      {
+        path: 'customers',
+        name: 'AdminCustomers',
+        component: Customers,
+        meta: { title: 'Clevora 後台管理 - 客戶管理' }
+      },
+      {
+        path: 'admins',
+        name: 'AdminAdmins',
+        component: Admins,
+        meta: { title: 'Clevora 後台管理 - 使用者管理' }
       }
     ]
   },
@@ -89,9 +112,12 @@ const router = createRouter({
 
 // 路由守衛
 router.beforeEach((to, from, next) => {
-  const isAdminAuthenticated = localStorage.getItem('admin_token');
-  const isCustomerAuthenticated = localStorage.getItem('customer_token');
-  
+  const userStore = useUserStore();
+  const customerStore = useCustomerStore();
+
+  const isAdminAuthenticated = userStore.isAuthenticated;
+  const isCustomerAuthenticated = customerStore.isAuthenticated;
+
   if (to.meta.requiresAuth && !isAdminAuthenticated) {
     next('/admin/login');
   } else if (to.meta.requiresCustomerAuth && !isCustomerAuthenticated) {

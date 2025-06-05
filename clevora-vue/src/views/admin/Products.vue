@@ -117,7 +117,7 @@ async function loadProducts() {
   }
 
   try {
-    const res = await api.get('/admin/products');
+    const res = await api.get('/api/admin/products');
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -161,7 +161,7 @@ async function handleAddProduct() {
   }
 
   try {
-    const res = await api.post('/admin/products', { name, price, description, image_url, category });
+    const res = await api.post('/api/admin/products', { name, price, description, image_url, category });
 
     const result = await res.json();
 
@@ -211,7 +211,7 @@ async function handleSaveProduct(product) {
   }
 
   try {
-    const res = await api.put(`/admin/products/${product.id}`, { name, price, description, image_url, category });
+    const res = await api.put(`/api/admin/products/${product.id}`, { name, price, description, image_url, category });
 
     const result = await res.json();
 
@@ -242,7 +242,7 @@ async function handleDeleteProduct(id) {
   }
 
   try {
-    const res = await api.delete(`/admin/products/${id}`);
+    const res = await api.delete(`/api/admin/products/${id}`);
 
     const result = await res.json();
 
