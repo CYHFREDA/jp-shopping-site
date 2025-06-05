@@ -113,15 +113,14 @@ onMounted(() => {
 }
 
 .product-detail-container {
-    /* 可以添加一些內部間距或對齊方式 */
-    align-items: flex-start; /* 頂部對齊 */
+    align-items: center; /* 讓圖片與右側內容垂直置中 */
 }
 
 .product-image {
     border: 1px solid var(--light-grey); /* 圖片邊框 */
     border-radius: 8px; /* 圖片圓角 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 圖片陰影 */
-    max-width: 320px;
+    max-width: 220px;
     width: 100%;
     height: auto;
     display: block;

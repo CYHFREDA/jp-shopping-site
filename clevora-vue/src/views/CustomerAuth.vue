@@ -491,17 +491,24 @@ onMounted(() => {
 /* 按鈕樣式 - 繼承 main.css 中的全局樣式 */
 /* 登入按鈕使用 btn-success 或 btn-primary，註冊按鈕使用 btn-primary */
 .btn-success {
-    /* 繼承 main.css */
+   background-color: #a18a7b !important; /* 米咖啡色 */
+   border-color: #a18a7b !important;
+   color: #fff !important;
+}
+.btn-success:hover {
+    background-color: #8d7460 !important; /* 深一點的米咖啡色 */
+    border-color: #8d7460 !important;
+    color: #fff !important;
 }
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--white);
+    background-color: #a18a7b !important; /* 米咖啡色 */
+    border-color: #a18a7b !important;
+    color: #fff !important;
 }
 .btn-primary:hover {
-    background-color: #2a2523;
-    border-color: #2a2523;
-    color: var(--white);
+    background-color: #8d7460 !important; /* 深一點的米咖啡色 */
+    border-color: #8d7460 !important;
+    color: #fff !important;
 }
 
 /* RWD 調整 */
