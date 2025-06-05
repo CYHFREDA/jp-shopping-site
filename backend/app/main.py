@@ -922,12 +922,12 @@ async def send_verification_email(recipient_email: str, username: str, verificat
         <html>
         <head>
             <style>
-                body {{{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}}
-                .container {{{ max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }}}
-                .header {{{ background-color: #f0f0f0; padding: 10px 0; text-align: center; border-bottom: 1px solid #ddd; margin-bottom: 20px; }}}
-                .content {{{ padding: 0 20px; }}}
-                .button {{{ display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #007bff; color: white !important; text-decoration: none; border-radius: 5px; }}}
-                .footer {{{ text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }}}
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }}
+                .header {{ background-color: #f0f0f0; padding: 10px 0; text-align: center; border-bottom: 1px solid #ddd; margin-bottom: 20px; }}
+                .content {{ padding: 0 20px; }}
+                .button {{ display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #007bff; color: white !important; text-decoration: none; border-radius: 5px; }}
+                .footer {{ text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }}
             </style>
         </head>
         <body>
@@ -952,7 +952,7 @@ async def send_verification_email(recipient_email: str, username: str, verificat
             </div>
         </body>
         </html>
-    """.format(username=username, verification_link=verification_link), "html", "utf-8")
+    """, "html", "utf-8")
 
     message["Subject"] = "請驗證您的 Email 地址"
     message["From"] = sender_email
