@@ -7,6 +7,7 @@ import Orders from './views/admin/Orders.vue';
 import Shipments from './views/admin/Shipments.vue';
 import Customers from './views/admin/Customers.vue';
 import AdminUsers from './views/admin/Admins.vue';
+import Settings from './views/admin/Settings.vue';
 import Cart from './views/Cart.vue';
 import CustomerAuth from './views/CustomerAuth.vue';
 import Return from './views/Return.vue';
@@ -70,7 +71,7 @@ const routes = [
         component: AdminUsers 
       },
       { 
-        path: 'Settings', 
+        path: 'settings', 
         component: Settings 
       }
     ]
