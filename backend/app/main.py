@@ -248,6 +248,39 @@ async def get_products(query: str = "", cursor=Depends(get_db_cursor)):
     products = cursor.fetchall()
     return products
 
+# 取得單一商品 (根據 ID)
+@app.get("/api/products/{product_id}")
+async def get_product_by_id(product_id: int, cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute(
+            """
+            SELECT id, name, price, description, image_url, created_at, category
+            FROM products
+            WHERE id = %s
+            """,
+            (product_id,)
+        )
+        product = cursor.fetchone()
+
+        if product:
+            # 將查詢結果轉換為字典以便 JSON 序列化
+            product_dict = {
+                "id": product[0],
+                "name": product[1],
+                "price": float(product[2]), # 確保價格是數字類型
+                "description": product[3],
+                "image_url": product[4],
+                "created_at": product[5].isoformat() if product[5] else None, # 轉換日期時間格式
+                "category": product[6]
+            }
+            return JSONResponse(product_dict)
+        else:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+    except Exception as e:
+        print(f"❌ 後端查詢單一商品錯誤 (ID: {product_id})：{str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 # 後台：取得所有商品 (需要管理員權限)
 @app.get("/api/admin/products")
 async def admin_get_products(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
