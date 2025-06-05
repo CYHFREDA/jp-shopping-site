@@ -13,7 +13,7 @@
       <div v-else-if="success" class="alert alert-success">
         <i class="bi bi-check-circle-fill me-2"></i>
         {{ message }}
-        <p class="mt-3">頁面將在 3 秒後自動跳轉至登入頁面...</p>
+        <p class="mt-3">頁面將在 {{ countdown }} 秒後自動跳轉至登入頁面...</p>
       </div>
 
       <div v-else class="alert alert-danger">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -36,6 +36,9 @@ const router = useRouter();
 const loading = ref(true);
 const success = ref(false);
 const message = ref('');
+const countdown = ref(3);
+
+let timer = null;
 
 onMounted(async () => {
   const token = route.query.token;
@@ -51,9 +54,15 @@ onMounted(async () => {
     if (response.status === 200) {
       success.value = true;
       message.value = response.data.message;
-      setTimeout(() => {
-        router.push('/login');
-      }, 3000);
+      
+      timer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+          clearInterval(timer);
+          router.push('/login');
+        }
+      }, 1000);
+
     } else {
       success.value = false;
       message.value = response.data.detail || 'Email 驗證失敗！';
@@ -68,6 +77,12 @@ onMounted(async () => {
     console.error('Email 驗證錯誤:', error);
   } finally {
     loading.value = false;
+  }
+});
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
   }
 });
 </script>

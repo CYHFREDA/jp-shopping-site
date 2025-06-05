@@ -21,6 +21,7 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 import uuid
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 app = FastAPI()
@@ -918,56 +919,144 @@ async def send_verification_email(recipient_email: str, username: str, verificat
     sender_email = EMAIL_USERNAME
     password = EMAIL_PASSWORD
 
-    message = MIMEText(f"""
+    if not sender_email or not password:
+        print("❌ [Email服務] 錯誤：SMTP 環境變數未完整設定。")
+        raise ValueError("SMTP environment variables are not fully set.")
+
+    # 使用 MIMEMultipart 來同時包含純文字和 HTML 內容
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "歡迎加入！請驗證您的 Email 以啟用帳戶"
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+
+    # Email 的純文字內容
+    text = f"""
+        哈囉 {username},
+        感謝您註冊我們的服務！
+        請點擊以下連結驗證您的 Email：
+        {verification_link}
+        此連結將於 5 分鐘內過期。
+        如果您沒有註冊，請忽略此 Email。
+        """
+
+    # Email 的 HTML 內容 (所有 CSS 花括號都需要雙倍逸出)
+    html = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="zh-TW">
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>帳戶驗證通知</title>
             <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                .container {{ max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }}
-                .header {{ background-color: #f0f0f0; padding: 10px 0; text-align: center; border-bottom: 1px solid #ddd; margin-bottom: 20px; }}
-                .content {{ padding: 0 20px; }}
-                .button {{ display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #007bff; color: white !important; text-decoration: none; border-radius: 5px; }}
-                .footer {{ text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }}
+                body {{{{ /* 雙倍花括號逸出 */
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    line-height: 1.6;
+                    color: #333333;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f7f7f7;
+                }}}}
+                .email-wrapper {{{{ /* 雙倍花括號逸出 */
+                    max-width: 600px;
+                    margin: 20px auto;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                    overflow: hidden;
+                }}}}
+                .header {{{{ /* 雙倍花括號逸出 */
+                    background-color: #007bff;
+                    color: #ffffff;
+                    padding: 25px 30px;
+                    text-align: center;
+                }}}}
+                .header h1 {{{{ /* 雙倍花括號逸出 */
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 600;
+                }}}}
+                .content {{{{ /* 雙倍花括號逸出 */
+                    padding: 30px;
+                }}}}
+                .content p {{{{ /* 雙倍花括號逸出 */
+                    margin-bottom: 20px;
+                    font-size: 16px;
+                }}}}
+                .button-container {{{{ /* 雙倍花括號逸出 */
+                    text-align: center;
+                    margin: 30px 0;
+                }}}}
+                .button {{{{ /* 雙倍花括號逸出 */
+                    background-color: #28a745; /* Green for success */
+                    color: white !important; /* !important to override client styles */
+                    padding: 15px 30px;
+                    text-align: center;
+                    text-decoration: none;
+                    display: inline-block;
+                    border-radius: 25px; /* Pill-shaped button */
+                    font-weight: bold;
+                    font-size: 18px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    transition: background-color 0.3s ease;
+                }}}}
+                .button:hover {{{{ /* 雙倍花括號逸出 */
+                    background-color: #218838;
+                }}}}
+                .expiry-text {{{{ /* 雙倍花括號逸出 */
+                    color: #dc3545; /* Red for emphasis */
+                    font-weight: bold;
+                    font-size: 15px;
+                }}}}
+                .footer {{{{ /* 雙倍花括號逸出 */
+                    text-align: center;
+                    padding: 20px 30px;
+                    margin-top: 30px;
+                    border-top: 1px solid #eeeeee;
+                    font-size: 12px;
+                    color: #777777;
+                    background-color: #fdfdfd;
+                }}}}
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="email-wrapper">
                 <div class="header">
-                    <h2>帳戶驗證通知</h2>
+                    <h1>帳戶驗證通知</h1>
                 </div>
                 <div class="content">
-                    <p>哈囉，{username}！</p>
-                    <p>感謝您註冊我們的服務！為了確保您的帳戶安全，請點擊以下連結來驗證您的 Email 地址：</p>
-                    <p style="text-align: center;">
-                        <a href="{verification_link}" class="button">驗證您的 Email</a>
-                    </p>
-                    <p>如果按鈕無法點擊，請複製以下連結到您的瀏覽器中開啟：</p>
-                    <p><code>{verification_link}</code></p>
-                    <p>此連結將在 5 分鐘內過期。</p>
-                    <p>如果您沒有註冊此帳戶，請忽略此 Email。</p>
+                    <p>哈囉 <strong>{username}</strong>,</p>
+                    <p>感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的連結進行 Email 驗證。</p>
+                    <div class="button-container">
+                        <a href="{verification_link}" class="button">立即驗證您的 Email</a>
+                    </div>
+                    <p style="text-align: center;">此驗證連結將於 <span class="expiry-text">5 分鐘</span> 內過期，請盡快完成驗證。</p>
+                    <p>如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
                 </div>
                 <div class="footer">
-                    <p>&copy; {datetime.now().year} 您的公司名稱. 版權所有。</p>
+                    <p>此為系統自動發送 Email，請勿直接回覆。</p>
+                    <p>&copy; 2023 CleVora. 版權所有.</p>
                 </div>
             </div>
         </body>
         </html>
-    """, "html", "utf-8")
+        """
 
-    message["Subject"] = "請驗證您的 Email 地址"
-    message["From"] = sender_email
-    message["To"] = recipient_email
+    # 將純文字和 HTML 內容附加到 MIMEMultipart 物件
+    part1 = MIMEText(text, "plain")
+    part2 = MIMEText(html, "html")
 
-    context = ssl.create_default_context()
+    msg.attach(part1)
+    msg.attach(part2)
+
     try:
+        context = ssl.create_default_context()
         with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, context=context) as server:
             server.login(sender_email, password)
-            server.sendmail(sender_email, recipient_email, message.as_string())
-        print(f"✅ 驗證 Email 已成功發送到 {recipient_email}")
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+        print(f"✅ [Email服務] 驗證信成功寄送給 {recipient_email}")
         return True
     except Exception as e:
-        print(f"❌ 發送 Email 失敗：{e}")
+        print(f"❌ [Email服務] 寄送驗證信失敗：{e}")
         return False
 
 # Email 驗證端點
