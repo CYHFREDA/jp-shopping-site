@@ -5,7 +5,7 @@ DOCKERHUB_USERNAME="inulifgogo"
 DOCKERHUB_PASSWORD="cahKev-miknik-tespe8"
 
 # 要清理的 repo 名稱陣列
-REPOS=("inulifgogo/backend-api" "inulifgogo/frontend-shop" "inulifgogo/clevora-frontend" "inulifgogo/PostgreSQL")
+REPOS=("inulifgogo/backend-api" "inulifgogo/frontend-shop" "inulifgogo/clevora-frontend" "inulifgogo/postgresql")
 
 # 只保留最新的 N 個 tags
 KEEP_NUM=5
