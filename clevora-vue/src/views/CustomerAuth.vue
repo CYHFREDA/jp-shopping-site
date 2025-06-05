@@ -15,51 +15,47 @@
       <div class="tab-content">
         <!-- 登入 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'login' }" id="login">
-          <div class="form-content-scroll">
-            <div class="mb-3">
-              <label for="loginUsername" class="form-label">使用者名稱</label>
-              <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
-            </div>
-            <div class="mb-3">
-              <label for="loginPassword" class="form-label">密碼</label>
-              <input id="loginPassword" type="password" class="form-control" v-model="loginForm.password" />
-            </div>
-            <div class="d-grid">
-              <button class="btn btn-success" @click="handleLogin">登入</button>
-            </div>
+          <div class="mb-2">
+            <label for="loginUsername" class="form-label">使用者名稱</label>
+            <input id="loginUsername" type="text" class="form-control" v-model="loginForm.username" />
+          </div>
+          <div class="mb-2">
+            <label for="loginPassword" class="form-label">密碼</label>
+            <input id="loginPassword" type="password" class="form-control" v-model="loginForm.password" />
+          </div>
+          <div class="d-grid">
+            <button class="btn btn-success" @click="handleLogin">登入</button>
           </div>
         </div>
 
         <!-- 註冊 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
-          <div class="form-content-scroll">
-            <div class="mb-3">
-              <label for="registerUsername" class="form-label">使用者名稱</label>
-              <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
-            </div>
-            <div class="mb-3">
-              <label for="registerName" class="form-label">姓名</label>
-              <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
-            </div>
-            <div class="mb-3">
-              <label for="registerEmail" class="form-label">Email</label>
-              <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
-            </div>
-            <div class="mb-3">
-              <label for="registerPhone" class="form-label">電話</label>
-              <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
-            </div>
-            <div class="mb-3">
-              <label for="registerAddress" class="form-label">地址</label>
-              <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
-            </div>         
-            <div class="mb-3">
-              <label for="registerPassword" class="form-label">密碼</label>
-              <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
-            </div>
-            <div class="d-grid">
-              <button class="btn btn-primary" @click="handleRegister">註冊</button>
-            </div>
+          <div class="mb-2">
+            <label for="registerUsername" class="form-label">使用者名稱</label>
+            <input id="registerUsername" type="text" class="form-control" v-model="registerForm.username" placeholder="username(必填)" />
+          </div>
+          <div class="mb-2">
+            <label for="registerName" class="form-label">姓名</label>
+            <input id="registerName" type="text" class="form-control" v-model="registerForm.name" placeholder="name(必填)" />
+          </div>
+          <div class="mb-2">
+            <label for="registerEmail" class="form-label">Email</label>
+            <input id="registerEmail" type="email" class="form-control" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
+          </div>
+          <div class="mb-2">
+            <label for="registerPhone" class="form-label">電話</label>
+            <input id="registerPhone" type="text" class="form-control" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
+          </div>
+          <div class="mb-2">
+            <label for="registerAddress" class="form-label">地址</label>
+            <input id="registerAddress" type="text" class="form-control" v-model="registerForm.address" placeholder="address(必填)" />
+          </div>         
+          <div class="mb-2">
+            <label for="registerPassword" class="form-label">密碼</label>
+            <input id="registerPassword" type="password" class="form-control" v-model="registerForm.password" placeholder="password(必填)" />
+          </div>
+          <div class="d-grid">
+            <button class="btn btn-primary" @click="handleRegister">註冊</button>
           </div>
         </div>
       </div>
@@ -192,7 +188,7 @@ onMounted(() => {
   justify-content: center;
   background-color: var(--light-grey); /* 淺灰色背景，與其他頁面協調 */
   padding: 20px; /* 添加內邊距 */
-  min-height: calc(100vh - 60px); /* 確保覆蓋視窗高度，扣除 footer 高度 */
+  min-height: 100vh; /* 確保主容器佔滿整個視窗高度 */
 }
 
 .auth-card {
@@ -200,43 +196,57 @@ onMounted(() => {
   width: 90%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   border-radius: 12px;
-  background-color: var(--white); /* 白色背景 */
+  background-color: var(--white);
   padding: 30px;
-  border: 1px solid var(--medium-grey); /* 添加邊框 */
+  border: 1px solid var(--medium-grey);
+  box-sizing: border-box; /* 添加 box-sizing */
+  display: flex; /* 設置為彈性容器 */
+  flex-direction: column; /* 子元素垂直排列 */
+  max-height: calc(100vh - 100px); /* 精確計算的最大高度 */
+  overflow: hidden; /* 隱藏整個卡片的溢出，讓內部的 tab-content 負責滾動 */
 }
 
 .auth-title {
-  color: var(--dark-brown); /* 深棕色標題 */
+  color: var(--dark-brown);
   font-weight: bold;
-  border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
+  border-bottom: 2px solid var(--light-brown);
   padding-bottom: 10px;
   margin-bottom: 20px;
-  font-size: 1.8rem; /* 調整字體大小 */
+  font-size: 1.8rem;
 }
 
 /* Nav Tabs 樣式 - 與 main.css 中的全局樣式一致 */
+.auth-tabs {
+  margin-bottom: 20px; /* 保持與標題的間距 */
+}
 .auth-tabs .nav-link {
-    color: var(--dark-brown); /* 非激活標籤文字顏色 */
+    color: var(--dark-brown);
     border: none;
-    border-bottom: 2px solid transparent; /* 預設透明底部邊框 */
+    border-bottom: 2px solid transparent;
     transition: color 0.3s ease, border-bottom-color 0.3s ease;
 }
 
 .auth-tabs .nav-link.active {
   font-weight: bold;
-  color: var(--light-brown); /* 激活標籤文字顏色 */
-  border-bottom-color: var(--light-brown); /* 激活底部邊框顏色 */
-  background-color: transparent; /* 移除背景色 */
+  color: var(--light-brown);
+  border-bottom-color: var(--light-brown);
+  background-color: transparent;
 }
 
 .auth-tabs .nav-link:hover {
-    color: var(--accent-brown); /* 懸停時變色 */
+    color: var(--accent-brown);
+}
+
+/* tab-content 的滾動樣式 */
+.tab-content {
+  flex-grow: 1; /* 讓其彈性增長，佔滿剩餘空間 */
+  overflow-y: auto; /* 啟用垂直滾動 */
 }
 
 /* 表單元素樣式 - 繼承 main.css 中的全局樣式 */
 .form-label {
   font-weight: bold;
-  color: var(--dark-brown); /* 標籤顏色使用深棕色 */
+  color: var(--dark-brown);
   margin-bottom: 0.5rem;
 }
 
@@ -248,7 +258,7 @@ onMounted(() => {
     /* 繼承 main.css */
 }
 .btn-primary {
-    background-color: var(--primary-color); /* 使用深棕色 */
+    background-color: var(--primary-color);
     border-color: var(--primary-color);
     color: var(--white);
 }
@@ -258,29 +268,25 @@ onMounted(() => {
     color: var(--white);
 }
 
-.form-content-scroll {
-  max-height: 400px; /* 根據需要調整，以確保內容滾動 */
-  overflow-y: auto;
-  padding-right: 15px; /* 為滾動條留出空間 */
-}
-
 /* RWD 調整 */
 @media (max-width: 576px) {
   .auth-card {
-    padding: 20px; /* 小螢幕調整內邊距 */
+    padding: 20px;
+    max-height: calc(100vh - 60px); /* 小螢幕調整最大高度 */
   }
 
   .auth-title {
-    font-size: 1.5rem; /* 小螢幕調整標題字體大小 */
+    font-size: 1.5rem;
   }
 
   .auth-tabs .nav-link {
-      padding: 0.5rem; /* 小螢幕調整 tab 內邊距 */
+      padding: 0.5rem;
       font-size: 0.9rem;
   }
 
-  .form-content-scroll {
-    max-height: 300px; /* 小螢幕調整滾動區域高度 */
+  /* tab-content 的小螢幕樣式調整 */
+  .tab-content {
+    /* 移除 padding-right 和 max-height */
   }
 }
 </style>
