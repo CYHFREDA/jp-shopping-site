@@ -3,7 +3,6 @@ import OrderHistory from '@/views/OrderHistory.vue';
 import Shipments from '@/views/admin/Shipments.vue';
 import Customers from '@/views/admin/Customers.vue';
 import Admins from '@/views/admin/Admins.vue'; 
-import Settings from '@/views/admin/Settings.vue'; 
 import { useUserStore } from '@/stores/userStore';
 import { useCustomerStore } from '@/stores/customerStore';
 
@@ -86,7 +85,7 @@ const routes = [
       {
         path: 'settings',
         name: 'AdminSettings',
-        component: Settings,
+        component: () => import('@/views/admin/Settings.vue'),
         meta: { title: 'Clevora 後台管理 - 系統設定' }
       }
     ]
