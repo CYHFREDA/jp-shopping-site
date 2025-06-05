@@ -1099,10 +1099,6 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                     <div class=\"button-container\">
                         <a href=\"{verification_link}\" class=\"button\">立即驗證 Email</a>
                     </div>
-                    <div class=\"plain-link-block\">
-                        <span class=\"plain-link-label\">如無法點擊按鈕，請複製以下連結到瀏覽器開啟：</span>
-                        <span class=\"plain-link\">{verification_link}</span>
-                    </div>
                     <p style=\"text-align: center; margin-top: 30px;\">此驗證連結將於 <span class=\"expiry-text\">5 分鐘</span> 內過期，請盡快完成驗證。</p>
                     <p style=\"font-size:0.97rem; color:var(--accent-brown); text-align:center;\">如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
                 </div>

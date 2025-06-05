@@ -329,17 +329,8 @@ async function handleRegister() {
   } catch (error) {
     console.error('註冊錯誤：', error);
     if (error.response) {
-      if (error.response.data.detail) {
-        if (error.response.data.detail.includes('Email 已被使用')) {
-          emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
-        } else if (error.response.data.detail.includes('使用者名稱已被使用')) {
-          usernameError.value = '此使用者名稱已被註冊，請使用其他名稱或嘗試登入。';
-        } else {
-          apiErrorMessage.value = error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
-        }
-      } else {
-        apiErrorMessage.value = '❌ 註冊失敗！請稍後再試。';
-      }
+      // 優先顯示後端回傳的 error 或 detail
+      apiErrorMessage.value = error.response.data.error || error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
     } else {
       apiErrorMessage.value = '❌ 註冊失敗！網路錯誤，請稍後再試。';
     }
