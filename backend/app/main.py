@@ -375,9 +375,10 @@ async def customer_register(request: Request):
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         print("[註冊] 密碼已雜湊。")
 
-        # 生成驗證 token 和過期時間
+        # 生成驗證 token 和過期時間 (5 分鐘)
         verification_token = str(uuid.uuid4())
-        token_expiry = datetime.utcnow() + timedelta(hours=24) # 驗證連結 24 小時後過期
+        token_expiry = datetime.utcnow() + timedelta(minutes=5)
+
         print(f"[註冊] 生成驗證 token: {verification_token}, 過期時間: {token_expiry}")
 
         # 插入客戶資料，但不立即提交

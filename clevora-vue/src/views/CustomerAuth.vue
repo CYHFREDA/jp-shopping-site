@@ -30,38 +30,43 @@
 
         <!-- 註冊 -->
         <div class="tab-pane fade" :class="{ 'show active': activeTab === 'register' }" id="register">
-          <div class="mb-2">
-            <label for="registerUsername" class="form-label">使用者名稱</label>
-            <input id="registerUsername" type="text" class="form-control" :class="{ 'is-invalid': usernameError }" v-model="registerForm.username" placeholder="username(必填)" />
-            <div v-if="usernameError" class="invalid-feedback">{{ usernameError }}</div>
+          <div v-if="registrationSuccessAndPendingVerification" class="alert alert-info text-center" role="alert">
+            ✅ 註冊成功！請到您的信箱進行驗證。<br>驗證連結將在 5 分鐘內過期。<br>若未收到，請檢查垃圾郵件或稍後再試。<br>請注意：Email 驗證後，您才能進行登入！
           </div>
-          <div class="mb-2">
-            <label for="registerName" class="form-label">姓名</label>
-            <input id="registerName" type="text" class="form-control" :class="{ 'is-invalid': nameError }" v-model="registerForm.name" placeholder="name(必填)" />
-            <div v-if="nameError" class="invalid-feedback">{{ nameError }}</div>
-          </div>
-          <div class="mb-2">
-            <label for="registerEmail" class="form-label">Email</label>
-            <input id="registerEmail" type="email" class="form-control" :class="{ 'is-invalid': emailError }" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
-            <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
-          </div>
-          <div class="mb-2">
-            <label for="registerPhone" class="form-label">電話</label>
-            <input id="registerPhone" type="text" class="form-control" :class="{ 'is-invalid': phoneError }" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
-            <div v-if="phoneError" class="invalid-feedback">{{ phoneError }}</div>
-          </div>
-          <div class="mb-2">
-            <label for="registerAddress" class="form-label">地址</label>
-            <input id="registerAddress" type="text" class="form-control" :class="{ 'is-invalid': addressError }" v-model="registerForm.address" placeholder="address(必填)" />
-            <div v-if="addressError" class="invalid-feedback">{{ addressError }}</div>
-          </div>         
-          <div class="mb-2">
-            <label for="registerPassword" class="form-label">密碼</label>
-            <input id="registerPassword" type="password" class="form-control" :class="{ 'is-invalid': passwordError }" v-model="registerForm.password" placeholder="password(必填)" />
-            <div v-if="passwordError" class="invalid-feedback">{{ passwordError }}</div>
-          </div>
-          <div class="d-grid">
-            <button class="btn btn-primary" @click="handleRegister">註冊</button>
+          <div v-else>
+            <div class="mb-2">
+              <label for="registerUsername" class="form-label">使用者名稱</label>
+              <input id="registerUsername" type="text" class="form-control" :class="{ 'is-invalid': usernameError }" v-model="registerForm.username" placeholder="username(必填)" />
+              <div v-if="usernameError" class="invalid-feedback">{{ usernameError }}</div>
+            </div>
+            <div class="mb-2">
+              <label for="registerName" class="form-label">姓名</label>
+              <input id="registerName" type="text" class="form-control" :class="{ 'is-invalid': nameError }" v-model="registerForm.name" placeholder="name(必填)" />
+              <div v-if="nameError" class="invalid-feedback">{{ nameError }}</div>
+            </div>
+            <div class="mb-2">
+              <label for="registerEmail" class="form-label">Email</label>
+              <input id="registerEmail" type="email" class="form-control" :class="{ 'is-invalid': emailError }" v-model="registerForm.email" placeholder="@gmail.com(必填)" />
+              <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
+            </div>
+            <div class="mb-2">
+              <label for="registerPhone" class="form-label">電話</label>
+              <input id="registerPhone" type="text" class="form-control" :class="{ 'is-invalid': phoneError }" v-model="registerForm.phone" placeholder="Phone Number(必填)" />
+              <div v-if="phoneError" class="invalid-feedback">{{ phoneError }}</div>
+            </div>
+            <div class="mb-2">
+              <label for="registerAddress" class="form-label">地址</label>
+              <input id="registerAddress" type="text" class="form-control" :class="{ 'is-invalid': addressError }" v-model="registerForm.address" placeholder="address(必填)" />
+              <div v-if="addressError" class="invalid-feedback">{{ addressError }}</div>
+            </div>         
+            <div class="mb-2">
+              <label for="registerPassword" class="form-label">密碼</label>
+              <input id="registerPassword" type="password" class="form-control" :class="{ 'is-invalid': passwordError }" v-model="registerForm.password" placeholder="password(必填)" />
+              <div v-if="passwordError" class="invalid-feedback">{{ passwordError }}</div>
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-primary" @click="handleRegister">註冊</button>
+            </div>
           </div>
         </div>
       </div>
@@ -93,6 +98,8 @@ const registerForm = ref({
   address: '',
   password: '',
 });
+
+const registrationSuccessAndPendingVerification = ref(false);
 
 // 驗證錯誤訊息
 const usernameError = ref('');
@@ -259,24 +266,32 @@ async function handleRegister() {
   const { username, name, email, phone, address, password } = registerForm.value;
 
   try {
-    const res = await axios.post('/api/customers/register', {
-      username, name, email, phone, address, password
-    });
-
-    if (res.status === 200) {
-      alert("✅ 註冊成功！請檢查您的 Email 以完成驗證");
-      registerForm.value = {
-        username: '',
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        password: '',
-      };
-      activeTab.value = 'login';
-    } else {
-      // 雖然理論上 axios 會在非 2xx 時拋出錯誤，但以防萬一
-      alert(res.data.error || '註冊失敗！');
+    const res = await axios.post('/api/customers/register', registerForm.value);
+    if (res.data.message) {
+      // alert(res.data.message); // 不再彈出 alert，而是顯示在頁面上
+      if (res.data.message.includes('✅ 註冊成功')) {
+        registrationSuccessAndPendingVerification.value = true; // 設定為 true 顯示提示訊息
+        // 清除表單資料
+        registerForm.value = {
+          username: '',
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          password: '',
+        };
+        // 清除錯誤訊息
+        usernameError.value = '';
+        nameError.value = '';
+        emailError.value = '';
+        phoneError.value = '';
+        addressError.value = '';
+        passwordError.value = '';
+      } else {
+        alert(res.data.message); // 如果不是成功訊息，仍用 alert 顯示
+      }
+    } else if (res.data.error) {
+      alert(res.data.error);
     }
   } catch (error) {
     console.error('註冊錯誤：', error);

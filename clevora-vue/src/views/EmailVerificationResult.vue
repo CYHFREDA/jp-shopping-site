@@ -13,8 +13,7 @@
       <div v-else-if="success" class="alert alert-success">
         <i class="bi bi-check-circle-fill me-2"></i>
         {{ message }}
-        <p class="mt-3">您現在可以前往登入頁面。</p>
-        <router-link to="/login" class="btn btn-primary mt-2">前往登入</router-link>
+        <p class="mt-3">頁面將在 3 秒後自動跳轉至登入頁面...</p>
       </div>
 
       <div v-else class="alert alert-danger">
@@ -29,10 +28,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
 const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const success = ref(false);
 const message = ref('');
@@ -51,6 +51,9 @@ onMounted(async () => {
     if (response.status === 200) {
       success.value = true;
       message.value = response.data.message;
+      setTimeout(() => {
+        router.push('/customer-auth');
+      }, 3000);
     } else {
       success.value = false;
       message.value = response.data.detail || 'Email 驗證失敗！';
