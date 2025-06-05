@@ -134,12 +134,14 @@ onMounted(() => {
     border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
     padding-bottom: 10px;
     margin-bottom: 20px;
+    font-size: 1.6rem; /* 原本很大，改小一點 */
 }
 
 .product-price {
-    color: var(--accent-brown); /* 價格顏色使用強調棕色 */
+    color: #d32f2f; /* 金額顏色改為紅色 */
     font-weight: bold;
     margin-bottom: 20px;
+    font-size: 1.15rem;
 }
 
 .product-description {

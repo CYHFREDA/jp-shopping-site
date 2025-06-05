@@ -1,6 +1,6 @@
 <template>
   <div class="card p-4">
-    <h5 class="card-title mb-3">�� 客戶管理</h5>
+    <h5 class="card-title mb-3">👥 客戶管理</h5>
     <div v-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
       {{ displayErrorMessage }}
     </div>
