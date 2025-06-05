@@ -333,7 +333,7 @@ async def admin_get_products(auth=Depends(verify_admin_jwt), cursor=Depends(get_
 
 #客戶註冊（前台用）
 @app.post("/api/customers/register")
-async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
+async def customer_register(request: Request):
     data = await request.json()
     username = data.get("username")
     name = data.get("name")
@@ -342,85 +342,133 @@ async def customer_register(request: Request, cursor=Depends(get_db_cursor)):
     password = data.get("password")
     address = data.get("address")
 
-    print(f"嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
+    conn = None
+    cursor = None
 
-    if not (username and name and email and phone and address and password):
-        print("❌ 註冊失敗: 缺少必要欄位") # Debugging line
-        return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
+    print(f"[註冊] 收到註冊請求 - Username: {username}, Email: {email}")
 
-    # Check if username already exists BEFORE attempting insert to give a clearer error
     try:
+        conn = global_pool.getconn()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        print(f"[註冊] 嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
+
+        if not (username and name and email and phone and address and password):
+            print("❌ [註冊] 註冊失敗: 缺少必要欄位") # Debugging line
+            return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
+
+        # Check if username already exists BEFORE attempting insert to give a clearer error
         cursor.execute("SELECT username FROM customers WHERE username ILIKE %s", (username,))
         existing_user = cursor.fetchone()
         if existing_user:
-            print(f"❌ 註冊失敗: 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
+            print(f"❌ [註冊] 使用者名稱 '{username}' 已存在於資料庫中。") # Debugging line
             return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
 
         # Check if email already exists
         cursor.execute("SELECT email FROM customers WHERE email ILIKE %s", (email,))
         existing_email = cursor.fetchone()
         if existing_email:
-            print(f"❌ 註冊失敗: Email '{email}' 已存在於資料庫中。") # Debugging line
+            print(f"❌ [註冊] Email '{email}' 已存在於資料庫中。") # Debugging line
             return JSONResponse({"error": "Email 已被使用"}, status_code=400)
 
         # bcrypt 雜湊密碼
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        print("[註冊] 密碼已雜湊。")
 
         # 生成驗證 token 和過期時間
         verification_token = str(uuid.uuid4())
         token_expiry = datetime.utcnow() + timedelta(hours=24) # 驗證連結 24 小時後過期
+        print(f"[註冊] 生成驗證 token: {verification_token}, 過期時間: {token_expiry}")
 
+        # 插入客戶資料，但不立即提交
+        print("[註冊] 嘗試插入客戶資料到資料庫 (未提交)。")
         cursor.execute("""
             INSERT INTO customers (username, name, email, phone, password, address, created_at, is_verified, verification_token, token_expiry)
             VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
         """, (username, name, email, phone, hashed_password, address, False, verification_token, token_expiry))
-        cursor.connection.commit()
+        print("[註冊] 客戶資料已暫存資料庫。")
 
         # 發送驗證 Email
         verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-        await send_verification_email(email, username, verification_link)
+        print(f"[註冊] 嘗試發送驗證 Email 到 {email}，連結: {verification_link}")
+        email_sent_successfully = await send_verification_email(email, username, verification_link)
 
-        print(f"✅ 使用者 '{username}' 註冊成功，驗證 Email 已發送！") # Debugging line
-        return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
+        if email_sent_successfully:
+            conn.commit() # Email 發送成功才提交資料庫變更
+            print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證 Email 已發送並提交資料庫！")
+            return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
+        else:
+            conn.rollback() # Email 發送失敗則回滾資料庫變更
+            print(f"⚠️ [註冊] 使用者 '{username}' 註冊失敗：驗證 Email 發送失敗，已回滾資料庫。")
+            return JSONResponse({"error": "註冊失敗，驗證 Email 未能發送。請檢查 Email 服務設定或稍後再試。"}, status_code=500)
+
     except psycopg2.IntegrityError as e:
-        print(f"❌ 資料庫 IntegrityError (可能為唯一性約束)：{e}") # Debugging line
-        return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+        if conn: # 確保 conn 存在才回滾
+            conn.rollback()
+        print(f"❌ [註冊] 資料庫 IntegrityError (可能為唯一性約束)：{e}")
+        # 根據錯誤類型返回更具體的訊息
+        error_message = str(e)
+        if "duplicate key value violates unique constraint \"customers_username_key\"" in error_message:
+             return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
+        elif "duplicate key value violates unique constraint \"customers_email_key\"" in error_message:
+             return JSONResponse({"error": "Email 已被使用"}, status_code=400)
+        else:
+             return JSONResponse({"error": "註冊失敗，請確認資料無誤！"}, status_code=400)
     except Exception as e:
-        print(f"❌ 註冊時發生其他錯誤：{e}") # Debugging line
+        if conn: # 確保 conn 存在才回滾
+            conn.rollback()
+        print(f"❌ [註冊] 註冊時發生其他未知錯誤：{e}")
         return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
-    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            global_pool.putconn(conn) # 確保連接被歸還到連接池
+            print("[註冊] 資料庫連接已歸還連接池。")
+
 #客戶登入（前台用）
 @app.post("/api/customers/login")
 async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
     password = data.get("password")
-    # conn = get_db_conn()
-    # cursor = conn.cursor()
-    # 先撈出該 username 的 bcrypt 雜湊密碼
-    cursor.execute("SELECT customer_id, name, password FROM customers WHERE username=%s", (username,))
-    row = cursor.fetchone()
-    # cursor.close()
-    # conn.close()
 
-    if row:
-        hashed_password = row[2]
-        # 用 bcrypt 驗證密碼是否相符
-        if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-            customer_id = row[0]
-            name = row[1]
-            
-            # 💡 生成 JWT Token
-            expire_at = datetime.utcnow() + timedelta(hours=24) # 設定 24 小時後過期
-            payload = {
-                "customer_id": customer_id,
-                "name": name,
-                "exp": expire_at # Token 的過期時間
-            }
-            token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-            
-            return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)}) # 回傳毫秒時間戳記給前端
-    return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+    print(f"[登入] 收到登入請求 - Username: {username}")
+
+    if not username or not password:
+        print("❌ [登入] 登入失敗: 缺少帳號或密碼")
+        return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
+
+    cursor.execute("SELECT customer_id, name, password, is_verified FROM customers WHERE username=%s", (username,))
+    row = cursor.fetchone()
+    
+    if not row:
+        print(f"❌ [登入] 登入失敗: 找不到使用者 '{username}'")
+        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+
+    customer_id, name, hashed_password, is_verified = row
+    print(f"[登入] 找到使用者 '{username}', is_verified: {is_verified}")
+
+    if not is_verified:
+        print(f"❌ [登入] 登入失敗: 使用者 '{username}' Email 尚未驗證。")
+        return JSONResponse({"error": "❌ 您的 Email 尚未驗證，請檢查 Email 收件箱。"}, status_code=401)
+
+    if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+        print(f"❌ [登入] 登入失敗: 使用者 '{username}' 密碼錯誤。")
+        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+    
+    print(f"✅ [登入] 使用者 '{username}' 密碼驗證成功。")
+
+    expire_at = datetime.utcnow() + timedelta(hours=24)
+    payload = {
+        "customer_id": customer_id,
+        "name": name,
+        "exp": expire_at
+    }
+    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    print(f"✅ [登入] 使用者 '{username}' 登入成功，JWT Token 已生成。")
+    
+    return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
 
 @app.get("/api/customers/{customer_id}/orders")
 async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
@@ -864,7 +912,7 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
 async def send_verification_email(recipient_email: str, username: str, verification_link: str):
     if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD]):
         print("❌ 無法發送 Email：Email 服務設定不完整。")
-        return
+        return False
 
     sender_email = EMAIL_USERNAME
     password = EMAIL_PASSWORD
@@ -916,37 +964,44 @@ async def send_verification_email(recipient_email: str, username: str, verificat
             server.login(sender_email, password)
             server.sendmail(sender_email, recipient_email, message.as_string())
         print(f"✅ 驗證 Email 已成功發送到 {recipient_email}")
+        return True
     except Exception as e:
         print(f"❌ 發送 Email 失敗：{e}")
+        return False
 
 # Email 驗證端點
 @app.get("/api/verify-email")
 async def verify_email(token: str, cursor=Depends(get_db_cursor)):
+    print(f"[Email 驗證] 收到 Email 驗證請求，Token: {token}")
     try:
-        # 查找匹配的 token
         cursor.execute("SELECT customer_id, username, is_verified, token_expiry FROM customers WHERE verification_token = %s", (token,))
         customer = cursor.fetchone()
 
         if not customer:
+            print(f"❌ [Email 驗證] 驗證失敗: 無效或找不到 token: {token}")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="無效或已使用的驗證連結。")
 
         customer_id, username, is_verified, token_expiry = customer
+        print(f"[Email 驗證] 找到客戶 '{username}', 已驗證狀態: {is_verified}, 過期時間: {token_expiry}")
 
         if is_verified:
+            print(f"✅ [Email 驗證] 客戶 '{username}' 已驗證成功，無需重複驗證。")
             return JSONResponse({"message": "您的 Email 已驗證成功，無需重複驗證。"})
 
-        # 檢查 token 是否過期
         if token_expiry and datetime.utcnow() > token_expiry.replace(tzinfo=None):
+            print(f"❌ [Email 驗證] 驗證失敗: 客戶 '{username}' 的 token 已過期。")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="驗證連結已過期，請重新註冊或申請新連結。")
 
-        # 更新使用者為已驗證狀態，並清除 token
+        print(f"[Email 驗證] 嘗試更新客戶 '{username}' 為已驗證狀態。")
         cursor.execute("UPDATE customers SET is_verified = TRUE, verification_token = NULL, token_expiry = NULL WHERE customer_id = %s", (customer_id,))
         cursor.connection.commit()
+        print(f"✅ [Email 驗證] 客戶 '{username}' Email 已驗證成功並更新資料庫！")
 
         return JSONResponse({"message": "✅ Email 驗證成功！您現在可以登入。"})
 
     except HTTPException as e:
+        print(f"❌ [Email 驗證] 發生 HTTP 錯誤：{e.detail}")
         raise e
     except Exception as e:
-        print(f"❌ Email 驗證時發生錯誤： {e}")
+        print(f"❌ [Email 驗證] 發生未知錯誤：{e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Email 驗證失敗，請稍後再試！")

@@ -263,10 +263,8 @@ async function handleRegister() {
       username, name, email, phone, address, password
     });
 
-    const data = await res.data;
-
     if (res.status === 200) {
-      alert("✅ 註冊成功！請切換到登入分頁登入");
+      alert("✅ 註冊成功！請檢查您的 Email 以完成驗證");
       registerForm.value = {
         username: '',
         name: '',
@@ -277,11 +275,16 @@ async function handleRegister() {
       };
       activeTab.value = 'login';
     } else {
-      alert(data.error || '註冊失敗！');
+      // 雖然理論上 axios 會在非 2xx 時拋出錯誤，但以防萬一
+      alert(res.data.error || '註冊失敗！');
     }
   } catch (error) {
     console.error('註冊錯誤：', error);
-    alert('註冊失敗，請稍後再試');
+    if (error.response && error.response.data && error.response.data.error) {
+      alert(error.response.data.error);
+    } else {
+      alert('註冊失敗，請稍後再試。');
+    }
   }
 }
 
