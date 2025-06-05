@@ -929,29 +929,123 @@ async def send_verification_email(recipient_email: str, username: str, verificat
     msg["From"] = sender_email
     msg["To"] = recipient_email
 
-    # 從外部 HTML 模板檔案讀取內容
-    template_path = os.path.join(os.path.dirname(__file__), "email_templates", "verification_email.html")
-    try:
-        with open(template_path, "r", encoding="utf-8") as f:
-            html_template = f.read()
-        # 使用 .format() 填充模板變數
-        html = html_template.format(username=username, verification_link=verification_link)
-    except FileNotFoundError:
-        print(f"❌ [Email服務] 錯誤：Email 模板檔案未找到：{template_path}")
-        # 如果模板檔案找不到，退回使用基本 HTML 內容
-        html = f"""
-            <html><body><p>哈囉 {username},</p><p>感謝您註冊我們的服務！請點擊以下連結驗證您的 Email：</p><p><a href=\"{verification_link}\">{verification_link}</a></p><p>此連結將於 5 分鐘內過期。</p><p>如果您沒有註冊，請忽略此 Email。</p></body></html>
-            """
-    except Exception as e:
-        print(f"❌ [Email服務] 讀取或格式化 Email 模板失敗：{e}")
-        # 如果處理模板失敗，退回使用基本 HTML 內容
-        html = f"""
-            <html><body><p>哈囉 {username},</p><p>感謝您註冊我們的服務！請點擊以下連結驗證您的 Email：</p><p><a href=\"{verification_link}\">{verification_link}</a></p><p>此連結將於 5 分鐘內過期。</p><p>如果您沒有註冊，請忽略此 Email。</p></body></html>
-              """
+    # Email 的純文字內容 (重新加入)
+    text = f"""
+        哈囉 {username},
+        感謝您註冊我們的服務！
+        請點擊以下連結驗證您的 Email：
+        {verification_link}
+        此連結將於 5 分鐘內過期。
+        如果您沒有註冊，請忽略此 Email。
+        """
 
-    # 將 HTML 內容附加到 MIMEMultipart 物件
+    # Email 的 HTML 內容 (直接嵌入，所有 CSS 花括號都需要雙倍逸出)
+    html = f"""
+        <!DOCTYPE html>
+        <html lang="zh-TW">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>帳戶驗證通知</title>
+            <style>
+                body {{{{ /* 雙倍花括號逸出 */
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    line-height: 1.6;
+                    color: #333333;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f7f7f7;
+                }}}}
+                .email-wrapper {{{{ /* 雙倍花括號逸出 */
+                    max-width: 600px;
+                    margin: 20px auto;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                    overflow: hidden;
+                }}}}
+                .header {{{{ /* 雙倍花括號逸出 */
+                    background-color: #007bff;
+                    color: #ffffff;
+                    padding: 25px 30px;
+                    text-align: center;
+                }}}}
+                .header h1 {{{{ /* 雙倍花括號逸出 */
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 600;
+                }}}}
+                .content {{{{ /* 雙倍花括號逸出 */
+                    padding: 30px;
+                }}}}
+                .content p {{{{ /* 雙倍花括號逸出 */
+                    margin-bottom: 20px;
+                    font-size: 16px;
+                }}}}
+                .button-container {{{{ /* 雙倍花括號逸出 */
+                    text-align: center;
+                    margin: 30px 0;
+                }}}}
+                .button {{{{ /* 雙倍花括號逸出 */
+                    background-color: #28a745; /* Green for success */
+                    color: white !important; /* !important to override client styles */
+                    padding: 15px 30px;
+                    text-align: center;
+                    text-decoration: none;
+                    display: inline-block;
+                    border-radius: 25px; /* Pill-shaped button */
+                    font-weight: bold;
+                    font-size: 18px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    transition: background-color 0.3s ease;
+                }}}}
+                .button:hover {{{{ /* 雙倍花括號逸出 */
+                    background-color: #218838;
+                }}}}
+                .expiry-text {{{{ /* 雙倍花括號逸出 */
+                    color: #dc3545; /* Red for emphasis */
+                    font-weight: bold;
+                    font-size: 15px;
+                }}}}
+                .footer {{{{ /* 雙倍花括號逸出 */
+                    text-align: center;
+                    padding: 20px 30px;
+                    margin-top: 30px;
+                    border-top: 1px solid #eeeeee;
+                    font-size: 12px;
+                    color: #777777;
+                    background-color: #fdfdfd;
+                }}}}
+            </style>
+        </head>
+        <body>
+            <div class="email-wrapper">
+                <div class="header">
+                    <h1>CleVora 帳戶驗證通知</h1>
+                </div>
+                <div class="content">
+                    <p>哈囉 <strong>{username}</strong>,</p>
+                    <p>CleVora 感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的連結進行 Email 驗證。</p>
+                    <div class="button-container">
+                        <a href="{verification_link}" class="button">立即驗證您的 Email</a>
+                    </div>
+                    <p style="text-align: center;">此驗證連結將於 <span class="expiry-text">5 分鐘</span> 內過期，請盡快完成驗證。</p>
+                    <p>如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
+                </div>
+                <div class="footer">
+                    <p>此為系統自動發送 Email，請勿直接回覆。</p>
+                    <p>&copy; 2025 CleVora. 版權所有.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+    # 將純文字和 HTML 內容附加到 MIMEMultipart 物件 (純文字在前，HTML 在後)
+    part1 = MIMEText(text, "plain")
     part2 = MIMEText(html, "html")
 
+    msg.attach(part1)
     msg.attach(part2)
 
     try:
@@ -986,6 +1080,10 @@ async def verify_email(token: str, cursor=Depends(get_db_cursor)):
 
         if token_expiry and datetime.utcnow() > token_expiry.replace(tzinfo=None):
             print(f"❌ [Email 驗證] 驗證失敗: 客戶 '{username}' 的 token 已過期。")
+            # 清除過期的 token 和過期時間
+            cursor.execute("UPDATE customers SET verification_token = NULL, token_expiry = NULL WHERE customer_id = %s", (customer_id,))
+            cursor.connection.commit()
+            print(f"✅ [Email 驗證] 客戶 '{username}' 的過期 token 已被清除。")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="驗證連結已過期，請重新註冊或申請新連結。")
 
         print(f"[Email 驗證] 嘗試更新客戶 '{username}' 為已驗證狀態。")
