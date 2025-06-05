@@ -1,80 +1,120 @@
+// router.js
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from './views/Home.vue';
-import AdminLogin from './views/admin/Login.vue';
-import AdminDashboard from './views/admin/Dashboard.vue';
-import Products from './views/admin/Products.vue';
-import Orders from './views/admin/Orders.vue';
-import Shipments from './views/admin/Shipments.vue';
-import Customers from './views/admin/Customers.vue';
-import AdminUsers from './views/admin/Admins.vue';
-import Settings from './views/admin/Settings.vue';
-import Cart from './views/Cart.vue';
-import CustomerAuth from './views/CustomerAuth.vue';
-import Return from './views/Return.vue';
-import OrderHistory from './views/OrderHistory.vue';
-import { useCustomerStore } from './stores/customerStore';
-import { useUserStore } from './stores/userStore';
+import { useUserStore } from '@/stores/userStore';
+import { useCustomerStore } from '@/stores/customerStore';
+
+// 靜態導入常用頁面
+import Home from '@/views/Home.vue';
+import Cart from '@/views/Cart.vue';
+import CustomerAuth from '@/views/CustomerAuth.vue';
+import Return from '@/views/Return.vue';
+import OrderHistory from '@/views/OrderHistory.vue';
+import AdminLogin from '@/views/admin/Login.vue';
+import AdminDashboard from '@/views/admin/Dashboard.vue';
+import Products from '@/views/admin/Products.vue';
+import Orders from '@/views/admin/Orders.vue';
+import Shipments from '@/views/admin/Shipments.vue';
+import Customers from '@/views/admin/Customers.vue';
+import AdminUsers from '@/views/admin/Admins.vue';
+import Settings from '@/views/admin/Settings.vue';
+import NotFound from '@/views/ErrorPage.vue';
 
 const routes = [
-  { 
-    path: '/', 
-    component: Home 
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { title: 'Clevora 日本代購' }
   },
   {
     path: '/cart',
-    component: Cart
+    name: 'Cart',
+    component: Cart,
+    meta: { title: 'Clevora 購物車' }
   },
   {
     path: '/login',
-    component: CustomerAuth
+    name: 'CustomerAuth',
+    component: CustomerAuth,
+    meta: { title: 'Clevora 會員登入 / 註冊' }
   },
   {
     path: '/pay/return',
-    component: Return
+    name: 'PaymentReturn',
+    component: Return,
+    meta: { title: 'Clevora 付款結果' }
   },
   {
     path: '/orderHistory',
+    name: 'OrderHistory',
     component: OrderHistory,
-    meta: { requiresCustomerAuth: true }
+    meta: {
+      title: 'Clevora 我的訂單',
+      requiresCustomerAuth: true
+    }
   },
-  { 
-    path: '/admin/login', 
-    component: AdminLogin 
+  {
+    path: '/admin/login',
+    name: 'AdminAuth',
+    component: AdminLogin,
+    meta: { title: 'Clevora 後台管理登入' }
   },
-  { 
-    path: '/admin', 
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      title: 'Clevora 後台管理 - 主控台'
+    },
     children: [
       {
-        path: '', // 當路徑為 /admin 時，預設重定向到 orders
+        path: '',
         redirect: 'orders'
       },
-      { 
-        path: 'products', 
-        component: Products 
+      {
+        path: 'products',
+        name: 'AdminProducts',
+        component: Products,
+        meta: { title: 'Clevora 後台管理 - 商品管理' }
       },
-      { 
-        path: 'orders', 
-        component: Orders 
+      {
+        path: 'orders',
+        name: 'AdminOrders',
+        component: Orders,
+        meta: { title: 'Clevora 後台管理 - 訂單管理' }
       },
-      { 
-        path: 'shipments', 
-        component: Shipments 
+      {
+        path: 'shipments',
+        name: 'AdminShipments',
+        component: Shipments,
+        meta: { title: 'Clevora 後台管理 - 出貨管理' }
       },
-      { 
-        path: 'customers', 
-        component: Customers 
+      {
+        path: 'customers',
+        name: 'AdminCustomers',
+        component: Customers,
+        meta: { title: 'Clevora 後台管理 - 客戶管理' }
       },
-      { 
-        path: 'admins', 
-        component: AdminUsers 
+      {
+        path: 'admins',
+        name: 'AdminAdmins',
+        component: AdminUsers,
+        meta: { title: 'Clevora 後台管理 - 使用者管理' }
       },
-      { 
-        path: 'settings', 
-        component: Settings 
+      {
+        path: 'settings',
+        name: 'AdminSettings',
+        component: Settings,
+        meta: { title: 'Clevora 後台管理 - 系統設定' }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
+    meta: { title: 'Clevora 發生錯誤' }
   }
 ];
 
@@ -85,34 +125,18 @@ const router = createRouter({
 
 // 路由守衛
 router.beforeEach((to, from, next) => {
-  // 設定頁面標題
-  document.title = 'Clevora';
+  const userStore = useUserStore();
+  const customerStore = useCustomerStore();
 
-  const customerStore = useCustomerStore(); // 獲取 customerStore 實例
-  const userStore = useUserStore(); // 獲取 userStore 實例
+  const isAdminAuthenticated = userStore.isAuthenticated;
+  const isCustomerAuthenticated = customerStore.isAuthenticated;
 
-  // 如果用戶已登入且嘗試訪問登入頁面，則重定向到首頁
-  if (to.path === '/login' && customerStore.isAuthenticated) {
-    console.log('已登入用戶嘗試訪問登入頁面，重定向到首頁。');
-    next('/');
-    return;
-  }
-
-  // 新增客戶登入驗證
-  if (to.meta.requiresCustomerAuth && !customerStore.isAuthenticated) {
-    console.log('未登入客戶嘗試訪問需要客戶登入的頁面，重定向到登入頁。');
-    localStorage.setItem('redirectAfterLogin', to.fullPath); // 儲存目標路徑，登入後可跳回
-    next('/login');
-    return;
-  }
-
-  if (to.meta.requiresAuth) {
-    if (!userStore.isAuthenticated) {
-      next('/admin/login');
-    } else {
-      next();
-    }
+  if (to.meta.requiresAuth && !isAdminAuthenticated) {
+    next('/admin/login');
+  } else if (to.meta.requiresCustomerAuth && !isCustomerAuthenticated) {
+    next({ path: '/login', query: { redirect: to.fullPath } });
   } else {
+    document.title = to.meta.title ? to.meta.title : 'Clevora';
     next();
   }
 });
