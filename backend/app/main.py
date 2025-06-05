@@ -951,128 +951,129 @@ async def send_verification_email(recipient_email: str, username: str, verificat
     # Email 的 HTML 內容 (直接嵌入，所有 CSS 花括號都需要雙倍逸出)
     html = f"""
         <!DOCTYPE html>
-        <html lang="zh-TW">
+        <html lang=\"zh-TW\">
         <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>帳戶驗證通知</title>
+            <meta charset=\"UTF-8\">
+            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+            <title>CleVora 帳戶驗證通知</title>
             <style>
+                :root {{
+                    --dark-brown: #38302e;
+                    --light-brown: #a18a7b;
+                    --white: #ffffff;
+                    --accent-brown: #c8a99a;
+                    --danger-color: #dc3545;
+                }}
                 body {{
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    line-height: 1.6;
-                    color: #333333;
+                    font-family: 'Segoe UI', Arial, 'Microsoft JhengHei', sans-serif;
+                    background-color: #f8f9fa;
                     margin: 0;
                     padding: 0;
-                    background-color: #f7f7f7;
+                    color: var(--dark-brown);
                 }}
                 .email-wrapper {{
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background-color: #ffffff;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                    max-width: 500px;
+                    margin: 30px auto;
+                    background: var(--white);
+                    border-radius: 16px;
+                    box-shadow: 0 4px 16px rgba(56,48,46,0.08);
                     overflow: hidden;
+                    border: 1px solid var(--accent-brown);
                 }}
                 .header {{
-                    background: linear-gradient(135deg, #007bff, #0056b3);
-                    color: #ffffff;
-                    padding: 30px 20px;
+                    background: var(--dark-brown);
+                    color: var(--white);
+                    padding: 32px 20px 18px 20px;
                     text-align: center;
                 }}
                 .header h1 {{
                     margin: 0;
-                    font-size: 24px;
-                    font-weight: 600;
+                    font-size: 1.7rem;
+                    font-weight: bold;
+                    letter-spacing: 1px;
                 }}
                 .content {{
-                    padding: 30px 20px;
+                    padding: 32px 24px 24px 24px;
                 }}
                 .content p {{
-                    margin-bottom: 20px;
-                    font-size: 16px;
-                    color: #444444;
+                    margin-bottom: 18px;
+                    font-size: 1rem;
+                    color: var(--dark-brown);
                 }}
                 .button-container {{
                     text-align: center;
-                    margin: 30px 0;
+                    margin: 32px 0 24px 0;
                 }}
                 .button {{
-                    background: linear-gradient(135deg, #28a745, #218838);
-                    color: white !important;
-                    padding: 16px 32px;
+                    background: var(--dark-brown);
+                    color: var(--white) !important;
+                    padding: 15px 36px;
                     text-align: center;
                     text-decoration: none;
                     display: inline-block;
                     border-radius: 30px;
                     font-weight: bold;
-                    font-size: 18px;
-                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-                    transition: all 0.3s ease;
-                    min-width: 200px;
-                    word-break: break-all;
+                    font-size: 1.15rem;
+                    box-shadow: 0 2px 8px rgba(56,48,46,0.10);
+                    border: none;
+                    transition: background 0.2s;
                 }}
                 .button:hover {{
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+                    background: #2a2523;
                 }}
                 .expiry-text {{
-                    color: #dc3545;
+                    color: var(--danger-color);
                     font-weight: bold;
-                    font-size: 15px;
-                    background-color: #fff5f5;
-                    padding: 8px 12px;
+                    font-size: 1rem;
+                    background: #fff5f5;
+                    padding: 6px 14px;
                     border-radius: 6px;
                     display: inline-block;
                 }}
                 .footer {{
                     text-align: center;
-                    padding: 20px;
-                    margin-top: 20px;
-                    border-top: 1px solid #eeeeee;
-                    font-size: 13px;
-                    color: #666666;
-                    background-color: #f8f9fa;
+                    padding: 18px 20px;
+                    background: var(--light-brown);
+                    color: var(--white);
+                    font-size: 0.95rem;
+                    border-top: 1px solid var(--accent-brown);
                 }}
-                @media only screen and (max-width: 480px) {{
+                @media only screen and (max-width: 600px) {{
                     .email-wrapper {{
                         margin: 10px;
-                        border-radius: 8px;
+                        border-radius: 10px;
                     }}
                     .header {{
-                        padding: 20px 15px;
-                    }}
-                    .header h1 {{
-                        font-size: 20px;
+                        padding: 22px 10px 12px 10px;
                     }}
                     .content {{
-                        padding: 20px 15px;
+                        padding: 18px 8px 16px 8px;
                     }}
                     .button {{
-                        padding: 14px 28px;
-                        font-size: 16px;
                         width: 100%;
-                        max-width: 280px;
+                        font-size: 1rem;
+                        padding: 14px 0;
                     }}
                 }}
             </style>
         </head>
         <body>
-            <div class="email-wrapper">
-                <div class="header">
+            <div class=\"email-wrapper\">
+                <div class=\"header\">
                     <h1>CleVora 帳戶驗證通知</h1>
                 </div>
-                <div class="content">
-                    <p>哈囉 <strong>{username}</strong>,</p>
-                    <p>CleVora 感謝您註冊我們的服務！為了完成您的帳戶啟用，請點擊下方的按鈕進行 Email 驗證。</p>
-                    <div class="button-container">
-                        <a href="{verification_link}" class="button">立即驗證 Email</a>
+                <div class=\"content\">
+                    <p>哈囉 <strong>{username}</strong>，</p>
+                    <p>感謝您註冊 CleVora！為了完成您的帳戶啟用，請點擊下方按鈕進行 Email 驗證。</p>
+                    <div class=\"button-container\">
+                        <a href=\"{verification_link}\" class=\"button\">立即驗證 Email</a>
                     </div>
-                    <p style="text-align: center;">此驗證連結將於 <span class="expiry-text">5 分鐘</span> 內過期，請盡快完成驗證。</p>
-                    <p>如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
+                    <p style=\"text-align: center;\">此驗證連結將於 <span class=\"expiry-text\">5 分鐘</span> 內過期，請盡快完成驗證。</p>
+                    <p style=\"font-size:0.97rem; color:var(--accent-brown);\">如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
                 </div>
-                <div class="footer">
-                    <p>此為系統自動發送 Email，請勿直接回覆。</p>
-                    <p>&copy; 2025 CleVora. 版權所有.</p>
+                <div class=\"footer\">
+                    此為系統自動發送，請勿直接回覆。<br/>
+                    &copy; 2025 CleVora 日本代購
                 </div>
             </div>
         </body>

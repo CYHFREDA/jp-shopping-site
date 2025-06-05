@@ -48,6 +48,7 @@ const userStore = useUserStore();
 
 const loadOrders = async () => {
   const token = userStore.admin_token;
+  console.log('[Orders.vue] loadOrders token:', token);
   if (!token) {
     alert('請先登入後台');
     router.push('/admin/login');
