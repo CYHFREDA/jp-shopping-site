@@ -138,11 +138,18 @@ router.beforeEach((to, from, next) => {
   const isAdminAuthenticated = userStore.isAuthenticated;
   const isCustomerAuthenticated = customerStore.isAuthenticated;
 
-  if (to.meta.requiresAuth && !isAdminAuthenticated) {
+  // 如果已登入管理員嘗試訪問登入頁面，導向後台主控台
+  if (to.name === 'AdminAuth' && isAdminAuthenticated) {
+    console.log('已登入管理員嘗試訪問登入頁面，導向後台主控台。');
+    next('/admin');
+  } else if (to.meta.requiresAuth && !isAdminAuthenticated) {
+    // 如果訪問需要管理員權限的頁面但未登入，導向管理員登入頁面
     next('/admin/login');
   } else if (to.meta.requiresCustomerAuth && !isCustomerAuthenticated) {
+    // 如果訪問需要客戶權限的頁面但未登入，導向客戶登入頁面
     next({ path: '/login', query: { redirect: to.fullPath } });
   } else {
+    // 其他情況正常放行
     document.title = to.meta.title ? to.meta.title : 'Clevora';
     next();
   }
