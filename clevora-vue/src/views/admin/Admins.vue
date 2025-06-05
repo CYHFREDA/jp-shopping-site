@@ -65,7 +65,7 @@ async function loadAdmins() {
   }
 
   try {
-    const res = await api.get('/api/admin/admins');
+    const res = await api.get('/api/admin/admin_users');
 
     const data = res.data;
     console.log('從後端接收到的使用者數據:', data);
@@ -94,7 +94,7 @@ async function addAdmin() {
   }
 
   try {
-    const res = await api.post('/api/admin/admins', { username, password, name });
+    const res = await api.post('/api/admin/admin_users', { username, password, name });
 
     const result = res.data;
 
@@ -137,7 +137,7 @@ async function saveAdmin(id) {
   }
 
   try {
-    const res = await api.put(`/api/admin/admins/${id}`, { username, name });
+    const res = await api.put(`/api/admin/admin_users/${id}`, { username, name });
 
     const result = res.data;
 
@@ -167,7 +167,7 @@ async function deleteAdmin(id) {
   }
 
   try {
-    const res = await api.delete(`/api/admin/admins/${id}`);
+    const res = await api.delete(`/api/admin/admin_users/${id}`);
 
     const result = res.data;
 
