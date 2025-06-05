@@ -959,24 +959,25 @@ async def send_verification_email(recipient_email: str, username: str, verificat
             <style>
                 :root {{
                     --dark-brown: #38302e;
-                    --light-brown: #a18a7b;
-                    --white: #ffffff;
                     --accent-brown: #c8a99a;
+                    --white: #ffffff;
+                    --light-grey: #f8f9fa;
                     --danger-color: #dc3545;
+                    --footer-grey: #888888;
                 }}
                 body {{
                     font-family: 'Segoe UI', Arial, 'Microsoft JhengHei', sans-serif;
-                    background-color: #f8f9fa;
+                    background-color: var(--light-grey);
                     margin: 0;
                     padding: 0;
                     color: var(--dark-brown);
                 }}
                 .email-wrapper {{
-                    max-width: 500px;
-                    margin: 30px auto;
+                    max-width: 480px;
+                    margin: 40px auto;
                     background: var(--white);
-                    border-radius: 16px;
-                    box-shadow: 0 4px 16px rgba(56,48,46,0.08);
+                    border-radius: 18px;
+                    box-shadow: 0 6px 32px rgba(56,48,46,0.13);
                     overflow: hidden;
                     border: 1px solid var(--accent-brown);
                 }}
@@ -988,50 +989,68 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                 }}
                 .header h1 {{
                     margin: 0;
-                    font-size: 1.7rem;
+                    font-size: 2rem;
                     font-weight: bold;
                     letter-spacing: 1px;
+                    letter-spacing: 2px;
                 }}
                 .content {{
-                    padding: 32px 24px 24px 24px;
+                    padding: 36px 30px 28px 30px;
                 }}
                 .content p {{
-                    margin-bottom: 18px;
-                    font-size: 1rem;
+                    margin-bottom: 22px;
+                    font-size: 1.08rem;
                     color: var(--dark-brown);
+                    line-height: 1.8;
                 }}
                 .button-container {{
                     text-align: center;
-                    margin: 32px 0 24px 0;
+                    margin: 38px 0 18px 0;
                 }}
                 .button {{
-                    background: var(--dark-brown);
+                    background: linear-gradient(90deg, var(--dark-brown) 60%, var(--accent-brown) 100%);
                     color: var(--white) !important;
-                    padding: 15px 36px;
+                    padding: 18px 0;
                     text-align: center;
                     text-decoration: none;
-                    display: inline-block;
-                    border-radius: 30px;
+                    display: block;
+                    border-radius: 32px;
                     font-weight: bold;
-                    font-size: 1.15rem;
-                    box-shadow: 0 2px 8px rgba(56,48,46,0.10);
+                    font-size: 1.18rem;
+                    box-shadow: 0 2px 12px rgba(56,48,46,0.13);
                     border: none;
-                    transition: background 0.2s;
                     width: 100%;
                     max-width: 320px;
+                    margin: 0 auto;
+                    letter-spacing: 1px;
+                    transition: background 0.2s;
                 }}
                 .button:hover {{
-                    background: #2a2523;
+                    background: linear-gradient(90deg, #2a2523 60%, var(--accent-brown) 100%);
+                }}
+                .plain-link-block {{
+                    margin: 28px 0 0 0;
+                    text-align: center;
+                }}
+                .plain-link-label {{
+                    color: var(--accent-brown);
+                    font-size: 0.98rem;
+                    margin-bottom: 6px;
+                    display: block;
                 }}
                 .plain-link {{
-                    display: block;
-                    margin: 18px auto 0 auto;
+                    display: inline-block;
                     word-break: break-all;
                     overflow-wrap: break-word;
-                    color: #38302e;
+                    color: var(--dark-brown);
                     font-size: 0.97rem;
-                    text-align: center;
+                    background: #f8f9fa;
+                    border-radius: 6px;
+                    padding: 8px 10px;
+                    margin-top: 2px;
+                    text-align: left;
                     max-width: 100%;
+                    text-decoration: underline;
                 }}
                 .expiry-text {{
                     color: var(--danger-color);
@@ -1044,11 +1063,12 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                 }}
                 .footer {{
                     text-align: center;
-                    padding: 18px 20px;
-                    background: var(--light-brown);
-                    color: var(--white);
-                    font-size: 0.95rem;
+                    padding: 18px 20px 14px 20px;
+                    background: #f4f4f4;
+                    color: var(--footer-grey);
+                    font-size: 0.93rem;
                     border-top: 1px solid var(--accent-brown);
+                    border-radius: 0 0 18px 18px;
                 }}
                 @media only screen and (max-width: 600px) {{
                     .email-wrapper {{
@@ -1062,7 +1082,6 @@ async def send_verification_email(recipient_email: str, username: str, verificat
                         padding: 18px 8px 16px 8px;
                     }}
                     .button {{
-                        width: 100%;
                         font-size: 1rem;
                         padding: 14px 0;
                         max-width: 100%;
@@ -1076,20 +1095,20 @@ async def send_verification_email(recipient_email: str, username: str, verificat
         <body>
             <div class=\"email-wrapper\">
                 <div class=\"header\">
-                    <h1>CleVora 帳戶驗證通知</h1>
+                    <h1><span style=\"letter-spacing:2px;\">CleVora</span> 帳戶驗證通知</h1>
                 </div>
                 <div class=\"content\">
                     <p>哈囉 <strong>{username}</strong>，</p>
-                    <p>感謝您註冊 CleVora！為了完成您的帳戶啟用，請點擊下方按鈕進行 Email 驗證。</p>
+                    <p>感謝您註冊 <b>CleVora</b>！為了完成您的帳戶啟用，請點擊下方按鈕進行 <b>Email 驗證</b>。</p>
                     <div class=\"button-container\">
                         <a href=\"{verification_link}\" class=\"button\">立即驗證 Email</a>
                     </div>
-                    <div class=\"plain-link\">
-                        或直接複製以下連結到瀏覽器開啟：<br>
-                        <span>{verification_link}</span>
+                    <div class=\"plain-link-block\">
+                        <span class=\"plain-link-label\">如無法點擊按鈕，請複製以下連結到瀏覽器開啟：</span>
+                        <span class=\"plain-link\">{verification_link}</span>
                     </div>
-                    <p style=\"text-align: center;\">此驗證連結將於 <span class=\"expiry-text\">5 分鐘</span> 內過期，請盡快完成驗證。</p>
-                    <p style=\"font-size:0.97rem; color:var(--accent-brown);\">如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
+                    <p style=\"text-align: center; margin-top: 30px;\">此驗證連結將於 <span class=\"expiry-text\">5 分鐘</span> 內過期，請盡快完成驗證。</p>
+                    <p style=\"font-size:0.97rem; color:var(--accent-brown); text-align:center;\">如果您並未嘗試註冊或認為此 Email 有誤，請忽略此郵件。</p>
                 </div>
                 <div class=\"footer\">
                     此為系統自動發送，請勿直接回覆。<br/>
