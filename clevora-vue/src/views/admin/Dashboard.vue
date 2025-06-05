@@ -34,20 +34,12 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import AdminNavbar from '@/components/AdminNavbar.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
-
-onMounted(() => {
-  const adminToken = localStorage.getItem('admin_token');
-  if (!adminToken) {
-    router.push('/admin/login');
-  }
-});
 
 function handleLogout() {
   if (confirm('確定要登出嗎？')) {
