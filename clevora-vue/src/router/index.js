@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import OrderHistory from '@/views/OrderHistory.vue'; // 靜態導入
 import Shipments from '@/views/admin/Shipments.vue';
 import Customers from '@/views/admin/Customers.vue';
-import Admins from '@/views/admin/Admins.vue';
+// import Admins from '@/views/admin/Admins.vue'; // 移除靜態導入
 import { useUserStore } from '@/stores/userStore';
 import { useCustomerStore } from '@/stores/customerStore';
 
@@ -79,7 +79,7 @@ const routes = [
       {
         path: 'admins',
         name: 'AdminAdmins',
-        component: Admins,
+        component: () => import('@/views/admin/Admins.vue'),
         meta: { title: 'Clevora 後台管理 - 使用者管理' }
       }
     ]
