@@ -107,22 +107,6 @@ const categories = ref([
 const currentPage = ref(1); // 當前頁碼
 const itemsPerPage = ref(20); // 每頁顯示數量
 
-// 監聽路由變化以更新搜尋查詢和分頁
-watch(() => route.query.search, (newSearch) => {
-  if (newSearch) {
-    searchQuery.value = newSearch;
-  } else {
-    searchQuery.value = '';
-  }
-  currentPage.value = 1; // 搜尋或分類變化時回到第一頁
-}, { immediate: true });
-
-watch(() => route.query.category, (newCategory) => {
-  selectedCategory.value = newCategory || '';
-  searchQuery.value = '';
-  currentPage.value = 1; // 搜尋或分類變化時回到第一頁
-}, { immediate: true });
-
 // 監聽每頁顯示數量變化，回到第一頁
 watch(itemsPerPage, () => {
     currentPage.value = 1;
@@ -131,21 +115,6 @@ watch(itemsPerPage, () => {
 // 根據篩選條件計算過濾後的商品
 const filteredProducts = computed(() => {
   let products = allProducts.value;
-
-  if (selectedCategory.value) {
-    products = products.filter(p => {
-      const categories = (p.category || '').split('#');
-      return categories.includes(selectedCategory.value);
-    });
-  }
-
-  if (searchQuery.value) {
-    const keyword = searchQuery.value.toLowerCase();
-    products = products.filter(p => 
-      p.name.toLowerCase().includes(keyword) || 
-      (p.description && p.description.toLowerCase().includes(keyword))
-    );
-  }
 
   return products;
 });
@@ -173,7 +142,16 @@ const changePage = (page) => {
 const loadProducts = async () => {
   try {
     console.log('開始載入商品...');
-    const res = await axios.get('/api/products');
+    // 增加日誌以確認傳遞的搜尋參數
+    console.log('傳遞給後端的搜尋查詢 (query): ', route.query.search);
+    console.log('傳遞給後端的分類 (category): ', route.query.category);
+
+    const res = await axios.get('/api/products', {
+      params: {
+        query: route.query.search || '', // 直接使用 route.query
+        category: route.query.category || '' // 直接使用 route.query
+      }
+    });
     console.log('API 回應：', res.data);
     allProducts.value = res.data.map(p => ({
       id: p[0],
@@ -184,10 +162,10 @@ const loadProducts = async () => {
       created_at: p[5],
       category: p[6]
     }));
-     // 初始化時根據路由設定分類
-     if (route.query.category) {
-        selectedCategory.value = route.query.category;
-     }
+     // selectedCategory 和 searchQuery 的更新由 watch 處理
+     // if (route.query.category) {
+     //    selectedCategory.value = route.query.category;
+     // }
   } catch (error) {
     console.error('載入商品時發生錯誤：', error);
     if (error.response) {
@@ -201,11 +179,18 @@ const loadProducts = async () => {
   }
 };
 
+// 新增聯合監聽器，用於在路由查詢參數變化時重新載入商品
+watch([() => route.query.search, () => route.query.category], ([newSearch, newCategory]) => {
+  searchQuery.value = newSearch || ''; // 更新本地的 searchQuery
+  selectedCategory.value = newCategory || ''; // 更新本地的 selectedCategory
+  currentPage.value = 1; // 重置到第一頁
+  loadProducts(); // 重新載入商品
+}, { immediate: true }); // 立即執行一次，用於初始載入
+
 const filterCategory = (category) => {
   // 不再直接修改 selectedCategory，而是通過路由監聽來更新
-  // selectedCategory.value = category;
-  searchQuery.value = '';
-  router.push({ path: '/products', query: { category: category === '' ? undefined : category } }); // Change path to /products
+  searchQuery.value = ''; // 清空搜尋欄，因為正在進行分類過濾
+  router.push({ path: '/products', query: { category: category === '' ? undefined : category } });
 };
 
 const addToCart = (product) => {
@@ -213,9 +198,10 @@ const addToCart = (product) => {
   alert('✅ 已加入購物車！');
 };
 
-onMounted(() => {
-  loadProducts();
-});
+// onMounted 不再需要呼叫 loadProducts，因為 watch 已經處理了初始載入
+// onMounted(() => {
+//   loadProducts();
+// });
 </script>
 
 <style scoped>
