@@ -55,6 +55,7 @@ const loadOrders = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
+    console.log('從後端接收到的訂單數據:', res.data);
     orders.value = res.data.orders;
     isLoading.value = false;
   } catch (error) {
