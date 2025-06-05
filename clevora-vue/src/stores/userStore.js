@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 export const useUserStore = defineStore('user', () => {
   const admin_token = ref(localStorage.getItem('admin_token') || '');
@@ -12,6 +12,7 @@ export const useUserStore = defineStore('user', () => {
   const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
   const router = useRouter();
+  const route = useRoute();
 
   const isAuthenticated = computed(() => {
     const token = admin_token.value;
@@ -41,8 +42,10 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function resetInactivityTimer() {
-    if (isAuthenticated.value) {
+    if (isAuthenticated.value && route.path.startsWith('/admin')) {
        startInactivityTimer();
+    } else {
+       clearInactivityTimer();
     }
   }
 
@@ -71,8 +74,8 @@ export const useUserStore = defineStore('user', () => {
     admin_token.value = tokenValue;
     expire_at.value = expireAtValue;
     if (tokenValue) {
-        startInactivityTimer();
         addActivityListeners();
+        resetInactivityTimer();
     }
   }
 
@@ -86,12 +89,17 @@ export const useUserStore = defineStore('user', () => {
   }
 
   if (isAuthenticated.value) {
-      startInactivityTimer();
-      addActivityListeners();
       console.log('Admin authenticated on load (via initial state), starting timer and listeners.');
+      addActivityListeners();
+      resetInactivityTimer();
   } else if (localStorage.getItem('admin_token')) {
       console.log('Expired or invalid admin token found in localStorage on load.');
   }
+
+  watch(() => router.currentRoute.value.path, (newPath) => {
+    console.log('Route changed to:', newPath);
+    resetInactivityTimer();
+  });
 
   return {
     admin_token,
