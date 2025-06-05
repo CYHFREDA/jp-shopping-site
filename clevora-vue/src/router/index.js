@@ -1,8 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import OrderHistory from '@/views/OrderHistory.vue'; 
-import Shipments from '@/views/admin/Shipments.vue';
-import Customers from '@/views/admin/Customers.vue';
-import Admins from '@/views/admin/Admins.vue'; 
 import { useUserStore } from '@/stores/userStore';
 import { useCustomerStore } from '@/stores/customerStore';
 
@@ -67,13 +64,13 @@ const routes = [
       {
         path: 'shipments',
         name: 'AdminShipments',
-        component: Shipments,
+        component: () => import('@/views/admin/Shipments.vue'),
         meta: { title: 'Clevora 後台管理 - 出貨管理' }
       },
       {
         path: 'customers',
         name: 'AdminCustomers',
-        component: Customers,
+        component: () => import('@/views/admin/Customers.vue'),
         meta: { title: 'Clevora 後台管理 - 客戶管理' }
       },
       {
