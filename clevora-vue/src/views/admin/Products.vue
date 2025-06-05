@@ -127,10 +127,12 @@ async function loadProducts() {
     }
 
     const data = await res.json();
+    console.log('從後端接收到的原始商品數據:', data);
     products.value = data.map(p => ({
       ...p,
       categories: (p.category || "").split("#")
     }));
+    console.log('經過處理後的商品數據 (products.value):', products.value);
   } catch (error) {
     console.error('載入商品資料時發生錯誤：', error);
     if (error.response && error.response.status === 401) {
