@@ -235,9 +235,10 @@ onMounted(() => {
 
 /* 出貨編號欄位寬度縮小 */
 .table th:first-child, .table td:first-child {
-  min-width: 60px;
-  width: 60px;
-  max-width: 80px;
+  min-width: 120px;
+  width: 180px;
+  max-width: 240px;
+  white-space: nowrap;
 }
 
 /* 修改按鈕顏色為淺棕色 */

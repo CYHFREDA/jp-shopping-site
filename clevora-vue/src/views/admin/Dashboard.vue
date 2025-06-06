@@ -104,6 +104,12 @@ watch(() => userStore.admin_token, (newToken) => {
     fetchDashboard();
   }
 });
+
+watch([startDate, endDate], ([newStart, newEnd], [oldStart, oldEnd]) => {
+  if (newStart && newEnd && (newStart !== oldStart || newEnd !== oldEnd)) {
+    fetchDashboard();
+  }
+});
 </script>
 
 <style scoped>
