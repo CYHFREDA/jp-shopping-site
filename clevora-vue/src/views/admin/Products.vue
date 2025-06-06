@@ -450,10 +450,10 @@ function formatDateTime(dt) {
 
 /* 表格樣式優化 */
 .table {
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(56,48,46,0.10);
+  border: 1px solid #e9e0d8;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(56,48,46,0.08);
-  background: #fff;
   margin-bottom: 1.5rem;
 }
 
@@ -472,7 +472,7 @@ function formatDateTime(dt) {
 }
 
 .table-striped tbody tr:nth-of-type(even) {
-  background-color: #f8f9fa;
+  background-color: #faf7f3;
 }
 
 .table tbody tr:hover {
@@ -649,20 +649,22 @@ function formatDateTime(dt) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
   height: 32px;
 }
 
 .action-btns .btn {
   height: 32px;
-  min-width: 48px;
-  padding: 0 12px;
-  font-size: 1rem;
+  min-width: 44px;
+  padding: 0 10px;
+  font-size: 0.98rem;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  border-radius: 7px;
 }
 
 .action-btns .btn-primary {
@@ -687,18 +689,52 @@ function formatDateTime(dt) {
   box-sizing: border-box;
 }
 
-/* 商品ID欄位寬度縮小 */
+/* 商品ID欄位更窄且字體自動縮小，保持水平排列 */
 .table th:first-child, .table td:first-child {
-  min-width: 60px;
-  width: 60px;
-  max-width: 80px;
-}
-/* 名稱欄位字體再小一點 */
-.table td:nth-child(2) {
-  font-size: 0.95rem;
-}
-/* 建立時間欄位字體縮小 */
-.table td:nth-child(5) {
+  min-width: 32px;
+  width: 32px;
+  max-width: 40px;
+  text-align: center;
   font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 名稱欄位自動換行、字體再小一點 */
+.table td:nth-child(2) {
+  font-size: 0.92rem;
+  word-break: break-all;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+/* 價格、分類欄位寬度適中 */
+.table th:nth-child(3), .table td:nth-child(3) {
+  min-width: 80px;
+  text-align: right;
+}
+.table th:nth-child(4), .table td:nth-child(4) {
+  min-width: 120px;
+}
+/* 建立時間欄位字體更小、顏色偏灰 */
+.table td:nth-child(5) {
+  font-size: 0.88rem;
+  color: #a18a7b;
+}
+/* 行高拉高，偶數行底色更淡 */
+.table td, .table th {
+  line-height: 1.7;
+  vertical-align: middle;
+}
+/* 表格圓角、陰影、邊框更細緻 */
+.table {
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(56,48,46,0.10);
+  border: 1px solid #e9e0d8;
+  overflow: hidden;
+}
+/* 操作欄標題與按鈕完全置中 */
+.table th:last-child, .table td:last-child {
+  text-align: center;
+  vertical-align: middle;
 }
 </style> 
