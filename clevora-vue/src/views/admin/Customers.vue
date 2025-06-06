@@ -27,7 +27,7 @@
               <td>{{ customer.email }}</td>
               <td>{{ customer.phone }}</td>
               <td>{{ customer.address || '' }}</td>
-              <td>{{ customer.created_at }}</td>
+              <td>{{ formatDateTime(customer.created_at) }}</td>
               <td>
                 <button class="btn btn-primary btn-sm me-1" @click="editCustomer(customer.customer_id)">修改</button>
                 <button class="btn btn-warning btn-sm" @click="resetPassword(customer.customer_id)">重置密碼</button>
@@ -160,6 +160,14 @@ async function resetPassword(customerId) {
     console.error('重置密碼時發生錯誤：', error);
     displayErrorMessage.value = '❌ 重置密碼時發生未知錯誤！';
   }
+}
+
+function formatDateTime(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return dt;
+  const pad = n => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 onMounted(() => {

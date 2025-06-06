@@ -5,11 +5,13 @@
     <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
       {{ displayMessage }}
     </div>
-    <div class="row g-2 mb-3">
-      <div class="col-md-6"><input v-model="newAdmin.username" class="form-control" placeholder="使用者名稱"></div>
-      <div class="col-md-6"><input v-model="newAdmin.password" type="password" class="form-control" placeholder="密碼"></div>
+    <div class="row g-2 mb-3 align-items-end">
+      <div class="col-md-4"><input v-model="newAdmin.username" class="form-control" placeholder="使用者名稱"></div>
+      <div class="col-md-4"><input v-model="newAdmin.password" type="password" class="form-control" placeholder="密碼"></div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-success w-100 add-admin-btn" @click="addAdmin">新增使用者</button>
+      </div>
     </div>
-    <button class="btn btn-success w-100 mb-3" @click="addAdmin">新增使用者</button>
     <div class="table-responsive">
       <table class="table table-striped table-bordered">
         <thead class="table-dark">
@@ -453,4 +455,15 @@ tr.admin-row {
  tr.admin-row td {
      color: var(--disabled-text); /* 確保單元格文字也是禁用顏色 */
  }
+
+.add-admin-btn {
+  height: 38px;
+  font-size: 0.97rem;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
 </style> 

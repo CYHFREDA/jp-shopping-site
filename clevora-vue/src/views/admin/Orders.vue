@@ -22,11 +22,11 @@
           <tbody>
             <tr v-for="order in orders" :key="order.order_id">
               <td>{{ order.order_id }}</td>
-              <td>NT$ {{ order.amount }}</td>
+              <td><span class="price-currency">NT$</span> {{ order.amount }}</td>
               <td>{{ order.item_names ? order.item_names : '無商品內容' }}</td>
               <td>{{ order.status }}</td>
-              <td>{{ order.created_at }}</td>
-              <td>{{ order.paid_at || '尚未付款' }}</td>
+              <td>{{ formatDateTime(order.created_at) }}</td>
+              <td>{{ order.paid_at ? formatDateTime(order.paid_at) : '尚未付款' }}</td>
             </tr>
           </tbody>
         </table>
@@ -91,6 +91,14 @@ const loadOrders = async () => {
   }
 };
 
+function formatDateTime(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return dt;
+  const pad = n => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 onMounted(() => {
   loadOrders();
 });
@@ -123,16 +131,17 @@ onMounted(() => {
 }
 
 .table th, .table td {
-  padding: 16px 18px;
+  padding: 10px 14px;
   vertical-align: middle;
   border-top: 1px solid #f0eae6;
+  font-size: 0.92rem;
 }
 
 .table thead th {
   background: #38302e;
   color: #fff;
   font-weight: bold;
-  font-size: 1.08rem;
+  font-size: 0.97rem;
   border-bottom: 2px solid #a18a7b;
 }
 
@@ -146,7 +155,7 @@ onMounted(() => {
 }
 
 .table td {
-  font-size: 1.05rem;
+  font-size: 0.97rem;
   color: #38302e;
 }
 
@@ -156,6 +165,7 @@ h2 {
   border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
   padding-bottom: 10px; /* 標題與線的間距 */
   margin-bottom: 20px; /* 標題與內容的間距 */
+  font-size: 1.18rem;
 }
 
 /* 載入中和無資料提示文字樣式 */
@@ -169,6 +179,14 @@ h2 {
   .table-responsive .table {
     /* 在小螢幕上可以考慮不顯示部分欄位或堆疊顯示 */
   }
+}
+
+.price-currency {
+  font-size: 0.82em;
+  color: #a18a7b;
+  margin-right: 2px;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 </style>
