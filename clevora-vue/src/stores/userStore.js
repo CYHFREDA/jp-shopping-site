@@ -115,6 +115,11 @@ export const useUserStore = defineStore('user', () => {
     user.value = null;
     clearInactivityTimer();
     removeActivityListeners();
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('expire_at');
+    if (source === 'inactivity') {
+      window.dispatchEvent(new CustomEvent('inactivity-logout', { detail: { type: 'admin' } }));
+    }
     router.push('/admin/login'); // Explicitly push to login on logout
   }
 

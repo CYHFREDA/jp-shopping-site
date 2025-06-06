@@ -13,41 +13,6 @@ const cartStore = useCartStore();
 const customerStore = useCustomerStore();
 const userStore = useUserStore();
 
-let inactivityTimer;
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 分鐘 (毫秒)
-const showInactivityAlert = ref(false);
-
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  // 會員或管理員登入時才啟動
-  if (customerStore.isAuthenticated || userStore.isAuthenticated) {
-    inactivityTimer = setTimeout(() => {
-      if (customerStore.isAuthenticated) {
-        customerStore.logout();
-      }
-      if (userStore.isAuthenticated) {
-        userStore.logout();
-      }
-      showInactivityAlert.value = true;
-    }, INACTIVITY_TIMEOUT);
-  }
-}
-
-function setupActivityListeners() {
-  window.addEventListener('mousemove', resetInactivityTimer);
-  window.addEventListener('keydown', resetInactivityTimer);
-  window.addEventListener('click', resetInactivityTimer);
-  window.addEventListener('scroll', resetInactivityTimer);
-}
-
-function removeActivityListeners() {
-  clearTimeout(inactivityTimer);
-  window.removeEventListener('mousemove', resetInactivityTimer);
-  window.removeEventListener('keydown', resetInactivityTimer);
-  window.removeEventListener('click', resetInactivityTimer);
-  window.removeEventListener('scroll', resetInactivityTimer);
-}
-
 // 返回頂部按鈕
 const showBackToTop = ref(false);
 function handleScroll() {
@@ -57,19 +22,26 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+const showInactivityAlert = ref(false);
+const inactivityType = ref('customer');
+
+function handleInactivityLogout(e) {
+  inactivityType.value = e.detail?.type || 'customer';
+  showInactivityAlert.value = true;
+}
+
 // 在應用啟動時初始化緩存清理、載入購物車，並設定自動登出計時器
 onMounted(() => {
   clearCache.init();
   cartStore.loadCart();
-  setupActivityListeners();
-  resetInactivityTimer(); // Initial call to start the timer
   window.addEventListener('scroll', handleScroll);
+  window.addEventListener('inactivity-logout', handleInactivityLogout);
 });
 
 // 在組件卸載時清除事件監聽器
 onUnmounted(() => {
-  removeActivityListeners();
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('inactivity-logout', handleInactivityLogout);
 });
 </script>
 
@@ -92,7 +64,6 @@ onUnmounted(() => {
         <path d="M12 8L8 12H11V16H13V12H16L12 8Z" fill="white"/>
       </svg>
     </button>
-    <!-- 閒置自動登出通知 -->
     <div v-if="showInactivityAlert" class="inactivity-alert">
       <span>⏰ 已閒置 30 分鐘，自動登出！請重新登入。</span>
       <button class="inactivity-confirm-btn" @click="showInactivityAlert = false">確認</button>

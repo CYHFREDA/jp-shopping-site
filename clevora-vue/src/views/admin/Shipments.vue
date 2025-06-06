@@ -36,7 +36,11 @@
       </div>
       <!-- 手機版卡片 -->
       <div class="d-block d-md-none">
-        <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id" />
+        <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
+          <template #actions="{ item }">
+            <button class="btn btn-sm btn-brown" @click="editShipment(item.shipment_id)">修改</button>
+          </template>
+        </AdminCardList>
       </div>
     </div>
   </div>

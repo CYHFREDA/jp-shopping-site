@@ -80,6 +80,9 @@ export const useCustomerStore = defineStore('customer', () => {
     localStorage.removeItem('customer_expire_at');
     removeActivityListeners();
     clearInactivityTimer();
+    if (source === 'inactivity') {
+      window.dispatchEvent(new CustomEvent('inactivity-logout', { detail: { type: 'customer' } }));
+    }
   }
 
   // 新增日誌用於偵錯
