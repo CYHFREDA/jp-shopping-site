@@ -578,5 +578,6 @@ async function saveEditProduct() {
 .modal-backdrop {
   z-index: 1040 !important;
   pointer-events: none !important;
+  background: transparent !important;
 }
 </style> 
