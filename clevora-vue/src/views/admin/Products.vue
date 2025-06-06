@@ -398,6 +398,16 @@ async function saveEditProduct() {
   background-color: var(--white); /* 使用白色背景 */
 }
 
+/* 商品管理表格美化：字體變小、欄寬變大 */
+.table th, .table td {
+  font-size: 0.98rem;
+  padding: 14px 22px;
+  min-width: 110px;
+}
+.table thead th {
+  font-size: 1.02rem;
+}
+
 /* 表格樣式優化 */
 .table {
   border-radius: 12px;
@@ -554,7 +564,7 @@ async function saveEditProduct() {
 }
 
 .products-page-center {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto;
   padding-top: 24px;
 }

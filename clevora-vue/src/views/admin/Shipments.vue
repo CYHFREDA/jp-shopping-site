@@ -26,7 +26,7 @@
               <td>{{ shipment.recipient_name }}</td>
               <td>{{ shipment.address }}</td>
               <td>{{ shipment.status }}</td>
-              <td><button class="btn btn-sm btn-brown">修改</button></td>
+              <td><button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button></td>
             </tr>
             <tr v-if="shipments.length === 0">
               <td colspan="6" class="text-center text-muted">沒有找到出貨資料。</td>
@@ -38,10 +38,44 @@
       <div class="d-block d-md-none">
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
-            <button class="btn btn-sm btn-brown" @click="editShipment(item.shipment_id)">修改</button>
+            <button class="btn btn-sm btn-brown" @click="openEditModal(item)">修改</button>
           </template>
         </AdminCardList>
       </div>
+    </div>
+    <!-- 編輯出貨 Modal -->
+    <div class="modal fade" :class="{ show: showEditModal }" tabindex="-1" style="display: block;" v-if="showEditModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">編輯出貨資料</h5>
+            <button type="button" class="btn-close" @click="closeEditModal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">收件人</label>
+              <input v-model="editShipmentData.recipient_name" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">地址</label>
+              <input v-model="editShipmentData.address" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">狀態</label>
+              <select v-model="editShipmentData.status" class="form-control">
+                <option value="pending">pending</option>
+                <option value="shipped">shipped</option>
+                <option value="completed">completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" @click="closeEditModal">取消</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="saveEditShipment">儲存</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
     </div>
   </div>
 </template>
@@ -57,6 +91,8 @@ const userStore = useUserStore();
 const displayErrorMessage = ref('');
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 const isLoading = ref(true);
+const showEditModal = ref(false);
+const editShipmentData = ref({ shipment_id: '', recipient_name: '', address: '', status: '' });
 
 const cardFields = [
   { key: 'shipment_id', label: '出貨單ID' },
@@ -95,53 +131,43 @@ async function loadShipments() {
   }
 }
 
-async function editShipment(shipmentId) {
-  const shipmentToEdit = shipments.value.find(s => s.shipment_id === shipmentId);
-  if (!shipmentToEdit) return;
+function openEditModal(shipment) {
+  editShipmentData.value = { ...shipment };
+  showEditModal.value = true;
+}
 
-  const recipient_name = prompt("請輸入收件人姓名：", shipmentToEdit.recipient_name);
-  if (!recipient_name) { displayErrorMessage.value = "❌ 請輸入收件人姓名！"; return; }
+function closeEditModal() {
+  showEditModal.value = false;
+}
 
-  const address = prompt("請輸入收件人地址：", shipmentToEdit.address);
-  if (!address) { displayErrorMessage.value = "❌ 請輸入收件人地址！"; return; }
-
-  const status = prompt("請輸入狀態（pending, shipped, completed）：", shipmentToEdit.status);
-  if (!status) { displayErrorMessage.value = "❌ 請輸入狀態！"; return; }
-
+async function saveEditShipment() {
+  const { shipment_id, recipient_name, address, status } = editShipmentData.value;
+  if (!recipient_name || !address || !status) {
+    displayErrorMessage.value = '❌ 請填寫完整資料！';
+    return;
+  }
   const token = userStore.admin_token;
   if (!token) {
-     console.error('未找到認證 token！');
-     displayErrorMessage.value = '❌ 請先登入！';
-     return;
+    displayErrorMessage.value = '❌ 請先登入！';
+    return;
   }
-
   try {
     const res = await api.post('/api/admin/update_shipment', {
-      shipment_id: shipmentId,
-      recipient_name: recipient_name,
-      address: address,
-      status: status
+      shipment_id,
+      recipient_name,
+      address,
+      status
     });
-
     const result = res.data;
-
     if (res.status === 200) {
-       displayErrorMessage.value = result.message || '✅ 出貨資料更新成功！';
-       loadShipments();
+      displayErrorMessage.value = result.message || '✅ 出貨資料更新成功！';
+      loadShipments();
+      showEditModal.value = false;
     } else {
-       console.error('更新出貨資料失敗：', result);
-       displayErrorMessage.value = result.error || '❌ 更新出貨資料失敗！';
+      displayErrorMessage.value = result.error || '❌ 更新出貨資料失敗！';
     }
-
   } catch (error) {
-    console.error('更新出貨資料時發生錯誤：', error);
-    if (error.response && error.response.data && error.response.data.error) {
-        displayErrorMessage.value = error.response.data.error;
-     } else if (error.response && error.response.status === 401) {
-        displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
-     } else {
-        displayErrorMessage.value = '❌ 更新出貨資料時發生未知錯誤！';
-     }
+    displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 更新出貨資料失敗！';
   }
 }
 
