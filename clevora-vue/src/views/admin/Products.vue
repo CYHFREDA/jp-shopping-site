@@ -24,14 +24,10 @@
         </div>
         
         <div class="category-checkboxes mb-3 col-12">
-          <label><input type="checkbox" v-model="newProduct.categories" value="flashsale" class="category-checkbox"> 限時搶購</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="sale" class="category-checkbox"> 限定SALE</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="japan_medicine" class="category-checkbox"> 日本藥品</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="food_drink" class="category-checkbox"> 食品/飲料/酒</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="beauty" class="category-checkbox"> 美妝/美髮/肌膚護理</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="men" class="category-checkbox"> 男士用品</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="home" class="category-checkbox"> 生活家用/沐浴&身體</label>
-          <label><input type="checkbox" v-model="newProduct.categories" value="baby" class="category-checkbox"> 親子育兒</label>
+          <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
+            <input type="checkbox" v-model="newProduct.categories" :value="key" />
+            <span>{{ label }}</span>
+          </label>
         </div>
         <div class="col-12 text-end mb-4">
           <button class="btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
@@ -58,12 +54,12 @@
               <td>NT$ {{ product.price }}</td>
               <td>
                 <span v-if="product.category">
-                  <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ cat }}</span>
+                  <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ categoryMap[cat] || cat }}</span>
                 </span>
               </td>
               <td>{{ product.created_at }}</td>
               <td class="text-end">
-                <button class="btn btn-primary btn-sm me-1" @click="handleSaveProduct(product)">編輯</button>
+                <button class="btn btn-primary btn-sm me-1" @click="openEditModal(product)">編輯</button>
                 <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
               </td>
             </tr>
@@ -78,11 +74,54 @@
         <AdminCardList :items="products" :fields="cardFields" key-field="id" />
       </div>
     </div>
+
+    <!-- 編輯商品 Modal -->
+    <div class="modal fade" :class="{ show: showEditModal }" tabindex="-1" style="display: block;" v-if="showEditModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">編輯商品</h5>
+            <button type="button" class="btn-close" @click="closeEditModal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">商品名稱</label>
+              <input v-model="editProduct.name" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">價格</label>
+              <input v-model="editProduct.price" type="number" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">商品描述</label>
+              <input v-model="editProduct.description" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">圖片網址</label>
+              <input v-model="editProduct.image_url" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">分類</label>
+              <div class="category-checkboxes">
+                <label v-for="(label, key) in categoryMap" :key="key" class="me-3">
+                  <input type="checkbox" v-model="editProduct.categories" :value="key" class="category-checkbox" /> {{ label }}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" @click="closeEditModal">取消</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="saveEditProduct">儲存</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
 import AdminCardList from '@/components/AdminCardList.vue';
@@ -106,6 +145,27 @@ const cardFields = [
   { key: 'category', label: '分類' },
   { key: 'created_at', label: '建立時間' },
 ];
+
+const categoryMap = {
+  flashsale: '限時搶購',
+  sale: '限定SALE',
+  japan_medicine: '日本藥品',
+  food_drink: '食品/飲料/酒',
+  beauty: '美妝/美髮/肌膚護理',
+  men: '男士用品',
+  home: '生活家用/沐浴&身體',
+  baby: '親子育兒'
+};
+
+const showEditModal = ref(false);
+const editProduct = reactive({
+  id: '',
+  name: '',
+  price: '',
+  description: '',
+  image_url: '',
+  categories: []
+});
 
 onMounted(() => {
   loadProducts();
@@ -287,6 +347,35 @@ async function handleDeleteProduct(id) {
     }
   }
 }
+
+function openEditModal(product) {
+  editProduct.id = product.id;
+  editProduct.name = product.name;
+  editProduct.price = product.price;
+  editProduct.description = product.description;
+  editProduct.image_url = product.image_url;
+  // 支援陣列或字串
+  editProduct.categories = Array.isArray(product.category)
+    ? [...product.category]
+    : (product.category ? product.category.split('#') : []);
+  showEditModal.value = true;
+}
+
+function closeEditModal() {
+  showEditModal.value = false;
+}
+
+async function saveEditProduct() {
+  await handleSaveProduct({
+    id: editProduct.id,
+    name: editProduct.name,
+    price: editProduct.price,
+    description: editProduct.description,
+    image_url: editProduct.image_url,
+    categories: editProduct.categories
+  });
+  showEditModal.value = false;
+}
 </script>
 
 <style scoped>
@@ -442,5 +531,48 @@ async function handleDeleteProduct(id) {
   padding: 4px 10px;
   border-radius: 12px;
   display: inline-block;
+}
+
+.modal {
+  display: block;
+  background: rgba(0,0,0,0.2);
+  z-index: 1050;
+}
+.modal-backdrop {
+  z-index: 1040;
+}
+
+.category-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.category-tag {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 16px;
+  background: #f3edea;
+  color: #38302e;
+  border: 1px solid #a18a7b;
+  padding: 4px 14px;
+  font-size: 1rem;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  user-select: none;
+}
+.category-tag input[type='checkbox'] {
+  display: none;
+}
+.category-tag input[type='checkbox']:checked + span {
+  background: #a18a7b;
+  color: #fff;
+  border-color: #a18a7b;
+  border-radius: 16px;
+  padding: 4px 14px;
+}
+.category-tag span {
+  padding: 0 2px;
+  border-radius: 16px;
+  transition: background 0.2s, color 0.2s;
 }
 </style> 
