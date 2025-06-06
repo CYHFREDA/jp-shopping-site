@@ -207,16 +207,15 @@ onMounted(() => {
 }
 
 .table th, .table td {
-  padding: 16px 18px;
-  vertical-align: middle;
-  border-top: 1px solid #f0eae6;
+  font-size: 0.93rem;
+  padding: 12px 18px;
 }
 
 .table thead th {
+  font-size: 0.98rem;
   background: #38302e;
   color: #fff;
   font-weight: bold;
-  font-size: 1.08rem;
   border-bottom: 2px solid #a18a7b;
 }
 

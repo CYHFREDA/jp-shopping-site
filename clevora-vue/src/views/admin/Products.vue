@@ -30,7 +30,7 @@
           </label>
         </div>
         <div class="col-12 text-end mb-4">
-          <button class="btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
+          <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
         </div>
       </div>
       
@@ -59,8 +59,10 @@
               </td>
               <td>{{ product.created_at }}</td>
               <td class="text-end">
-                <button class="btn btn-primary btn-sm me-1" @click="openEditModal(product)">編輯</button>
-                <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
+                <div class="action-btns">
+                  <button class="btn btn-primary btn-sm me-1" @click="openEditModal(product)">編輯</button>
+                  <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
+                </div>
               </td>
             </tr>
             <tr v-if="products.length === 0">
@@ -589,5 +591,29 @@ async function saveEditProduct() {
   z-index: 1040 !important;
   pointer-events: none !important;
   background: transparent !important;
+}
+
+/* 新增商品按鈕靠右且更融入整體排版 */
+.add-product-btn {
+  float: right;
+  margin-bottom: 16px;
+  margin-right: 8px;
+  background: var(--dark-brown);
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  border: none;
+  transition: background 0.2s;
+}
+.add-product-btn:hover {
+  background: var(--accent-brown);
+}
+
+/* 編輯、刪除按鈕並排顯示，間距更小 */
+.action-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 </style> 
