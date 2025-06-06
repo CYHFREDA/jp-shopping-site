@@ -211,8 +211,8 @@ onMounted(() => {
 }
 
 .table th, .table td {
-  font-size: 0.93rem;
-  padding: 12px 18px;
+  font-size: 0.92rem;
+  padding: 10px 14px;
 }
 
 .table thead th {
