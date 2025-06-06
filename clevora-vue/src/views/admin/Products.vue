@@ -53,7 +53,7 @@
                   <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ categoryMap[cat] || cat }}</span>
                 </span>
               </td>
-              <td>{{ product.created_at }}</td>
+              <td>{{ formatDateTime(product.created_at) }}</td>
               <td class="text-end">
                 <div class="action-btns">
                   <button class="btn btn-primary btn-sm me-1" @click="openEditModal(product)">編輯</button>
@@ -408,6 +408,14 @@ function changePage(page) {
 watch([pageSize, products], () => {
   currentPage.value = 1;
 });
+
+function formatDateTime(dt) {
+  if (!dt) return '';
+  // 只取到秒，去掉T和小數點
+  const [date, time] = dt.split('T');
+  if (!time) return dt;
+  return date + ' ' + time.split('.')[0];
+}
 </script>
 
 <style scoped>
@@ -677,5 +685,20 @@ watch([pageSize, products], () => {
   height: 38px !important;
   font-size: 1rem;
   box-sizing: border-box;
+}
+
+/* 商品ID欄位寬度縮小 */
+.table th:first-child, .table td:first-child {
+  min-width: 60px;
+  width: 60px;
+  max-width: 80px;
+}
+/* 名稱欄位字體再小一點 */
+.table td:nth-child(2) {
+  font-size: 0.95rem;
+}
+/* 建立時間欄位字體縮小 */
+.table td:nth-child(5) {
+  font-size: 0.92rem;
 }
 </style> 
