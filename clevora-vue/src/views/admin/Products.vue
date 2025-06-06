@@ -36,8 +36,38 @@
     
     <button class="btn btn-success w-100 mb-3" @click="handleAddProduct">新增商品</button>
     
-    <!-- 商品列表 -->
-    <div class="table-responsive">
+    <!-- 桌機版商品表格 -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>名稱</th>
+            <th>價格</th>
+            <th>分類</th>
+            <th>建立時間</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="product in products" :key="product.id">
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>NT$ {{ product.price }}</td>
+            <td>
+              <span v-if="product.category">
+                {{ product.category.split('#').join(', ') }}
+              </span>
+            </td>
+            <td>{{ product.created_at }}</td>
+          </tr>
+          <tr v-if="products.length === 0">
+            <td colspan="5" class="text-center text-muted">目前沒有商品</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 手機版卡片 -->
+    <div class="d-block d-md-none">
       <AdminCardList :items="products" :fields="cardFields" key-field="id" />
     </div>
   </div>
@@ -273,36 +303,39 @@ async function handleDeleteProduct(id) {
 
 /* 表格樣式優化 */
 .table {
-  border-collapse: separate;
-  border-spacing: 0;
-  /* 調整表格邊框顏色和樣式 */
-  border: 1px solid var(--light-grey); /* 淺灰色邊框 */
-  border-radius: 8px;
-  overflow: hidden; /* 確保圓角生效 */
-  margin-bottom: 1rem; /* 添加底部間距 */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(56,48,46,0.08);
+  background: #fff;
+  margin-bottom: 1.5rem;
 }
 
-.table th,
-.table td {
-  padding: 12px 15px; /* 調整單元格內邊距 */
-  border-top: 1px solid var(--light-grey); /* 單元格頂部邊框 */
+.table th, .table td {
+  padding: 16px 18px;
+  vertical-align: middle;
+  border-top: 1px solid #f0eae6;
 }
 
 .table thead th {
-  background-color: var(--dark-brown); /* 表頭背景色 */
-  color: var(--white); /* 表頭文字顏色 */
+  background: #38302e;
+  color: #fff;
   font-weight: bold;
-  border-bottom: 2px solid var(--light-brown); /* 表頭底部邊框 */
+  font-size: 1.08rem;
+  border-bottom: 2px solid #a18a7b;
 }
 
-/* 偶數行條紋 */
 .table-striped tbody tr:nth-of-type(even) {
-  background-color: var(--light-grey); /* 淺灰色條紋 */
+  background-color: #f8f9fa;
 }
 
-/* 懸停效果 */
 .table tbody tr:hover {
-  background-color: var(--medium-grey); /* 懸停時變色 */
+  background-color: #f3edea;
+  transition: background 0.2s;
+}
+
+.table td {
+  font-size: 1.05rem;
+  color: #38302e;
 }
 
 /* 輸入框樣式微調 */
@@ -376,7 +409,7 @@ async function handleDeleteProduct(id) {
 /* 無資料提示文字樣式 */
 .text-muted {
   font-style: italic;
-  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
+  color: #a18a7b !important;
 }
 
 /* 響應式調整表格 */

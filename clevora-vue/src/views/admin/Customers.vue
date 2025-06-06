@@ -190,36 +190,39 @@ onMounted(() => {
 
 /* 表格樣式優化 - 與 Products.vue 保持一致 */
 .table {
-  border-collapse: separate;
-  border-spacing: 0;
-  border: 1px solid var(--light-grey); /* 淺灰色邊框 */
-  border-radius: 8px;
-  overflow: hidden; /* 確保圓角生效 */
-  margin-bottom: 1rem; /* 添加底部間距 */
-  background-color: var(--white); /* 表格背景色 */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(56,48,46,0.08);
+  background: #fff;
+  margin-bottom: 1.5rem;
 }
 
-.table th,
-.table td {
-  padding: 12px 15px; /* 調整單元格內邊距 */
-  border-top: 1px solid var(--light-grey); /* 單元格頂部邊框 */
+.table th, .table td {
+  padding: 16px 18px;
+  vertical-align: middle;
+  border-top: 1px solid #f0eae6;
 }
 
 .table thead th {
-  background-color: var(--dark-brown); /* 表頭背景色 */
-  color: var(--white); /* 表頭文字顏色 */
+  background: #38302e;
+  color: #fff;
   font-weight: bold;
-  border-bottom: 2px solid var(--light-brown); /* 表頭底部邊框 */
+  font-size: 1.08rem;
+  border-bottom: 2px solid #a18a7b;
 }
 
-/* 偶數行條紋 */
 .table-striped tbody tr:nth-of-type(even) {
-  background-color: var(--light-grey); /* 淺灰色條紋 */
+  background-color: #f8f9fa;
 }
 
-/* 懸停效果 */
 .table tbody tr:hover {
-  background-color: var(--medium-grey); /* 懸停時變色 */
+  background-color: #f3edea;
+  transition: background 0.2s;
+}
+
+.table td {
+  font-size: 1.05rem;
+  color: #38302e;
 }
 
 /* 按鈕樣式微調 - 與 Products.vue 保持一致 */
@@ -266,7 +269,7 @@ onMounted(() => {
 /* 無資料提示文字樣式 */
 .text-muted {
   font-style: italic;
-  color: #6c757d !important; /* 保持灰色，與棕色調協調 */
+  color: #a18a7b !important;
 }
 </style>
 
