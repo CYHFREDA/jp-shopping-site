@@ -492,15 +492,52 @@ async function saveEditProduct() {
     color: var(--white);
 }
 
-/* 分類 checkbox 間距調整 */
-.category-checkboxes label {
-  margin-right: 15px;
-  margin-bottom: 5px; /* 添加底部間距 */
-  display: inline-block; /* 讓 label 可以在一行顯示 */
+/* 美化分類 checkbox 標籤 */
+.category-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 4px;
 }
-
-.category-checkboxes input[type="checkbox"] {
-  margin-right: 5px; /* 調整 checkbox 與文字間距 */
+.category-checkboxes label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 18px;
+  background: #f3edea;
+  color: #38302e;
+  border: 1.5px solid #a18a7b;
+  padding: 6px 18px 6px 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
+  user-select: none;
+  position: relative;
+}
+.category-checkboxes input[type='checkbox'] {
+  display: none;
+}
+.category-checkboxes input[type='checkbox']:checked + span {
+  background: #a18a7b;
+  color: #fff;
+  border-color: #a18a7b;
+  box-shadow: 0 2px 8px rgba(161, 138, 123, 0.15);
+  padding: 4px 14px;
+  border-radius: 16px;
+}
+.category-checkboxes label:hover {
+  background: #e9e0d8;
+  border-color: #c8a99a;
+}
+.category-checkboxes input[type='checkbox']:checked + span {
+  background: #a18a7b;
+  color: #fff;
+  border-color: #a18a7b;
+}
+.category-checkboxes span {
+  padding: 0 2px;
+  border-radius: 16px;
+  transition: background 0.2s, color 0.2s;
 }
 
 /* 無資料提示文字樣式 */
@@ -536,43 +573,9 @@ async function saveEditProduct() {
 .modal {
   display: block;
   background: rgba(0,0,0,0.2);
-  z-index: 1050;
+  z-index: 1051 !important;
 }
 .modal-backdrop {
-  z-index: 1040;
-}
-
-.category-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.category-tag {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 16px;
-  background: #f3edea;
-  color: #38302e;
-  border: 1px solid #a18a7b;
-  padding: 4px 14px;
-  font-size: 1rem;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-  user-select: none;
-}
-.category-tag input[type='checkbox'] {
-  display: none;
-}
-.category-tag input[type='checkbox']:checked + span {
-  background: #a18a7b;
-  color: #fff;
-  border-color: #a18a7b;
-  border-radius: 16px;
-  padding: 4px 14px;
-}
-.category-tag span {
-  padding: 0 2px;
-  border-radius: 16px;
-  transition: background 0.2s, color 0.2s;
+  z-index: 1040 !important;
 }
 </style> 
