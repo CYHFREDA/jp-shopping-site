@@ -113,7 +113,7 @@ onMounted(async () => {
   console.log('customerStore.customer:', customerStore.customer);
   
   // 確保客戶已登入且 customer_id 可用
-  if (!customerStore.isAuthenticated || !customerStore.customer?.id) {
+  if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
     error.value = '請先登入以查看訂單記錄。';
     loading.value = false;
     return;
@@ -124,7 +124,7 @@ onMounted(async () => {
 
   const loadOrders = async () => {
     try {
-      const customerId = customerStore.customer.id;
+      const customerId = customerStore.customer.customer_id;
       if (!customerId) {
         console.error('customerId 為空或 undefined，無法載入訂單。');
         error.value = '無法取得客戶ID，請重新登入。';

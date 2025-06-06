@@ -22,7 +22,7 @@
           <tbody>
             <tr v-for="order in orders" :key="order.order_id">
               <td>{{ order.order_id }}</td>
-              <td><span class="price-currency">NT$</span> {{ order.amount }}</td>
+              <td><span class="price-currency">NT$</span> <span class="nowrap">{{ order.amount }}</span></td>
               <td>{{ order.item_names ? order.item_names : '無商品內容' }}</td>
               <td>{{ order.status }}</td>
               <td>{{ formatDateTime(order.created_at) }}</td>
@@ -181,12 +181,14 @@ h2 {
   }
 }
 
+.price-currency, .nowrap {
+  white-space: nowrap;
+}
+
 .price-currency {
   font-size: 0.82em;
   color: #a18a7b;
   margin-right: 2px;
-  white-space: nowrap;
-  vertical-align: middle;
 }
 
 </style>

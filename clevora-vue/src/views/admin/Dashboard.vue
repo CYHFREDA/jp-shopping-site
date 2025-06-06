@@ -14,7 +14,16 @@
     <!-- 訂單趨勢圖表 -->
     <div class="card">
       <div class="card-body">
-        <h5 class="card-title mb-3">近七日訂單數趨勢</h5>
+        <div class="d-flex flex-wrap align-items-center mb-3 justify-content-between">
+          <h5 class="card-title mb-0">近30日訂單數趨勢</h5>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <label class="me-1">起始日</label>
+            <input type="date" v-model="startDate" class="form-control form-control-sm" style="width: 140px;">
+            <label class="mx-1">結束日</label>
+            <input type="date" v-model="endDate" class="form-control form-control-sm" style="width: 140px;">
+            <button class="btn btn-sm btn-primary ms-2" @click="fetchDashboard">查詢</button>
+          </div>
+        </div>
         <v-chart :option="orderChartOption" style="height: 320px; width: 100%" />
       </div>
     </div>
@@ -45,13 +54,24 @@ const orderChartOption = ref({
   ]
 });
 
+// 新增：日期篩選
+const today = new Date();
+const formatDate = d => d.toISOString().slice(0, 10);
+const endDate = ref(formatDate(today));
+const startDate = ref(formatDate(new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000)));
+
 async function fetchDashboard() {
   try {
     const token = userStore.admin_token;
     if (!token) return;
+    // 改為帶日期參數
     const res = await axios.get('/api/admin/dashboard_summary', {
       headers: {
         Authorization: `Bearer ${token}`
+      },
+      params: {
+        start_date: startDate.value,
+        end_date: endDate.value
       }
     });
     const data = res.data;
