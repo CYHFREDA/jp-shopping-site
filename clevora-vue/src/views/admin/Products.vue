@@ -19,18 +19,32 @@
         <div class="col-md-4">
           <input v-model="newProduct.description" class="form-control" placeholder="商品描述">
         </div>
-        <div class="col-md-3">
-          <input v-model="newProduct.image_url" class="form-control" placeholder="圖片網址 (可空)">
+        <div class="col-md-3 d-flex align-items-center">
+          <input v-model="newProduct.image_url" class="form-control me-2" placeholder="圖片網址 (可空)">
+          <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
         </div>
-        
         <div class="category-checkboxes mb-3 col-12">
           <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
             <input type="checkbox" v-model="newProduct.categories" :value="key" />
             <span>{{ label }}</span>
           </label>
         </div>
-        <div class="col-12 text-end mb-4">
-          <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
+      </div>
+      <!-- 分頁控制區 -->
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <label class="me-2">每頁顯示</label>
+          <select v-model="pageSize" class="form-select d-inline-block w-auto" style="min-width: 70px;">
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+          <span class="ms-2">項</span>
+        </div>
+        <div>
+          <button class="btn btn-outline-secondary btn-sm me-1" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一頁</button>
+          <span>第 {{ currentPage }} / {{ totalPages }} 頁</span>
+          <button class="btn btn-outline-secondary btn-sm ms-1" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一頁</button>
         </div>
       </div>
       
@@ -48,7 +62,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="product in products" :key="product.id">
+            <tr v-for="product in pagedProducts" :key="product.id">
               <td>{{ product.id }}</td>
               <td>{{ product.name }}</td>
               <td>NT$ {{ product.price }}</td>
@@ -65,7 +79,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="products.length === 0">
+            <tr v-if="pagedProducts.length === 0">
               <td colspan="6" class="text-center text-muted">目前沒有商品</td>
             </tr>
           </tbody>
@@ -123,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
 import AdminCardList from '@/components/AdminCardList.vue';
@@ -168,6 +182,14 @@ const editProduct = reactive({
   image_url: '',
   categories: []
 });
+
+const pageSize = ref(20);
+const currentPage = ref(1);
+const pagedProducts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return products.value.slice(start, start + pageSize.value);
+});
+const totalPages = computed(() => Math.ceil(products.value.length / pageSize.value) || 1);
 
 onMounted(() => {
   loadProducts();
@@ -378,6 +400,15 @@ async function saveEditProduct() {
   });
   showEditModal.value = false;
 }
+
+function changePage(page) {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+}
+
+watch([pageSize, products], () => {
+  currentPage.value = 1;
+});
 </script>
 
 <style scoped>
@@ -595,19 +626,8 @@ async function saveEditProduct() {
 
 /* 新增商品按鈕靠右且更融入整體排版 */
 .add-product-btn {
-  float: right;
-  margin-bottom: 16px;
-  margin-right: 8px;
-  background: var(--dark-brown);
-  color: #fff;
-  border-radius: 6px;
-  padding: 8px 18px;
-  font-size: 1rem;
-  border: none;
-  transition: background 0.2s;
-}
-.add-product-btn:hover {
-  background: var(--accent-brown);
+  margin-left: 8px;
+  float: none;
 }
 
 /* 編輯、刪除按鈕並排顯示，間距更小 */
@@ -615,5 +635,9 @@ async function saveEditProduct() {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.pagination {
+  margin: 0;
 }
 </style> 
