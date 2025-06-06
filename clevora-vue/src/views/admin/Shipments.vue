@@ -64,9 +64,8 @@
               <label class="form-label">狀態</label>
               <select v-model="editShipmentData.status" class="form-control">
                 <option value="pending">待出貨</option>
-                <option value="pending">pending</option>
-                <option value="shipped">shipped</option>
-                <option value="completed">completed</option>
+                <option value="shipped">已出貨</option>
+                <option value="completed">已完成</option>
               </select>
             </div>
           </div>
@@ -234,23 +233,23 @@ onMounted(() => {
   color: #38302e;
 }
 
-/* 按鈕樣式微調 - 與 Products.vue 保持一致 */
-.btn {
-  border-radius: 5px;
-  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+/* 出貨編號欄位寬度縮小 */
+.table th:first-child, .table td:first-child {
+  min-width: 60px;
+  width: 60px;
+  max-width: 80px;
 }
 
-/* 主要按鈕 (修改) */
-.btn-primary {
-  background-color: var(--light-brown); /* 主要按鈕背景色 */
-  border-color: var(--light-brown); /* 主要按鈕邊框顏色 */
-  color: var(--dark-brown); /* 主要按鈕文字顏色 */
+/* 修改按鈕顏色為淺棕色 */
+.btn-brown {
+  background-color: #a18a7b !important;
+  border-color: #a18a7b !important;
+  color: #38302e !important;
 }
-
-.btn-primary:hover {
-  background-color: var(--accent-brown); /* 主要按鈕懸停背景色 */
-  border-color: var(--accent-brown); /* 主要按鈕懸停邊框顏色 */
-  color: var(--white); /* 主要按鈕懸停文字顏色 */
+.btn-brown:hover {
+  background-color: #f3edea !important;
+  border-color: #c8a99a !important;
+  color: #38302e !important;
 }
 
 /* 標題樣式微調 - 與 Orders.vue 保持一致 */
