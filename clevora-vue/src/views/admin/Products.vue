@@ -542,27 +542,29 @@ function formatDateTime(dt) {
     color: var(--white);
 }
 
-/* 美化分類 checkbox 標籤 */
+/* 美化分類checkbox標籤，讓每行最多4個，間距一致，自動換行且整齊對齊 */
 .category-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 18px;
   margin-top: 4px;
 }
 .category-checkboxes label {
   display: flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   border-radius: 18px;
   background: #f3edea;
   color: #38302e;
   border: 1.5px solid #a18a7b;
-  padding: 6px 18px 6px 12px;
+  padding: 7px 0;
   font-size: 1rem;
   font-weight: 500;
   transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
   user-select: none;
   position: relative;
+  box-shadow: 0 1px 4px rgba(161,138,123,0.07);
 }
 .category-checkboxes input[type='checkbox'] {
   display: none;
@@ -578,16 +580,19 @@ function formatDateTime(dt) {
 .category-checkboxes label:hover {
   background: #e9e0d8;
   border-color: #c8a99a;
+  color: #38302e;
 }
-.category-checkboxes input[type='checkbox']:checked + span {
-  background: #a18a7b;
+.category-checkboxes input[type='checkbox']:checked + span:hover {
+  background: #38302e;
   color: #fff;
-  border-color: #a18a7b;
+  border-color: #38302e;
 }
 .category-checkboxes span {
   padding: 0 2px;
   border-radius: 16px;
   transition: background 0.2s, color 0.2s;
+  width: 100%;
+  text-align: center;
 }
 
 /* 無資料提示文字樣式 */
