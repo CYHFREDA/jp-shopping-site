@@ -21,6 +21,7 @@ import ProductDetail from '@/views/ProductDetail.vue';
 import NotFound from '@/views/ErrorPage.vue';
 import ProductsListingPage from '@/views/ProductsListingPage.vue';
 import EmailVerificationResult from '@/views/EmailVerificationResult.vue';
+import AdminLayout from '@/components/AdminLayout.vue';
 
 const routes = [
   {
@@ -76,8 +77,7 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'AdminDashboard',
-    component: AdminDashboard,
+    component: AdminLayout,
     meta: {
       requiresAuth: true,
       title: 'Clevora 後台管理 - 主控台'
@@ -85,7 +85,7 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'AdminDashboardHome',
+        name: 'AdminDashboard',
         component: AdminDashboard,
         meta: { title: 'Clevora 後台管理 - 主控台' }
       },
