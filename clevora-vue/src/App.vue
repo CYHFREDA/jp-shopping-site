@@ -95,7 +95,7 @@ onUnmounted(() => {
     <!-- 閒置自動登出通知 -->
     <div v-if="showInactivityAlert" class="inactivity-alert">
       <span>⏰ 已閒置 30 分鐘，自動登出！請重新登入。</span>
-      <button @click="showInactivityAlert = false">確認</button>
+      <button class="inactivity-confirm-btn" @click="showInactivityAlert = false">確認</button>
     </div>
   </div>
 </template>
@@ -163,8 +163,9 @@ onUnmounted(() => {
 
 .inactivity-alert {
   position: fixed;
-  bottom: 80px;
-  right: 24px;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
   background: #a18a7b;
   color: #fff;
   padding: 18px 32px;
@@ -173,6 +174,26 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(161,138,123,0.18);
   z-index: 9999;
   animation: fadeInUp 0.4s;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.inactivity-confirm-btn {
+  margin-left: 16px;
+  padding: 6px 22px;
+  background: #fff;
+  color: #a18a7b;
+  border: none;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(56,48,46,0.10);
+}
+.inactivity-confirm-btn:hover {
+  background: #38302e;
+  color: #fff;
 }
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(40px); }
