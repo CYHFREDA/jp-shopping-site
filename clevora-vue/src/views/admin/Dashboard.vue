@@ -59,7 +59,7 @@
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import AdminNavbar from '@/components/AdminNavbar.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { use } from 'echarts/core';
 import VChart from 'vue-echarts';
@@ -85,9 +85,16 @@ const orderChartOption = ref({
   ]
 });
 
-onMounted(async () => {
+// 封裝 API 請求
+async function fetchDashboard() {
   try {
-    const res = await axios.get('/api/dashboard/summary');
+    const token = userStore.admin_token;
+    if (!token) return;
+    const res = await axios.get('/api/admin/dashboard_summary', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     const data = res.data;
     cards.value = [
       { title: '今日訂單數', value: data.todayOrder },
@@ -103,8 +110,19 @@ onMounted(async () => {
       ]
     };
   } catch (e) {
-    // 可以加錯誤提示
     console.error('載入儀表板資料失敗', e);
+  }
+}
+
+onMounted(() => {
+  if (userStore.admin_token) {
+    fetchDashboard();
+  }
+});
+
+watch(() => userStore.admin_token, (newToken) => {
+  if (newToken) {
+    fetchDashboard();
   }
 });
 

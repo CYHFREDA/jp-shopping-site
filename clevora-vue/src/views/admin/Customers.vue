@@ -43,10 +43,20 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
+import AdminCardList from '@/components/AdminCardList.vue';
 
 const customers = ref([]);
 const userStore = useUserStore();
 const displayErrorMessage = ref('');
+
+const cardFields = [
+  { key: 'customer_id', label: '客戶ID' },
+  { key: 'name', label: '姓名' },
+  { key: 'email', label: 'Email' },
+  { key: 'phone', label: '電話' },
+  { key: 'address', label: '地址' },
+  { key: 'created_at', label: '註冊時間' },
+];
 
 async function loadCustomers() {
   displayErrorMessage.value = '';
@@ -247,4 +257,6 @@ onMounted(() => {
   font-style: italic;
   color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
-</style> 
+</style>
+
+<AdminCardList :items="customers" :fields="cardFields" key-field="customer_id" /> 

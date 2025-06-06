@@ -6,7 +6,8 @@
       {{ displayErrorMessage }}
     </div>
     <div v-else>
-      <div class="table-responsive">
+      <!-- 桌機版表格 -->
+      <div class="table-responsive d-none d-md-block">
         <table class="table table-striped table-bordered">
           <thead>
             <tr>
@@ -30,6 +31,8 @@
           </tbody>
         </table>
       </div>
+      <!-- 手機版共用卡片元件 -->
+      <AdminCardList :items="orders" :fields="cardFields" key-field="order_id" />
       <p v-if="orders.length === 0" class="text-center text-muted">目前沒有訂單</p>
     </div>
   </div>
@@ -40,11 +43,21 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
+import AdminCardList from '@/components/AdminCardList.vue';
 
 const router = useRouter();
 const orders = ref([]);
 const isLoading = ref(true);
 const userStore = useUserStore();
+
+const cardFields = [
+  { key: 'order_id', label: '訂單編號' },
+  { key: 'amount', label: '金額', formatter: (v) => `NT$ ${v}` },
+  { key: 'item_names', label: '商品內容' },
+  { key: 'status', label: '狀態' },
+  { key: 'created_at', label: '建立時間' },
+  { key: 'paid_at', label: '付款時間', formatter: (v) => v || '尚未付款' },
+];
 
 const loadOrders = async () => {
   const token = userStore.admin_token;

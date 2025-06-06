@@ -40,11 +40,21 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
+import AdminCardList from '@/components/AdminCardList.vue';
 
 const shipments = ref([]);
 const userStore = useUserStore();
 const displayErrorMessage = ref('');
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+
+const cardFields = [
+  { key: 'shipment_id', label: '出貨單ID' },
+  { key: 'order_id', label: '訂單編號' },
+  { key: 'recipient_name', label: '收件人' },
+  { key: 'address', label: '地址' },
+  { key: 'status', label: '狀態' },
+  { key: 'created_at', label: '建立時間' },
+];
 
 async function loadShipments() {
   displayErrorMessage.value = '';
@@ -215,4 +225,6 @@ onMounted(() => {
   font-style: italic;
   color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
-</style> 
+</style>
+
+<AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id" /> 

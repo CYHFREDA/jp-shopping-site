@@ -13,7 +13,8 @@
     <div v-else-if="orders.length === 0" class="text-center text-muted empty-message">您還沒有任何訂單。</div>
 
     <div v-else>
-      <div class="table-responsive">
+      <!-- 桌機版表格 -->
+      <div class="table-responsive d-none d-md-block">
         <table class="table table-bordered table-striped align-middle order-history-table">
           <thead>
             <tr>
@@ -49,6 +50,39 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- 手機版卡片 -->
+      <div class="d-block d-md-none">
+        <div v-for="order in orders" :key="order.order_id" class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <strong>訂單編號：</strong>{{ order.order_id }}
+              </div>
+              <span class="badge"
+                :class="{
+                  'bg-secondary': order.status === 'pending',
+                  'bg-success': order.status === 'success',
+                  'bg-danger': order.status === 'fail'
+                }"
+              >
+                {{ order.status === 'pending' ? '待處理' : order.status === 'success' ? '成功' : '失敗' }}
+              </span>
+            </div>
+            <div class="mb-2">
+              <strong>訂單日期：</strong>{{ formatDateTime(order.created_at) }}
+            </div>
+            <div class="mb-2">
+              <strong>總金額：</strong>NT$ {{ order.amount }}
+            </div>
+            <div class="mb-2">
+              <strong>商品清單：</strong>
+              <ul class="list-unstyled mb-0">
+                <li v-for="item in (order.item_names?.split('#') || [])" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>

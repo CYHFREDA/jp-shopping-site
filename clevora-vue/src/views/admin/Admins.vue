@@ -39,6 +39,7 @@
         </tbody>
       </table>
     </div>
+    <AdminCardList :items="admins" :fields="cardFields" key-field="id" />
   </div>
 </template>
 
@@ -46,6 +47,7 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
+import AdminCardList from '@/components/AdminCardList.vue';
 
 const admins = ref([]);
 const userStore = useUserStore();
@@ -55,6 +57,13 @@ const newAdmin = ref({
   username: '',
   password: '',
 });
+
+const cardFields = [
+  { key: 'id', label: '管理員ID' },
+  { key: 'username', label: '帳號' },
+  { key: 'created_at', label: '建立時間' },
+  { key: 'notes', label: '備註' },
+];
 
 onMounted(() => {
   loadAdmins();

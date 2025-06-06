@@ -1106,3 +1106,60 @@ async def resend_verification_email_endpoint(request: Request, cursor=Depends(ge
     except Exception as e:
         print(f"❌ [重新發送驗證信] 發生錯誤：{e}")
         return JSONResponse({"error": "內部伺服器錯誤"}, status_code=500)
+
+# 儀表板統計 API
+@app.get("/api/admin/dashboard_summary")
+async def admin_dashboard_summary(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        # 今日訂單數
+        cursor.execute("""
+            SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURRENT_DATE
+        """)
+        today_order = cursor.fetchone()[0]
+
+        # 未付款訂單數
+        cursor.execute("""
+            SELECT COUNT(*) FROM orders WHERE status = 'pending'
+        """)
+        unpaid_order = cursor.fetchone()[0]
+
+        # 未出貨訂單數
+        cursor.execute("""
+            SELECT COUNT(*) FROM shipments WHERE status = 'pending'
+        """)
+        unshipped_order = cursor.fetchone()[0]
+
+        # 總營業額（已付款訂單）
+        cursor.execute("""
+            SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status = 'success'
+        """)
+        total_sales = float(cursor.fetchone()[0])
+
+        # 近七日訂單數
+        cursor.execute("""
+            SELECT TO_CHAR(created_at, 'MM/DD') as day, COUNT(*)
+            FROM orders
+            WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
+            GROUP BY day
+            ORDER BY day
+        """)
+        rows = cursor.fetchall()
+        date_map = {r[0]: r[1] for r in rows}
+        from datetime import datetime, timedelta
+        today = datetime.now()
+        dates = [(today - timedelta(days=i)).strftime('%m/%d') for i in range(6, -1, -1)]
+        counts = [date_map.get(d, 0) for d in dates]
+
+        return JSONResponse({
+            "todayOrder": today_order,
+            "unpaidOrder": unpaid_order,
+            "unshippedOrder": unshipped_order,
+            "totalSales": total_sales,
+            "orderChart": {
+                "dates": dates,
+                "counts": counts
+            }
+        })
+    except Exception as e:
+        print("❌ 儀表板統計 API 錯誤：", e)
+        return JSONResponse({"error": "無法取得儀表板統計資料"}, status_code=500)

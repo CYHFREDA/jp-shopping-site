@@ -38,57 +38,7 @@
     
     <!-- 商品列表 -->
     <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>名稱</th>
-            <th>價格</th>
-            <th>描述</th>
-            <th>圖片</th>
-            <th>分類</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in products" :key="product.id">
-            <td>
-              <input v-model="product.name" class="form-control form-control-sm">
-            </td>
-            <td>
-              <input v-model="product.price" type="number" class="form-control form-control-sm">
-            </td>
-            <td>
-              <input v-model="product.description" class="form-control form-control-sm">
-            </td>
-            <td>
-              <input v-model="product.image_url" class="form-control form-control-sm">
-            </td>
-            <td>
-              <div class="category-checkboxes">
-                <label><input type="checkbox" v-model="product.categories" value="flashsale"> 限時搶購</label>
-                <label><input type="checkbox" v-model="product.categories" value="sale"> 限定SALE</label>
-                <label><input type="checkbox" v-model="product.categories" value="japan_medicine"> 日本藥品</label>
-                <label><input type="checkbox" v-model="product.categories" value="food_drink"> 食品/飲料/酒</label>
-                <label><input type="checkbox" v-model="product.categories" value="beauty"> 美妝/美髮/肌膚護理</label>
-                <label><input type="checkbox" v-model="product.categories" value="men"> 男士用品</label>
-                <label><input type="checkbox" v-model="product.categories" value="home"> 生活家用/沐浴&身體</label>
-                <label><input type="checkbox" v-model="product.categories" value="baby"> 親子育兒</label>
-              </div>
-            </td>
-            <td>
-              <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">
-                刪除
-              </button>
-              <button class="btn btn-primary btn-sm" @click="handleSaveProduct(product)">
-                保存
-              </button>
-            </td>
-          </tr>
-          <tr v-if="products.length === 0">
-            <td colspan="6" class="text-center text-muted">沒有找到商品資料。</td>
-          </tr>
-        </tbody>
-      </table>
+      <AdminCardList :items="products" :fields="cardFields" key-field="id" />
     </div>
   </div>
 </template>
@@ -97,6 +47,7 @@
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import api from '@/services/api';
+import AdminCardList from '@/components/AdminCardList.vue';
 
 const products = ref([]);
 const userStore = useUserStore();
@@ -109,6 +60,14 @@ const newProduct = ref({
   image_url: '',
   categories: []
 });
+
+const cardFields = [
+  { key: 'id', label: '商品ID' },
+  { key: 'name', label: '名稱' },
+  { key: 'price', label: '價格', formatter: v => `NT$ ${v}` },
+  { key: 'category', label: '分類' },
+  { key: 'created_at', label: '建立時間' },
+];
 
 onMounted(() => {
   loadProducts();
