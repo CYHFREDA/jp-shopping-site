@@ -48,7 +48,7 @@ const router = useRouter();
 const searchQuery = ref('');
 
 function handleLogout() {
-  customerStore.logout();
+  customerStore.logout('manual');
   alert('已成功登出');
   router.push('/');
 }

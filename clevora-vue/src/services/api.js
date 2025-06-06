@@ -40,10 +40,10 @@ api.interceptors.response.use(
       
       // 如果是管理員請求返回 401，清除管理員登錄狀態
       if (error.config.url.startsWith('/api/admin')) {
-        userStore.logout();
+        userStore.logout('401');
       } else {
         // 如果是客戶請求返回 401，清除客戶登錄狀態
-        customerStore.logout();
+        customerStore.logout('401');
       }
     }
     return Promise.reject(error);

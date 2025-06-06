@@ -19,7 +19,7 @@ const userStore = useUserStore();
 
 function handleLogout() {
   if (confirm('確定要登出嗎？')) {
-    userStore.logout();
+    userStore.logout('manual');
     router.push('/admin/login');
   }
 }

@@ -107,8 +107,9 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  function logout() {
-    console.log('[UserStore] Logging out admin user.');
+  function logout(source = 'unknown') {
+    const now = new Date().toISOString();
+    console.log(`[UserStore] Logging out admin user. 來源: ${source}, 時間: ${now}`);
     admin_token.value = '';
     expire_at.value = null; // Set to null on explicit logout
     user.value = null;
