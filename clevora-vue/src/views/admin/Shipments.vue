@@ -306,4 +306,30 @@ onMounted(() => {
   border-color: #c8a99a;
   box-shadow: 0 0 0 0.15rem rgba(161, 138, 123, 0.15);
 }
+
+/* 操作欄標題置中 */
+.table th:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+/* 操作欄按鈕美化 */
+.action-btns {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+}
+.action-btns .btn {
+  height: 32px;
+  min-width: 48px;
+  padding: 0 12px;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
 </style> 
