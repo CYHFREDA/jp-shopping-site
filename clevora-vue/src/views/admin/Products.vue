@@ -46,7 +46,9 @@
             <tr v-for="product in pagedProducts" :key="product.id">
               <td>{{ product.id }}</td>
               <td>{{ product.name }}</td>
-              <td>NT$ {{ product.price }}</td>
+              <td>
+                <span class="price-currency">NT$</span> {{ product.price }}
+              </td>
               <td>
                 <span v-if="product.category">
                   <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ categoryMap[cat] || cat }}</span>
@@ -703,14 +705,12 @@ function formatDateTime(dt) {
 
 /* 商品ID欄位更窄且字體自動縮小，保持水平排列 */
 .table th:first-child, .table td:first-child {
-  min-width: 56px;
-  width: 64px;
-  max-width: 80px;
+  min-width: 80px;
+  width: 90px;
+  max-width: 120px;
   text-align: center;
   font-size: 0.88rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   letter-spacing: 0.5px;
 }
 /* 名稱欄位自動換行、字體再小一點 */
@@ -720,10 +720,12 @@ function formatDateTime(dt) {
   white-space: pre-line;
   line-height: 1.5;
 }
-/* 價格、分類欄位寬度適中 */
+/* 價格欄位寬度適中，字體縮小且不換行 */
 .table th:nth-child(3), .table td:nth-child(3) {
   min-width: 80px;
   text-align: right;
+  font-size: 0.90rem;
+  white-space: nowrap;
 }
 .table th:nth-child(4), .table td:nth-child(4) {
   min-width: 120px;
@@ -753,5 +755,13 @@ function formatDateTime(dt) {
 
 .card-title {
   font-size: 1.18rem;
+}
+
+.price-currency {
+  font-size: 0.82em;
+  color: #a18a7b;
+  margin-right: 2px;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 </style> 
