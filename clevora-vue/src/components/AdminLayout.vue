@@ -7,12 +7,6 @@
         <span class="fs-5 fw-bold">Clevora 後台</span>
       </a>
       <hr />
-      <div class="mb-2">
-        <router-link to="/" class="btn btn-outline-secondary btn-sm w-100 mb-2" style="font-weight:bold;">
-          <i class="bi bi-house-door" style="margin-right: 6px;"></i>返回Clevora首頁
-        </router-link>
-        <button class="btn btn-outline-danger btn-sm w-100" @click="handleLogout">登出</button>
-      </div>
       <ul class="nav nav-pills flex-column mb-auto mt-2">
         <li v-for="item in menu" :key="item.name" class="nav-item">
           <router-link :to="item.path" class="nav-link" :class="{ active: $route.name === item.name }">
@@ -20,6 +14,12 @@
           </router-link>
         </li>
       </ul>
+      <div class="mt-auto">
+        <router-link to="/" class="btn btn-outline-secondary btn-sm w-100 mb-2" style="font-weight:bold;">
+          <i class="bi bi-house-door" style="margin-right: 6px;"></i>返回Clevora首頁
+        </router-link>
+        <button class="btn btn-outline-danger btn-sm w-100" @click="handleLogout">登出</button>
+      </div>
     </div>
     <!-- 主內容 -->
     <div class="flex-grow-1 p-4 main-content">

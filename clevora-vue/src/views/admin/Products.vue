@@ -46,6 +46,7 @@
             <th>價格</th>
             <th>分類</th>
             <th>建立時間</th>
+            <th class="text-end">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -59,9 +60,13 @@
               </span>
             </td>
             <td>{{ product.created_at }}</td>
+            <td class="text-end">
+              <button class="btn btn-primary btn-sm me-1" @click="handleSaveProduct(product)">編輯</button>
+              <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
+            </td>
           </tr>
           <tr v-if="products.length === 0">
-            <td colspan="5" class="text-center text-muted">目前沒有商品</td>
+            <td colspan="6" class="text-center text-muted">目前沒有商品</td>
           </tr>
         </tbody>
       </table>
