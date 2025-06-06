@@ -11,16 +11,16 @@
       <!-- 新增商品表單 -->
       <div class="row g-2 mb-3 align-items-end">
         <div class="col-md-3">
-          <input v-model="newProduct.name" class="form-control" placeholder="商品名稱">
+          <input v-model="newProduct.name" class="form-control search-input" placeholder="商品名稱">
         </div>
         <div class="col-md-2">
-          <input v-model="newProduct.price" type="number" class="form-control" placeholder="價格">
+          <input v-model="newProduct.price" type="number" class="form-control search-input" placeholder="價格">
         </div>
         <div class="col-md-4">
-          <input v-model="newProduct.description" class="form-control" placeholder="商品描述">
+          <input v-model="newProduct.description" class="form-control search-input" placeholder="商品描述">
         </div>
         <div class="col-md-3 d-flex align-items-center">
-          <input v-model="newProduct.image_url" class="form-control me-2" placeholder="圖片網址 (可空)">
+          <input v-model="newProduct.image_url" class="form-control search-input me-2" placeholder="圖片網址 (可空)">
           <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
         </div>
         <div class="category-checkboxes mb-3 col-12">
@@ -30,24 +30,6 @@
           </label>
         </div>
       </div>
-      <!-- 分頁控制區 -->
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <label class="me-2">每頁顯示</label>
-          <select v-model="pageSize" class="form-select d-inline-block w-auto" style="min-width: 70px;">
-            <option :value="20">20</option>
-            <option :value="50">50</option>
-            <option :value="100">100</option>
-          </select>
-          <span class="ms-2">項</span>
-        </div>
-        <div>
-          <button class="btn btn-outline-secondary btn-sm me-1" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一頁</button>
-          <span>第 {{ currentPage }} / {{ totalPages }} 頁</span>
-          <button class="btn btn-outline-secondary btn-sm ms-1" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一頁</button>
-        </div>
-      </div>
-      
       <!-- 桌機版商品表格 -->
       <div class="table-responsive d-none d-md-block mt-4">
         <table class="table table-striped table-bordered">
@@ -84,6 +66,23 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- 分頁控制區（移到表格下方） -->
+      <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
+        <div>
+          <label class="me-2">每頁顯示</label>
+          <select v-model="pageSize" class="form-select d-inline-block w-auto page-size-select" style="min-width: 70px;">
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+          <span class="ms-2">項</span>
+        </div>
+        <div>
+          <button class="btn btn-outline-secondary btn-sm me-1" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一頁</button>
+          <span>第 {{ currentPage }} / {{ totalPages }} 頁</span>
+          <button class="btn btn-outline-secondary btn-sm ms-1" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一頁</button>
+        </div>
       </div>
       <!-- 手機版卡片 -->
       <div class="d-block d-md-none mt-4">
@@ -639,5 +638,17 @@ watch([pageSize, products], () => {
 
 .pagination {
   margin: 0;
+}
+
+/* 新增搜尋列、select、按鈕高度統一 */
+.search-input, .form-select, .add-product-btn, .page-size-select {
+  height: 38px !important;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.add-product-btn {
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
 }
 </style> 

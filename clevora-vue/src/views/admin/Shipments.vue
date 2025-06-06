@@ -266,4 +266,44 @@ onMounted(() => {
   font-style: italic;
   color: #a18a7b !important;
 }
+
+.modal-backdrop {
+  z-index: 1040 !important;
+  pointer-events: none !important;
+  background: rgba(56, 48, 46, 0.18) !important; /* 柔和棕色半透明 */
+}
+.modal {
+  z-index: 1051 !important;
+  background: none;
+}
+.modal-content {
+  background: #fffaf7;
+  border-radius: 12px;
+  border: 1.5px solid #a18a7b;
+  box-shadow: 0 8px 32px rgba(56,48,46,0.18);
+}
+.modal-header {
+  background: #f3edea;
+  border-bottom: 1px solid #e9e0d8;
+}
+.modal-title {
+  color: #a18a7b;
+  font-weight: bold;
+}
+.modal-footer {
+  background: #f3edea;
+  border-top: 1px solid #e9e0d8;
+}
+.form-control {
+  background: #fff;
+  border: 1.5px solid #a18a7b;
+  color: #38302e;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-control:focus {
+  border-color: #c8a99a;
+  box-shadow: 0 0 0 0.15rem rgba(161, 138, 123, 0.15);
+}
 </style> 
