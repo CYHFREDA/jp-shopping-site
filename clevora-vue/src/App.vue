@@ -29,15 +29,6 @@ function resetInactivityTimer() {
         userStore.logout();
       }
       showInactivityAlert.value = true;
-      // 自動 3 秒後關閉通知並導向登入
-      setTimeout(() => {
-        showInactivityAlert.value = false;
-        if (route.path.startsWith('/admin')) {
-          router.push('/admin/login');
-        } else {
-          router.push('/login');
-        }
-      }, 3000);
     }, INACTIVITY_TIMEOUT);
   }
 }
@@ -104,6 +95,7 @@ onUnmounted(() => {
     <!-- 閒置自動登出通知 -->
     <div v-if="showInactivityAlert" class="inactivity-alert">
       <span>⏰ 已閒置 30 分鐘，自動登出！請重新登入。</span>
+      <button @click="showInactivityAlert = false">確認</button>
     </div>
   </div>
 </template>

@@ -215,13 +215,25 @@ async def ecpay_notify(request: Request, cursor=Depends(get_db_cursor)):
 
         # 🟢 新增出貨資料（如果訂單是成功付款）
         if status_ == "success":
-            # 這裡假設收件人與地址等資料先隨便填，等人工在後台編輯，或者可以自己決定要不要從客戶資料表撈
+            # 先查訂單的 customer_id
+            cursor.execute("SELECT customer_id FROM orders WHERE order_id = %s", (order_id,))
+            row = cursor.fetchone()
+            customer_id = row[0] if row else None
+
+            recipient_name = '待填寫'
+            address = '待填寫'
+            if customer_id:
+                cursor.execute("SELECT name, address FROM customers WHERE customer_id = %s", (customer_id,))
+                customer = cursor.fetchone()
+                if customer:
+                    recipient_name, address = customer
+
             cursor.execute("""
                 INSERT INTO shipments (order_id, recipient_name, address, status, created_at)
                 VALUES (%s, %s, %s, %s, NOW())
-            """, (order_id, '待填寫', '待填寫', 'pending'))
+            """, (order_id, recipient_name, address, 'pending'))
             cursor.connection.commit()
-            print(f"✅ 出貨單已自動建立，order_id: {order_id}")
+            print(f"✅ 出貨單已自動建立，order_id: {order_id}, recipient: {recipient_name}, address: {address}")
 
         print(f"✅ 訂單 {order_id} 狀態已更新為：{status_}")
 
