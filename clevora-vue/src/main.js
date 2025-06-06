@@ -5,6 +5,8 @@ import piniaPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue';
 import router from './router';
 import axios from 'axios';
+import VueECharts from 'vue-echarts';
+import * as ECharts from 'echarts';
 
 // 設定 axios 的基礎 URL
 axios.defaults.baseURL = '/';
@@ -30,5 +32,8 @@ const userStore = useUserStore();
 // 但為了確保萬無一失，我們可以手動觸發 Pinia store 的初始化或確認 token 已載入
 // 這裡不需要額外的 loadUser 函數，因為 Pinia 的 setup store 在第一次 use 時就會執行
 // 我們只需要確保在 router 安裝前 Pinia 和 userStore 被使用了
+
+// 全域註冊 vue-echarts
+app.component('v-chart', VueECharts);
 
 app.mount('#app');

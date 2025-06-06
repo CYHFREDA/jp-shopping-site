@@ -65,12 +65,12 @@ SELECT cron.schedule(
 SELECT jobid, jobname, schedule, command FROM cron.job;
 -- 取消特定任務（如果要修改）
 SELECT cron.unschedule(jobid);
--- 查看排程任務：
+-- 查看所有排程任務：
 SELECT * FROM cron.job;
 
 -- 測試用 SQL
 -- 查將被刪除資料：
-SELECT * FROM orders WHERE status = 'pending' AND created_at < now() - interval '3 days';
+SELECT * FROM orders   WHERE (status = 'pending' OR status = 'false')  AND created_at < now() - interval '1 days'; 
 -- 查將清除備份：
 SELECT * FROM orders_delete_log WHERE deleted_at < now() - interval '90 days';
 

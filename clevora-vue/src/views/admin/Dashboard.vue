@@ -29,6 +29,28 @@
 
       <!-- 路由視圖 -->
       <router-view></router-view>
+
+      <!-- 儀表板區塊 -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3" v-for="card in cards" :key="card.title">
+          <div class="card text-center h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ card.title }}</h5>
+              <p class="card-text display-6">{{ card.value }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">近七日訂單數</h5>
+              <v-chart :option="orderChartOption" style="height:300px;" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -37,9 +59,54 @@
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import AdminNavbar from '@/components/AdminNavbar.vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { use } from 'echarts/core';
+import VChart from 'vue-echarts';
 
 const router = useRouter();
 const userStore = useUserStore();
+
+// 統計卡片資料
+const cards = ref([
+  { title: '今日訂單數', value: 0 },
+  { title: '未付款訂單數', value: 0 },
+  { title: '未出貨訂單數', value: 0 },
+  { title: '總營業額', value: 0 }
+]);
+
+// 折線圖資料
+const orderChartOption = ref({
+  tooltip: { trigger: 'axis' },
+  xAxis: { type: 'category', data: [] },
+  yAxis: { type: 'value' },
+  series: [
+    { name: '訂單數', type: 'line', data: [] }
+  ]
+});
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/dashboard/summary');
+    const data = res.data;
+    cards.value = [
+      { title: '今日訂單數', value: data.todayOrder },
+      { title: '未付款訂單數', value: data.unpaidOrder },
+      { title: '未出貨訂單數', value: data.unshippedOrder },
+      { title: '總營業額', value: data.totalSales }
+    ];
+    orderChartOption.value = {
+      ...orderChartOption.value,
+      xAxis: { type: 'category', data: data.orderChart.dates },
+      series: [
+        { name: '訂單數', type: 'line', data: data.orderChart.counts }
+      ]
+    };
+  } catch (e) {
+    // 可以加錯誤提示
+    console.error('載入儀表板資料失敗', e);
+  }
+});
 
 function handleLogout() {
   if (confirm('確定要登出嗎？')) {
