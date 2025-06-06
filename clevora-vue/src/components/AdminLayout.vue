@@ -6,6 +6,13 @@
         <img src="/images/LOGO.png" alt="LOGO" style="height: 40px; margin-right: 8px;" />
         <span class="fs-5 fw-bold">Clevora 後台</span>
       </a>
+      <ul class="nav nav-pills flex-column mb-2 mt-3">
+        <li class="nav-item">
+          <router-link to="/" class="nav-link" style="font-weight:bold;">
+            <i class="bi bi-house-door" style="margin-right: 8px;"></i>返回Clevora首頁
+          </router-link>
+        </li>
+      </ul>
       <hr />
       <ul class="nav nav-pills flex-column mb-auto">
         <li v-for="item in menu" :key="item.name" class="nav-item">

@@ -1,51 +1,34 @@
 <template>
-  <div>
-    <!-- 導覽列 -->
-    <AdminNavbar />
-
-    <!-- 主要內容區域 -->
-    <div class="container mt-4">
-      <!-- 上方橫向選單 -->
-      <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/orders" active-class="active">📦 訂單管理</router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/shipments" active-class="active">🚚 出貨管理</router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/customers" active-class="active">👥 客戶管理</router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/products" active-class="active">🛍️ 商品管理</router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/admins" active-class="active">👤 使用者管理</router-link>
-        </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/admin/settings" active-class="active">⚙️ 系統設定</router-link>
-        </li>
-      </ul>
-
-      <!-- 路由視圖 -->
-      <router-view></router-view>
+  <div class="dashboard-container">
+    <!-- 數據卡片區 -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3" v-for="card in cards" :key="card.title">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h5 class="card-title">{{ card.title }}</h5>
+            <p class="card-text display-6 fw-bold">{{ card.value }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 訂單趨勢圖表 -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">近七日訂單數趨勢</h5>
+        <v-chart :option="orderChartOption" style="height: 320px; width: 100%" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore';
-import AdminNavbar from '@/components/AdminNavbar.vue';
 import { ref, onMounted, watch } from 'vue';
+import { useUserStore } from '@/stores/userStore';
 import axios from 'axios';
-import { use } from 'echarts/core';
 import VChart from 'vue-echarts';
 
-const router = useRouter();
 const userStore = useUserStore();
 
-// 統計卡片資料
 const cards = ref([
   { title: '今日訂單數', value: 0 },
   { title: '未付款訂單數', value: 0 },
@@ -53,7 +36,6 @@ const cards = ref([
   { title: '總營業額', value: 0 }
 ]);
 
-// 折線圖資料
 const orderChartOption = ref({
   tooltip: { trigger: 'axis' },
   xAxis: { type: 'category', data: [] },
@@ -63,7 +45,6 @@ const orderChartOption = ref({
   ]
 });
 
-// 封裝 API 請求
 async function fetchDashboard() {
   try {
     const token = userStore.admin_token;
@@ -103,51 +84,14 @@ watch(() => userStore.admin_token, (newToken) => {
     fetchDashboard();
   }
 });
-
-function handleLogout() {
-  if (confirm('確定要登出嗎？')) {
-    userStore.logout();
-    router.push('/admin/login');
-  }
-}
 </script>
 
 <style scoped>
-.navbar {
-  padding: 0.5rem 1rem;
+.dashboard-container {
+  max-width: 1100px;
+  margin: 0 auto;
 }
-
-.navbar-brand img {
-  height: 40px;
+.card-title {
+  color: #a18a7b;
 }
-
-.nav-tabs {
-  border-bottom: 1px solid var(--light-brown); /* 調整底部邊框顏色 */
-}
-
-.nav-tabs .nav-link {
-  color: var(--dark-brown); /* 非激活鏈接文字顏色 */
-  border: none;
-  padding: 0.75rem 1.25rem;
-  margin-right: 0.5rem;
-  transition: color 0.3s ease, background-color 0.3s ease;
-}
-
-.nav-tabs .nav-link.active {
-  color: var(--white); /* 激活鏈接文字顏色 */
-  border-bottom: 2px solid var(--light-brown); /* 激活底部邊框顏色 */
-  background-color: var(--light-brown); /* 激活背景色 */
-  font-weight: bold;
-}
-
-.nav-tabs .nav-link:hover {
-  color: var(--light-brown); /* 懸停時文字顏色 */
-  background-color: var(--light-grey); /* 懸停時淺色背景 */
-  border-color: transparent;
-}
-
-/* 可以針對整個 Dashboard 容器添加一些基礎樣式 */
-/* 例如：背景色、字體等 */
-/* body { font-family: 'Arial', sans-serif; } */
-/* .container { background-color: #fff; } */
 </style> 
