@@ -4,34 +4,40 @@
     <div v-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
       {{ displayErrorMessage }}
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>出貨編號</th>
-            <th>訂單編號</th>
-            <th>收件人</th>
-            <th>地址</th>
-            <th>狀態</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="shipment in shipments" :key="shipment.shipment_id">
-            <td>{{ shipment.shipment_id }}</td>
-            <td>{{ shipment.order_id }}</td>
-            <td>{{ shipment.recipient_name }}</td>
-            <td>{{ shipment.address }}</td>
-            <td>{{ shipment.status }}</td>
-            <td>
-              <button class="btn btn-primary btn-sm" @click="editShipment(shipment.shipment_id)">修改</button>
-            </td>
-          </tr>
-          <tr v-if="shipments.length === 0">
-            <td colspan="6" class="text-center text-muted">沒有找到出貨資料。</td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="isLoading" class="text-center text-muted">載入中...</div>
+    <div v-else>
+      <!-- 桌機版表格 -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-striped table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>出貨編號</th>
+              <th>訂單編號</th>
+              <th>收件人</th>
+              <th>地址</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="shipment in shipments" :key="shipment.shipment_id">
+              <td>{{ shipment.shipment_id }}</td>
+              <td>{{ shipment.order_id }}</td>
+              <td>{{ shipment.recipient_name }}</td>
+              <td>{{ shipment.address }}</td>
+              <td>{{ shipment.status }}</td>
+              <td><button class="btn btn-sm btn-brown">修改</button></td>
+            </tr>
+            <tr v-if="shipments.length === 0">
+              <td colspan="6" class="text-center text-muted">沒有找到出貨資料。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 手機版卡片 -->
+      <div class="d-block d-md-none">
+        <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id" />
+      </div>
     </div>
   </div>
 </template>
@@ -46,6 +52,7 @@ const shipments = ref([]);
 const userStore = useUserStore();
 const displayErrorMessage = ref('');
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+const isLoading = ref(true);
 
 const cardFields = [
   { key: 'shipment_id', label: '出貨單ID' },
@@ -79,6 +86,8 @@ async function loadShipments() {
      } else {
         displayErrorMessage.value = '❌ 載入出貨資料時發生未知錯誤！';
      }
+  } finally {
+    isLoading.value = false;
   }
 }
 
@@ -225,6 +234,4 @@ onMounted(() => {
   font-style: italic;
   color: #6c757d !important; /* 保持灰色，與棕色調協調 */
 }
-</style>
-
-<AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id" /> 
+</style> 

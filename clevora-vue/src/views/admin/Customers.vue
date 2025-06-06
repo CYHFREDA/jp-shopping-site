@@ -4,37 +4,45 @@
     <div v-if="displayErrorMessage" class="alert alert-danger text-center mb-3" role="alert">
       {{ displayErrorMessage }}
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>客戶編號</th>
-            <th>姓名</th>
-            <th>Email</th>
-            <th>電話</th>
-            <th>地址</th>
-            <th>建立時間</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="customer in customers" :key="customer.customer_id">
-            <td>{{ customer.customer_id }}</td>
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.email }}</td>
-            <td>{{ customer.phone }}</td>
-            <td>{{ customer.address || '' }}</td>
-            <td>{{ customer.created_at }}</td>
-            <td>
-              <button class="btn btn-primary btn-sm me-1" @click="editCustomer(customer.customer_id)">修改</button>
-              <button class="btn btn-warning btn-sm" @click="resetPassword(customer.customer_id)">重置密碼</button>
-            </td>
-          </tr>
-          <tr v-if="customers.length === 0">
-            <td colspan="7" class="text-center text-muted">沒有找到客戶資料。</td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="isLoading" class="text-center text-muted">載入中...</div>
+    <div v-else>
+      <!-- 桌機版表格 -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-striped table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>客戶編號</th>
+              <th>姓名</th>
+              <th>Email</th>
+              <th>電話</th>
+              <th>地址</th>
+              <th>建立時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="customer in customers" :key="customer.customer_id">
+              <td>{{ customer.customer_id }}</td>
+              <td>{{ customer.name }}</td>
+              <td>{{ customer.email }}</td>
+              <td>{{ customer.phone }}</td>
+              <td>{{ customer.address || '' }}</td>
+              <td>{{ customer.created_at }}</td>
+              <td>
+                <button class="btn btn-primary btn-sm me-1" @click="editCustomer(customer.customer_id)">修改</button>
+                <button class="btn btn-warning btn-sm" @click="resetPassword(customer.customer_id)">重置密碼</button>
+              </td>
+            </tr>
+            <tr v-if="customers.length === 0">
+              <td colspan="7" class="text-center text-muted">沒有找到客戶資料。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 手機版卡片 -->
+      <div class="d-block d-md-none">
+        <AdminCardList :items="customers" :fields="cardFields" key-field="customer_id" />
+      </div>
     </div>
   </div>
 </template>
@@ -48,6 +56,7 @@ import AdminCardList from '@/components/AdminCardList.vue';
 const customers = ref([]);
 const userStore = useUserStore();
 const displayErrorMessage = ref('');
+const isLoading = ref(true);
 
 const cardFields = [
   { key: 'customer_id', label: '客戶ID' },
@@ -78,6 +87,8 @@ async function loadCustomers() {
     if (error.response && error.response.status === 401) {
       displayErrorMessage.value = '❌ 認證失敗，請重新登入！';
     }
+  } finally {
+    isLoading.value = false;
   }
 }
 

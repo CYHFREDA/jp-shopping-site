@@ -29,28 +29,6 @@
 
       <!-- 路由視圖 -->
       <router-view></router-view>
-
-      <!-- 儀表板區塊 -->
-      <div class="row mb-4">
-        <div class="col-md-3 mb-3" v-for="card in cards" :key="card.title">
-          <div class="card text-center h-100">
-            <div class="card-body">
-              <h5 class="card-title">{{ card.title }}</h5>
-              <p class="card-text display-6">{{ card.value }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">近七日訂單數</h5>
-              <v-chart :option="orderChartOption" style="height:300px;" />
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
