@@ -543,10 +543,13 @@ function formatDateTime(dt) {
 
 /* 美化分類checkbox標籤，讓每行最多4個，間距一致，自動換行且整齊對齊 */
 .category-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px 18px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
   margin-top: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a18a7b #f3edea;
 }
 .category-checkboxes label {
   display: flex;
@@ -698,14 +701,15 @@ function formatDateTime(dt) {
 
 /* 商品ID欄位更窄且字體自動縮小，保持水平排列 */
 .table th:first-child, .table td:first-child {
-  min-width: 32px;
-  width: 32px;
-  max-width: 40px;
+  min-width: 56px;
+  width: 64px;
+  max-width: 80px;
   text-align: center;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.5px;
 }
 /* 名稱欄位自動換行、字體再小一點 */
 .table td:nth-child(2) {

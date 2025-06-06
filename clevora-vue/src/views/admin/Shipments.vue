@@ -21,7 +21,11 @@
           </thead>
           <tbody>
             <tr v-for="shipment in shipments" :key="shipment.shipment_id">
-              <td>{{ shipment.shipment_id }}</td>
+              <td>
+                <div class="shipment-id-horizontal">
+                  <span v-for="(char, idx) in shipment.shipment_id.toString().split('')" :key="idx">{{ char }}</span>
+                </div>
+              </td>
               <td>{{ shipment.order_id }}</td>
               <td>{{ shipment.recipient_name }}</td>
               <td>{{ shipment.address }}</td>
@@ -331,5 +335,21 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+}
+
+.shipment-id-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.98rem;
+  letter-spacing: 1px;
+  font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+}
+.shipment-id-horizontal span {
+  display: inline-block;
+  min-width: 12px;
+  text-align: center;
 }
 </style> 
