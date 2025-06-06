@@ -439,12 +439,11 @@ function formatDateTime(dt) {
 
 /* 商品管理表格美化：字體變小、欄寬變大 */
 .table th, .table td {
-  font-size: 0.98rem;
-  padding: 14px 22px;
-  min-width: 110px;
+  font-size: 0.92rem;
+  padding: 10px 14px;
 }
 .table thead th {
-  font-size: 1.02rem;
+  font-size: 0.97rem;
 }
 
 /* 表格樣式優化 */
@@ -480,7 +479,7 @@ function formatDateTime(dt) {
 }
 
 .table td {
-  font-size: 1.05rem;
+  font-size: 0.97rem;
   color: #38302e;
 }
 
@@ -489,6 +488,7 @@ function formatDateTime(dt) {
   border-radius: 5px;
   border-color: var(--light-brown); /* 輸入框邊框顏色 */
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  font-size: 0.97rem;
 }
 
 .form-control:focus {
@@ -497,7 +497,9 @@ function formatDateTime(dt) {
 }
 
 /* 按鈕樣式微調 */
-.btn {
+.btn, .btn-success, .btn-danger, .btn-primary, .btn-secondary, .btn-outline-secondary {
+  font-size: 0.97rem !important;
+  padding: 0.35rem 1rem !important;
   border-radius: 5px;
   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
@@ -747,5 +749,9 @@ function formatDateTime(dt) {
 .table th:last-child, .table td:last-child {
   text-align: center;
   vertical-align: middle;
+}
+
+.card-title {
+  font-size: 1.18rem;
 }
 </style> 

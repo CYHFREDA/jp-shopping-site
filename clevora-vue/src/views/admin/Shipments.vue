@@ -216,7 +216,7 @@ onMounted(() => {
 }
 
 .table thead th {
-  font-size: 0.98rem;
+  font-size: 0.97rem;
   background: #38302e;
   color: #fff;
   font-weight: bold;
@@ -233,7 +233,7 @@ onMounted(() => {
 }
 
 .table td {
-  font-size: 1.05rem;
+  font-size: 0.97rem;
   color: #38302e;
 }
 
@@ -262,7 +262,7 @@ onMounted(() => {
   border-bottom: 2px solid var(--light-brown); /* 底部裝飾線 */
   padding-bottom: 10px; /* 標題與線的間距 */
   margin-bottom: 20px; /* 標題與內容的間距 */
-   font-size: 1.5rem; /* 保持原有的字體大小 */
+  font-size: 1.18rem;
 }
 
 /* 無資料提示文字樣式 */
@@ -303,7 +303,7 @@ onMounted(() => {
   border: 1.5px solid #a18a7b;
   color: #38302e;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.97rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-control:focus {
@@ -343,7 +343,7 @@ onMounted(() => {
   gap: 2px;
   justify-content: center;
   align-items: center;
-  font-size: 0.98rem;
+  font-size: 0.93rem;
   letter-spacing: 1px;
   font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
 }
@@ -351,5 +351,10 @@ onMounted(() => {
   display: inline-block;
   min-width: 12px;
   text-align: center;
+}
+
+.btn, .btn-secondary, .btn-primary {
+  font-size: 0.97rem !important;
+  padding: 0.35rem 1rem !important;
 }
 </style> 
