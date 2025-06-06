@@ -63,6 +63,7 @@
             <div class="mb-3">
               <label class="form-label">狀態</label>
               <select v-model="editShipmentData.status" class="form-control">
+                <option value="pending">待出貨</option>
                 <option value="pending">pending</option>
                 <option value="shipped">shipped</option>
                 <option value="completed">completed</option>

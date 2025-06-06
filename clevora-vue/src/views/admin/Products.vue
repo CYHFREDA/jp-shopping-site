@@ -625,15 +625,35 @@ watch([pageSize, products], () => {
 
 /* 新增商品按鈕靠右且更融入整體排版 */
 .add-product-btn {
-  margin-left: 8px;
-  float: none;
+  height: 38px !important;
+  min-width: 90px;
+  padding: 0 18px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 /* 編輯、刪除按鈕並排顯示，間距更小 */
 .action-btns {
   display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 8px;
-  justify-content: flex-end;
+  height: 38px;
+}
+
+.action-btns .btn {
+  height: 38px;
+  min-width: 56px;
+  padding: 0 12px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .pagination {
@@ -645,10 +665,5 @@ watch([pageSize, products], () => {
   height: 38px !important;
   font-size: 1rem;
   box-sizing: border-box;
-}
-.add-product-btn {
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
 }
 </style> 
