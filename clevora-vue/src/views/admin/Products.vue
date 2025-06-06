@@ -641,19 +641,31 @@ watch([pageSize, products], () => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-  height: 38px;
+  gap: 6px;
+  height: 32px;
 }
 
 .action-btns .btn {
-  height: 38px;
-  min-width: 56px;
+  height: 32px;
+  min-width: 48px;
   padding: 0 12px;
   font-size: 1rem;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+}
+
+.action-btns .btn-primary {
+  background-color: #a18a7b;
+  border-color: #a18a7b;
+  color: #38302e;
+}
+.action-btns .btn-primary:hover {
+  background-color: #f3edea;
+  border-color: #c8a99a;
+  color: #38302e;
 }
 
 .pagination {
