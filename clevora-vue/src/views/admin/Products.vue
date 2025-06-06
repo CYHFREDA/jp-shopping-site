@@ -26,8 +26,7 @@
         <div class="category-checkboxes mb-3 col-12">
           <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
             <input type="checkbox" v-model="newProduct.categories" :value="key" />
-            <span>{{ label }}</span>
-          </label>
+            <span>{{ label }}</span></label>
         </div>
       </div>
       <!-- 桌機版商品表格 -->
@@ -118,9 +117,9 @@
             <div class="mb-3">
               <label class="form-label">分類</label>
               <div class="category-checkboxes">
-                <label v-for="(label, key) in categoryMap" :key="key" class="me-3">
-                  <input type="checkbox" v-model="editProduct.categories" :value="key" class="category-checkbox" /> {{ label }}
-                </label>
+                <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
+                  <input type="checkbox" v-model="editProduct.categories" :value="key" />
+                  <span>{{ label }}</span></label>
               </div>
             </div>
           </div>
@@ -554,12 +553,12 @@ function formatDateTime(dt) {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 18px;
+  border-radius: 13px;
   background: #f3edea;
   color: #38302e;
   border: 1.5px solid #a18a7b;
-  padding: 7px 0;
-  font-size: 1rem;
+  padding: 4px 0;
+  font-size: 0.92rem;
   font-weight: 500;
   transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
   user-select: none;
@@ -569,7 +568,8 @@ function formatDateTime(dt) {
 .category-checkboxes input[type='checkbox'] {
   display: none;
 }
-.category-checkboxes input[type='checkbox']:checked + span {
+.category-checkboxes input[type='checkbox']:checked + span,
+.category-checkboxes input[type='checkbox']:checked ~ span {
   background: #a18a7b;
   color: #fff;
   border-color: #a18a7b;
@@ -582,7 +582,8 @@ function formatDateTime(dt) {
   border-color: #c8a99a;
   color: #38302e;
 }
-.category-checkboxes input[type='checkbox']:checked + span:hover {
+.category-checkboxes input[type='checkbox']:checked + span:hover,
+.category-checkboxes input[type='checkbox']:checked ~ span:hover {
   background: #38302e;
   color: #fff;
   border-color: #38302e;
@@ -593,6 +594,7 @@ function formatDateTime(dt) {
   transition: background 0.2s, color 0.2s;
   width: 100%;
   text-align: center;
+  font-size: 0.92rem;
 }
 
 /* 無資料提示文字樣式 */
