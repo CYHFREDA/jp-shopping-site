@@ -1,79 +1,82 @@
 <template>
-  <div class="card p-4">
-    <h5 class="card-title mb-3">🛍️ 商品管理</h5>
-    
-    <!-- 訊息提示 -->
-    <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
-      {{ displayMessage }}
-    </div>
+  <div class="products-page-center">
+    <div class="card p-4">
+      <h5 class="card-title mb-3">🛍️ 商品管理</h5>
+      
+      <!-- 訊息提示 -->
+      <div v-if="displayMessage" class="alert text-center mb-3" :class="{ 'alert-success': displayMessage.includes('✅'), 'alert-danger': displayMessage.includes('❌') }">
+        {{ displayMessage }}
+      </div>
 
-    <!-- 新增商品表單 -->
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <input v-model="newProduct.name" class="form-control" placeholder="商品名稱">
-      </div>
-      <div class="col-md-2">
-        <input v-model="newProduct.price" type="number" class="form-control" placeholder="價格">
-      </div>
-      <div class="col-md-4">
-        <input v-model="newProduct.description" class="form-control" placeholder="商品描述">
-      </div>
-      <div class="col-md-3">
-        <input v-model="newProduct.image_url" class="form-control" placeholder="圖片網址 (可空)">
+      <!-- 新增商品表單 -->
+      <div class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+          <input v-model="newProduct.name" class="form-control" placeholder="商品名稱">
+        </div>
+        <div class="col-md-2">
+          <input v-model="newProduct.price" type="number" class="form-control" placeholder="價格">
+        </div>
+        <div class="col-md-4">
+          <input v-model="newProduct.description" class="form-control" placeholder="商品描述">
+        </div>
+        <div class="col-md-3">
+          <input v-model="newProduct.image_url" class="form-control" placeholder="圖片網址 (可空)">
+        </div>
+        
+        <div class="category-checkboxes mb-3 col-12">
+          <label><input type="checkbox" v-model="newProduct.categories" value="flashsale" class="category-checkbox"> 限時搶購</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="sale" class="category-checkbox"> 限定SALE</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="japan_medicine" class="category-checkbox"> 日本藥品</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="food_drink" class="category-checkbox"> 食品/飲料/酒</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="beauty" class="category-checkbox"> 美妝/美髮/肌膚護理</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="men" class="category-checkbox"> 男士用品</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="home" class="category-checkbox"> 生活家用/沐浴&身體</label>
+          <label><input type="checkbox" v-model="newProduct.categories" value="baby" class="category-checkbox"> 親子育兒</label>
+        </div>
+        <div class="col-12 text-end mb-4">
+          <button class="btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
+        </div>
       </div>
       
-      <div class="category-checkboxes mb-3">
-        <label><input type="checkbox" v-model="newProduct.categories" value="flashsale" class="category-checkbox"> 限時搶購</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="sale" class="category-checkbox"> 限定SALE</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="japan_medicine" class="category-checkbox"> 日本藥品</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="food_drink" class="category-checkbox"> 食品/飲料/酒</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="beauty" class="category-checkbox"> 美妝/美髮/肌膚護理</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="men" class="category-checkbox"> 男士用品</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="home" class="category-checkbox"> 生活家用/沐浴&身體</label>
-        <label><input type="checkbox" v-model="newProduct.categories" value="baby" class="category-checkbox"> 親子育兒</label>
+      <!-- 桌機版商品表格 -->
+      <div class="table-responsive d-none d-md-block mt-4">
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>商品ID</th>
+              <th>名稱</th>
+              <th>價格</th>
+              <th>分類</th>
+              <th>建立時間</th>
+              <th class="text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="product in products" :key="product.id">
+              <td>{{ product.id }}</td>
+              <td>{{ product.name }}</td>
+              <td>NT$ {{ product.price }}</td>
+              <td>
+                <span v-if="product.category">
+                  <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ cat }}</span>
+                </span>
+              </td>
+              <td>{{ product.created_at }}</td>
+              <td class="text-end">
+                <button class="btn btn-primary btn-sm me-1" @click="handleSaveProduct(product)">編輯</button>
+                <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
+              </td>
+            </tr>
+            <tr v-if="products.length === 0">
+              <td colspan="6" class="text-center text-muted">目前沒有商品</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-    
-    <button class="btn btn-success w-100 mb-3" @click="handleAddProduct">新增商品</button>
-    
-    <!-- 桌機版商品表格 -->
-    <div class="table-responsive d-none d-md-block">
-      <table class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>商品ID</th>
-            <th>名稱</th>
-            <th>價格</th>
-            <th>分類</th>
-            <th>建立時間</th>
-            <th class="text-end">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in products" :key="product.id">
-            <td>{{ product.id }}</td>
-            <td>{{ product.name }}</td>
-            <td>NT$ {{ product.price }}</td>
-            <td>
-              <span v-if="product.category">
-                {{ product.category.split('#').join(', ') }}
-              </span>
-            </td>
-            <td>{{ product.created_at }}</td>
-            <td class="text-end">
-              <button class="btn btn-primary btn-sm me-1" @click="handleSaveProduct(product)">編輯</button>
-              <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
-            </td>
-          </tr>
-          <tr v-if="products.length === 0">
-            <td colspan="6" class="text-center text-muted">目前沒有商品</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- 手機版卡片 -->
-    <div class="d-block d-md-none">
-      <AdminCardList :items="products" :fields="cardFields" key-field="id" />
+      <!-- 手機版卡片 -->
+      <div class="d-block d-md-none mt-4">
+        <AdminCardList :items="products" :fields="cardFields" key-field="id" />
+      </div>
     </div>
   </div>
 </template>
@@ -424,4 +427,20 @@ async function handleDeleteProduct(id) {
   }
 }
 
+.products-page-center {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.category-badge {
+  background: #a18a7b;
+  color: #fff;
+  font-size: 0.95rem;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
 </style> 
