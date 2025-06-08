@@ -26,9 +26,11 @@
               <td>{{ shipment.recipient_name }}</td>
               <td>{{ shipment.address }}</td>
               <td>{{ statusText(shipment.status) }}</td>
-              <td>
-                <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button>
-                <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(shipment.order_id)">模擬到店</button>
+              <td class="text-center">
+                <div class="action-btns flex-row gap-2">
+                  <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button>
+                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)">模擬到店</button>
+                </div>
               </td>
             </tr>
             <tr v-if="shipments.length === 0">
@@ -349,7 +351,7 @@ onMounted(() => {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   height: 32px;
 }
 .action-btns .btn {
