@@ -49,7 +49,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function resetInactivityTimer() {
-    console.log('[UserStore] resetInactivityTimer called. isAuthenticated:', isAuthenticated.value);
+    //console.log('[UserStore] resetInactivityTimer called. isAuthenticated:', isAuthenticated.value);
     if (isAuthenticated.value) {
        startInactivityTimer();
     } else {
