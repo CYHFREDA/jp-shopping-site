@@ -21,8 +21,10 @@
               <th>訂單編號</th>
               <th>訂單日期</th>
               <th>總金額</th>
+              <th>商品數量</th>
               <th>狀態</th>
               <th>商品清單</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -33,6 +35,7 @@
                 <span>NT$</span>
                 <span>{{ order.amount }}</span>
               </td>
+              <td>{{ getOrderItemCount(order.item_names) }}</td>
               <td>
                 <span 
                   class="badge"
@@ -49,6 +52,9 @@
                 <ul class="list-unstyled mb-0">
                   <li v-for="item in (order.item_names?.split('#') || [])" :key="item">{{ item }}</li>
                 </ul>
+              </td>
+              <td>
+                <router-link :to="`/orderDetail/${order.order_id}`" class="btn btn-outline-primary btn-sm">查看</router-link>
               </td>
             </tr>
           </tbody>
@@ -77,6 +83,9 @@
             </div>
             <div class="mb-2">
               <strong>總金額：</strong><br><span>NT$</span><br><span>{{ order.amount }}</span>
+            </div>
+            <div class="mb-2">
+              <strong>商品數量：</strong>{{ getOrderItemCount(order.item_names) }}
             </div>
             <div class="mb-2">
               <strong>商品清單：</strong>
@@ -109,6 +118,15 @@ function formatDateTime(dateTimeString) {
   // 轉換為台灣時區（+8）
   const twDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
   return twDate.toLocaleString('zh-TW', { hour12: false });
+}
+
+// 計算商品數量
+function getOrderItemCount(itemNames) {
+  if (!itemNames) return 0;
+  return itemNames.split('#').reduce((sum, item) => {
+    const match = item.match(/x\s*(\d+)/);
+    return sum + (match ? parseInt(match[1]) : 1);
+  }, 0);
 }
 
 onMounted(async () => {

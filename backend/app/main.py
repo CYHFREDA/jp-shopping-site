@@ -1175,3 +1175,49 @@ async def admin_dashboard_summary(
     except Exception as e:
         print("❌ 儀表板統計 API 錯誤：", e)
         return JSONResponse({"error": "無法取得儀表板統計資料"}, status_code=500)
+
+@app.get("/api/orders/{order_id}")
+async def get_order_by_id(order_id: str, cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("""
+            SELECT order_id, amount, item_names, status, created_at, paid_at
+            FROM orders WHERE order_id=%s
+        """, (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到訂單"}, status_code=404)
+        order = {
+            "order_id": row[0],
+            "amount": row[1],
+            "item_names": row[2],
+            "status": row[3],
+            "created_at": row[4].isoformat() if row[4] else None,
+            "paid_at": row[5].isoformat() if row[5] else None
+        }
+        return JSONResponse(order)
+    except Exception as e:
+        print(f"❌ 查詢單一訂單錯誤：{e}")
+        return JSONResponse({"error": "查詢訂單失敗"}, status_code=500)
+
+@app.get("/api/orders/{order_id}/shipment")
+async def get_order_shipment(order_id: str, cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("""
+            SELECT shipment_id, order_id, recipient_name, address, status, created_at
+            FROM shipments WHERE order_id=%s
+        """, (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({})
+        shipment = {
+            "shipment_id": row[0],
+            "order_id": row[1],
+            "recipient_name": row[2],
+            "address": row[3],
+            "status": row[4],
+            "created_at": row[5].isoformat() if row[5] else None
+        }
+        return JSONResponse(shipment)
+    except Exception as e:
+        print(f"❌ 查詢出貨單錯誤：{e}")
+        return JSONResponse({"error": "查詢出貨單失敗"}, status_code=500)

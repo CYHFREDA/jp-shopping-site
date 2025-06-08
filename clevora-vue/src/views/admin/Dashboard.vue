@@ -159,6 +159,14 @@ watch([startDate, endDate], ([newStart, newEnd], [oldStart, oldEnd]) => {
     fetchDashboard();
   }
 });
+
+function getOrderItemCount(itemNames) {
+  if (!itemNames) return 0;
+  return itemNames.split('#').reduce((sum, item) => {
+    const match = item.match(/x\\s*(\\d+)/);
+    return sum + (match ? parseInt(match[1]) : 1);
+  }, 0);
+}
 </script>
 
 <style scoped>

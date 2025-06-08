@@ -22,6 +22,7 @@ import NotFound from '@/views/ErrorPage.vue';
 import ProductsListingPage from '@/views/ProductsListingPage.vue';
 import EmailVerificationResult from '@/views/EmailVerificationResult.vue';
 import AdminLayout from '@/components/AdminLayout.vue';
+import OrderDetail from '@/views/OrderDetail.vue';
 
 const routes = [
   {
@@ -138,6 +139,12 @@ const routes = [
     name: 'EmailVerification',
     component: EmailVerificationResult,
     meta: { title: 'Clevora Email 驗證' }
+  },
+  {
+    path: '/orderDetail/:order_id',
+    name: 'OrderDetail',
+    component: OrderDetail,
+    meta: { title: 'Clevora 訂單詳細' }
   }
 ];
 
