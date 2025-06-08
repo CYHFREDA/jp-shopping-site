@@ -1221,3 +1221,20 @@ async def get_order_shipment(order_id: str, cursor=Depends(get_db_cursor)):
     except Exception as e:
         print(f"❌ 查詢出貨單錯誤：{e}")
         return JSONResponse({"error": "查詢出貨單失敗"}, status_code=500)
+
+@app.post("/api/orders/{order_id}/complete-shipment")
+async def complete_shipment(order_id: str, cursor=Depends(get_db_cursor)):
+    try:
+        # 只允許已出貨的訂單可改為已完成
+        cursor.execute("SELECT status FROM shipments WHERE order_id=%s", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到出貨單"}, status_code=404)
+        if row[0] != '已出貨':
+            return JSONResponse({"error": "只有已出貨狀態才能完成"}, status_code=400)
+        cursor.execute("UPDATE shipments SET status='已完成' WHERE order_id=%s", (order_id,))
+        cursor.connection.commit()
+        return JSONResponse({"message": "狀態已更新為已完成"})
+    except Exception as e:
+        print(f"❌ 完成出貨單錯誤：{e}")
+        return JSONResponse({"error": "狀態更新失敗"}, status_code=500)

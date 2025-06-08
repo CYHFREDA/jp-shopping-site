@@ -49,9 +49,12 @@
                 </span>
               </td>
               <td>
-                <ul class="list-unstyled mb-0">
-                  <li v-for="item in (order.item_names?.split('#') || [])" :key="item">{{ item }}</li>
-                </ul>
+                <template v-if="order.item_names">
+                  {{ order.item_names.split('#')[0] }}
+                  <template v-if="order.item_names.split('#').length > 1">
+                    ...等{{ order.item_names.split('#').length }}項
+                  </template>
+                </template>
               </td>
               <td>
                 <router-link :to="`/orderDetail/${order.order_id}`" class="btn btn-outline-primary btn-sm">查看</router-link>
@@ -89,9 +92,12 @@
             </div>
             <div class="mb-2">
               <strong>商品清單：</strong>
-              <ul class="list-unstyled mb-0">
-                <li v-for="item in (order.item_names?.split('#') || [])" :key="item">{{ item }}</li>
-              </ul>
+              <template v-if="order.item_names">
+                {{ order.item_names.split('#')[0] }}
+                <template v-if="order.item_names.split('#').length > 1">
+                  ...等{{ order.item_names.split('#').length }}項
+                </template>
+              </template>
             </div>
           </div>
         </div>

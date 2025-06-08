@@ -32,6 +32,11 @@
             <div><strong>地址：</strong>{{ shipment.address }}</div>
             <div><strong>出貨狀態：</strong>{{ shipment.status }}</div>
             <div><strong>建立時間：</strong>{{ formatDateTime(shipment.created_at) }}</div>
+            <div v-if="shipment.status === '已出貨'">
+              <button class="btn btn-success mt-3" @click="confirmReceived" :disabled="confirming">{{ confirming ? '送出中...' : '確認收貨' }}</button>
+              <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
+              <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
+            </div>
           </div>
           <div v-else class="text-muted">尚未建立出貨單</div>
         </div>
@@ -55,6 +60,10 @@ const shipment = ref(null);
 const shipmentLoading = ref(true);
 const shipmentError = ref(null);
 
+const confirming = ref(false);
+const confirmSuccess = ref(false);
+const confirmError = ref('');
+
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
   const date = new Date(dateTimeString);
@@ -75,6 +84,20 @@ function getOrderItemCount(itemNames) {
     const match = item.match(/x\s*(\d+)/);
     return sum + (match ? parseInt(match[1]) : 1);
   }, 0);
+}
+
+async function confirmReceived() {
+  confirming.value = true;
+  confirmError.value = '';
+  try {
+    await axios.post(`/api/orders/${order_id}/complete-shipment`);
+    shipment.value.status = '已完成';
+    confirmSuccess.value = true;
+  } catch (e) {
+    confirmError.value = '狀態更新失敗，請稍後再試';
+  } finally {
+    confirming.value = false;
+  }
 }
 
 onMounted(async () => {
