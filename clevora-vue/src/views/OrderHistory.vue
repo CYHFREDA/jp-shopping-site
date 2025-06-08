@@ -29,7 +29,10 @@
             <tr v-for="order in orders" :key="order.order_id">
               <td>{{ order.order_id }}</td>
               <td>{{ formatDateTime(order.created_at) }}</td>
-              <td>NT$ {{ order.amount }}</td>
+              <td>
+                <span>NT$</span>
+                <span>{{ order.amount }}</span>
+              </td>
               <td>
                 <span 
                   class="badge"
@@ -73,7 +76,7 @@
               <strong>訂單日期：</strong>{{ formatDateTime(order.created_at) }}
             </div>
             <div class="mb-2">
-              <strong>總金額：</strong>NT$ {{ order.amount }}
+              <strong>總金額：</strong><br><span>NT$</span><br><span>{{ order.amount }}</span>
             </div>
             <div class="mb-2">
               <strong>商品清單：</strong>
@@ -103,7 +106,9 @@ const displayErrorMessage = ref(null);
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
   const date = new Date(dateTimeString);
-  return date.toLocaleString();
+  // 轉換為台灣時區（+8）
+  const twDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  return twDate.toLocaleString('zh-TW', { hour12: false });
 }
 
 onMounted(async () => {
