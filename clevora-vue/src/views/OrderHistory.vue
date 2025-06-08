@@ -28,7 +28,7 @@
           <tbody>
             <tr v-for="order in orders" :key="order.order_id">
               <td>{{ order.order_id }}</td>
-              <td>{{ formatDateTime(order.created_at) }}</td>
+              <td class="nowrap">{{ formatDateTime(order.created_at) }}</td>
               <td>
                 <span>NT$</span>
                 <span>{{ order.amount }}</span>
@@ -283,5 +283,10 @@ onMounted(async () => {
     }
 
     /* 表格在小螢幕下的響應式處理主要依靠 .table-responsive */
+}
+
+/* 防止表格日期欄位換行 */
+.nowrap {
+  white-space: nowrap;
 }
 </style> 
