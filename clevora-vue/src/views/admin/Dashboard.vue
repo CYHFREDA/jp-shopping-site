@@ -177,4 +177,9 @@ function getOrderItemCount(itemNames) {
 .card-title {
   color: #a18a7b;
 }
+.action-btns .btn {
+  min-width: 56px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
 </style> 
