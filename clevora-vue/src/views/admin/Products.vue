@@ -54,9 +54,9 @@
                   <span v-for="cat in (Array.isArray(product.category) ? [...new Set(product.category)] : [...new Set(product.category.split('#'))])" :key="cat" class="badge rounded-pill category-badge">{{ categoryMap[cat] || cat }}</span>
                 </span>
               </td>
-              <td>{{ formatDateTime(product.created_at) }}</td>
+              <td class="nowrap">{{ formatDateTime(product.created_at) }}</td>
               <td class="text-end">
-                <div class="action-btns">
+                <div class="action-btns flex-row gap-2">
                   <button class="btn btn-primary btn-sm me-1" @click="openEditModal(product)">編輯</button>
                   <button class="btn btn-danger btn-sm" @click="handleDeleteProduct(product.id)">刪除</button>
                 </div>
@@ -664,7 +664,7 @@ function formatDateTime(dt) {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   height: 32px;
 }
 
@@ -763,5 +763,9 @@ function formatDateTime(dt) {
   margin-right: 2px;
   white-space: nowrap;
   vertical-align: middle;
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 </style> 
