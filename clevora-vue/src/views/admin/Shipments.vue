@@ -25,8 +25,11 @@
               <td>{{ shipment.order_id }}</td>
               <td>{{ shipment.recipient_name }}</td>
               <td>{{ shipment.address }}</td>
-              <td>{{ shipment.status }}</td>
-              <td><button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button></td>
+              <td>{{ statusText(shipment.status) }}</td>
+              <td>
+                <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button>
+                <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(shipment.order_id)">模擬到店</button>
+              </td>
             </tr>
             <tr v-if="shipments.length === 0">
               <td colspan="6" class="text-center text-muted">沒有找到出貨資料。</td>
@@ -39,6 +42,7 @@
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
             <button class="btn btn-sm btn-brown" @click="openEditModal(item)">修改</button>
+            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)">模擬到店</button>
           </template>
         </AdminCardList>
       </div>
@@ -64,7 +68,9 @@
               <label class="form-label">狀態</label>
               <select v-model="editShipmentData.status" class="form-control">
                 <option value="pending">待出貨</option>
+                <option value="out_of_stock">缺貨中</option>
                 <option value="shipped">已出貨</option>
+                <option value="arrived">已到店</option>
                 <option value="completed">已完成</option>
               </select>
             </div>
@@ -169,6 +175,30 @@ async function saveEditShipment() {
   } catch (error) {
     displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 更新出貨資料失敗！';
   }
+}
+
+async function mockDelivered(order_id) {
+  const token = userStore.admin_token;
+  if (!token) {
+    displayErrorMessage.value = '❌ 請先登入！';
+    return;
+  }
+  try {
+    const res = await api.post('/api/admin/mock_delivered', { order_id });
+    displayErrorMessage.value = res.data.message || '✅ 已模擬到店';
+    loadShipments();
+  } catch (error) {
+    displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 模擬到店失敗！';
+  }
+}
+
+function statusText(status) {
+  if (status === 'pending') return '待出貨';
+  if (status === 'out_of_stock') return '缺貨中';
+  if (status === 'shipped') return '已出貨';
+  if (status === 'arrived') return '已到店';
+  if (status === 'completed') return '已完成';
+  return status;
 }
 
 onMounted(() => {

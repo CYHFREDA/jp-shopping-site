@@ -23,16 +23,15 @@ export const useCartStore = defineStore('cart', () => {
   function addItem(product) {
     const existingItemIndex = items.value.findIndex(item => item.id === product.id);
     if (existingItemIndex > -1) {
-      // 使用 splice 替換元素，更明確地觸發響應式更新
       const updatedItem = { ...items.value[existingItemIndex] };
-      updatedItem.quantity++;
+      updatedItem.quantity += product.quantity;
       items.value.splice(existingItemIndex, 1, updatedItem);
     } else {
       items.value.push({
         id: product.id,
         name: product.name,
         price: product.price,
-        quantity: 1
+        quantity: product.quantity
       });
     }
     saveCart(); // 保存到 localStorage

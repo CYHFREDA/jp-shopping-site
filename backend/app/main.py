@@ -1238,3 +1238,30 @@ async def complete_shipment(order_id: str, cursor=Depends(get_db_cursor)):
     except Exception as e:
         print(f"❌ 完成出貨單錯誤：{e}")
         return JSONResponse({"error": "狀態更新失敗"}, status_code=500)
+
+@app.post("/api/admin/auto_complete_shipments")
+async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("""
+            UPDATE shipments
+            SET status = '已完成'
+            WHERE status = '已出貨'
+              AND created_at < NOW() - INTERVAL '7 days'
+            RETURNING order_id;
+        """)
+        updated = cursor.fetchall()
+        cursor.connection.commit()
+        return {"message": f"自動完成 {len(updated)} 筆出貨單", "order_ids": [row[0] for row in updated]}
+    except Exception as e:
+        print(f"❌ 自動完成出貨單錯誤：{e}")
+        return {"error": "自動完成失敗"}
+
+@app.post("/api/admin/mock_delivered")
+async def mock_delivered(order_id: str, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("UPDATE shipments SET delivered_at = NOW() WHERE order_id = %s", (order_id,))
+        cursor.connection.commit()
+        return {"message": f"已模擬到店，order_id: {order_id}"}
+    except Exception as e:
+        print(f"❌ 模擬到店錯誤：{e}")
+        return {"error": "模擬到店失敗"}
