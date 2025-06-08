@@ -30,9 +30,9 @@
           <div v-else-if="shipment">
             <div><strong>收件人：</strong>{{ shipment.recipient_name }}</div>
             <div><strong>地址：</strong>{{ shipment.address }}</div>
-            <div><strong>出貨狀態：</strong>{{ shipment.status }}</div>
+            <div><strong>出貨狀態：</strong>{{ shipmentStatusText(shipment.status) }}</div>
             <div><strong>建立時間：</strong>{{ formatDateTime(shipment.created_at) }}</div>
-            <div v-if="shipment.status === '已出貨'">
+            <div v-if="shipment.status === 'shipped'">
               <button class="btn btn-success mt-3" @click="confirmReceived" :disabled="confirming">{{ confirming ? '送出中...' : '確認收貨' }}</button>
               <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
               <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
@@ -86,12 +86,21 @@ function getOrderItemCount(itemNames) {
   }, 0);
 }
 
+function shipmentStatusText(status) {
+  if (status === 'pending') return '待出貨';
+  if (status === 'out_of_stock') return '缺貨中';
+  if (status === 'shipped') return '已出貨';
+  if (status === 'arrived') return '已到店';
+  if (status === 'completed') return '已完成';
+  return status;
+}
+
 async function confirmReceived() {
   confirming.value = true;
   confirmError.value = '';
   try {
     await axios.post(`/api/orders/${order_id}/complete-shipment`);
-    shipment.value.status = '已完成';
+    shipment.value.status = 'completed';
     confirmSuccess.value = true;
   } catch (e) {
     confirmError.value = '狀態更新失敗，請稍後再試';

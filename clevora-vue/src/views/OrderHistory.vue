@@ -45,7 +45,7 @@
                     'bg-danger': order.status === 'fail'
                   }"
                 >
-                  {{ order.status === 'pending' ? '待處理' : order.status === 'success' ? '成功' : '失敗' }}
+                  {{ statusText(order.status) }}
                 </span>
               </td>
               <td>
@@ -78,7 +78,7 @@
                   'bg-danger': order.status === 'fail'
                 }"
               >
-                {{ order.status === 'pending' ? '待處理' : order.status === 'success' ? '成功' : '失敗' }}
+                {{ statusText(order.status) }}
               </span>
             </div>
             <div class="mb-2">
@@ -133,6 +133,14 @@ function getOrderItemCount(itemNames) {
     const match = item.match(/x\s*(\d+)/);
     return sum + (match ? parseInt(match[1]) : 1);
   }, 0);
+}
+
+// 新增 statusText 函式
+function statusText(status) {
+  if (status === 'pending') return '待處理';
+  if (status === 'success') return '成功';
+  if (status === 'fail') return '失敗';
+  return status;
 }
 
 onMounted(async () => {

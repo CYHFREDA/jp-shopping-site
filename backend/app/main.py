@@ -1231,9 +1231,9 @@ async def complete_shipment(order_id: str, cursor=Depends(get_db_cursor)):
         row = cursor.fetchone()
         if not row:
             return JSONResponse({"error": "找不到出貨單"}, status_code=404)
-        if row[0] != '已出貨':
+        if row[0] != 'shipped':
             return JSONResponse({"error": "只有已出貨狀態才能完成"}, status_code=400)
-        cursor.execute("UPDATE shipments SET status='已完成' WHERE order_id=%s", (order_id,))
+        cursor.execute("UPDATE shipments SET status='completed' WHERE order_id=%s", (order_id,))
         cursor.connection.commit()
         return JSONResponse({"message": "狀態已更新為已完成"})
     except Exception as e:
@@ -1245,8 +1245,8 @@ async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends
     try:
         cursor.execute("""
             UPDATE shipments
-            SET status = '已完成'
-            WHERE status = '已出貨'
+            SET status = 'completed'
+            WHERE status = 'shipped'
               AND delivered_at IS NOT NULL
               AND delivered_at < NOW() - INTERVAL '7 days'
             RETURNING order_id;
@@ -1274,9 +1274,8 @@ async def mock_delivered(
         row = cursor.fetchone()
         if not row:
             return {"error": "找不到出貨單"}
-        if row[0] != '已出貨':
+        if row[0] != 'shipped':
             return {"error": "只有已出貨狀態才能模擬到店"}
-            
         # 更新 delivered_at
         cursor.execute("""
             UPDATE shipments 
