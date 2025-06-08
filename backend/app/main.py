@@ -1276,10 +1276,10 @@ async def mock_delivered(
             return {"error": "找不到出貨單"}
         if row[0] != 'shipped':
             return {"error": "只有已出貨狀態才能模擬到店"}
-        # 更新 delivered_at
+        # 同時更新 delivered_at 與 status
         cursor.execute("""
             UPDATE shipments 
-            SET delivered_at = NOW() 
+            SET delivered_at = NOW(), status = 'arrived'
             WHERE order_id = %s
         """, (order_id,))
         cursor.connection.commit()

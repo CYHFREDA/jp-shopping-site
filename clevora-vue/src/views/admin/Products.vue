@@ -412,10 +412,9 @@ watch([pageSize, products], () => {
 
 function formatDateTime(dt) {
   if (!dt) return '';
-  // 只取到秒，去掉T和小數點
-  const [date, time] = dt.split('T');
-  if (!time) return dt;
-  return date + ' ' + time.split('.')[0];
+  const date = new Date(dt);
+  const twDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  return twDate.toLocaleString('zh-TW', { hour12: false });
 }
 </script>
 

@@ -164,10 +164,9 @@ async function resetPassword(customerId) {
 
 function formatDateTime(dt) {
   if (!dt) return '';
-  const d = new Date(dt);
-  if (isNaN(d.getTime())) return dt;
-  const pad = n => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const date = new Date(dt);
+  const twDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  return twDate.toLocaleString('zh-TW', { hour12: false });
 }
 
 onMounted(() => {
