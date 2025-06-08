@@ -22,6 +22,7 @@ import ssl
 from email.mime.text import MIMEText
 import uuid
 from email.mime.multipart import MIMEMultipart
+from pydantic import BaseModel
 
 load_dotenv()
 app = FastAPI()
@@ -1257,8 +1258,16 @@ async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends
         print(f"❌ 自動完成出貨單錯誤：{e}")
         return {"error": "自動完成失敗"}
 
+class OrderIdRequest(BaseModel):
+    order_id: str
+
 @app.post("/api/admin/mock_delivered")
-async def mock_delivered(order_id: str, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+async def mock_delivered(
+    req: OrderIdRequest,
+    auth=Depends(verify_admin_jwt),
+    cursor=Depends(get_db_cursor)
+):
+    order_id = req.order_id
     try:
         # 先檢查訂單狀態是否為已出貨
         cursor.execute("SELECT status FROM shipments WHERE order_id = %s", (order_id,))
