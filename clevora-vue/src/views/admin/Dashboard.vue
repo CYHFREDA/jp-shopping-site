@@ -46,11 +46,60 @@ const cards = ref([
 ]);
 
 const orderChartOption = ref({
-  tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: [] },
-  yAxis: { type: 'value' },
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: '#fff',
+    borderColor: '#a18a7b',
+    borderWidth: 1,
+    textStyle: { color: '#38302e' }
+  },
+  xAxis: {
+    type: 'category',
+    data: [],
+    axisLabel: { color: '#a18a7b', fontWeight: 'bold' },
+    axisLine: { lineStyle: { color: '#a18a7b' } }
+  },
+  yAxis: {
+    type: 'value',
+    minInterval: 1,
+    axisLabel: { color: '#a18a7b', fontWeight: 'bold' },
+    splitLine: { lineStyle: { color: '#e9ecef' } }
+  },
+  grid: { left: 40, right: 20, top: 40, bottom: 40 },
   series: [
-    { name: '訂單數', type: 'line', data: [] }
+    {
+      name: '訂單數',
+      type: 'line',
+      data: [],
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 8,
+      lineStyle: {
+        color: '#a18a7b',
+        width: 3
+      },
+      itemStyle: {
+        color: '#a18a7b',
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: '#a18a7b44' },
+            { offset: 1, color: '#fff' }
+          ]
+        }
+      },
+      label: {
+        show: true,
+        position: 'top',
+        color: '#a18a7b',
+        fontWeight: 'bold'
+      }
+    }
   ]
 });
 
