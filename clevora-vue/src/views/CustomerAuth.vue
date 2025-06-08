@@ -248,7 +248,7 @@ async function handleLogin() {
     if (res.ok) {
       loginApiErrorMessage.value = "✅ 登入成功！";
       customerStore.setCustomer(
-        { id: data.customer_id, name: data.name },
+        { customer_id: data.customer_id, name: data.name },
         data.token,
         data.expire_at
       );
