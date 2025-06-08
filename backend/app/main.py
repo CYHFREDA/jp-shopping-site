@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status, BackgroundTasks
+from fastapi import FastAPI, Request, Depends, HTTPException, status, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -1109,7 +1109,12 @@ async def resend_verification_email_endpoint(request: Request, cursor=Depends(ge
 
 # 儀表板統計 API
 @app.get("/api/admin/dashboard_summary")
-async def admin_dashboard_summary(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
+async def admin_dashboard_summary(
+    start_date: str = Query(None),
+    end_date: str = Query(None),
+    auth=Depends(verify_admin_jwt),
+    cursor=Depends(get_db_cursor)
+):
     try:
         # 今日訂單數
         cursor.execute("""
@@ -1135,19 +1140,26 @@ async def admin_dashboard_summary(auth=Depends(verify_admin_jwt), cursor=Depends
         """)
         total_sales = float(cursor.fetchone()[0])
 
-        # 近七日訂單數
+        # 處理日期區間
+        from datetime import datetime, timedelta
+        today = datetime.now().date()
+        if not start_date or not end_date:
+            end_date = today.strftime('%Y-%m-%d')
+            start_date = (today - timedelta(days=29)).strftime('%Y-%m-%d')
+        # 查詢區間訂單數
         cursor.execute("""
             SELECT TO_CHAR(created_at, 'MM/DD') as day, COUNT(*)
             FROM orders
-            WHERE created_at >= CURRENT_DATE - INTERVAL '6 days'
+            WHERE DATE(created_at) BETWEEN %s AND %s
             GROUP BY day
             ORDER BY day
-        """)
+        """, (start_date, end_date))
         rows = cursor.fetchall()
         date_map = {r[0]: r[1] for r in rows}
-        from datetime import datetime, timedelta
-        today = datetime.now()
-        dates = [(today - timedelta(days=i)).strftime('%m/%d') for i in range(6, -1, -1)]
+        # 產生區間所有日期
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        dates = [(start_dt + timedelta(days=i)).strftime('%m/%d') for i in range((end_dt - start_dt).days + 1)]
         counts = [date_map.get(d, 0) for d in dates]
 
         return JSONResponse({
