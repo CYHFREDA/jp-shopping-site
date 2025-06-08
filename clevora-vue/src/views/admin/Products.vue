@@ -670,8 +670,8 @@ function formatDateTime(dt) {
 
 .action-btns .btn {
   height: 32px;
-  min-width: 44px;
-  padding: 0 10px;
+  min-width: 56px;
+  padding: 0 14px;
   font-size: 0.98rem;
   line-height: 1;
   display: flex;
@@ -679,6 +679,7 @@ function formatDateTime(dt) {
   justify-content: center;
   box-sizing: border-box;
   border-radius: 7px;
+  white-space: nowrap !important;
 }
 
 .action-btns .btn-primary {
