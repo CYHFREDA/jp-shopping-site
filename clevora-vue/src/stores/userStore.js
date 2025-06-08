@@ -24,25 +24,25 @@ export const useUserStore = defineStore('user', () => {
     const expiry = expire_at.value;
     const now = Date.now();
     
-    console.log('[isAuthenticated check]:');
-    console.log('  admin_token.value:', token ? '存在' : '不存在');
-    console.log('  expire_at.value:', expiry);
-    console.log('  目前時間 (ms):', now);
+    //console.log('[isAuthenticated check]:');
+    //console.log('  admin_token.value:', token ? '存在' : '不存在');
+    //console.log('  expire_at.value:', expiry);
+    //console.log('  目前時間 (ms):', now);
     
     // Check if token exists AND expiry is a valid number AND current time is less than expiry
     const isActuallyAuthenticated = !!token && expiry !== null && !isNaN(expiry) && now < expiry;
     
-    console.log('  是否過期 (calculated):', !isActuallyAuthenticated && !!token); // More descriptive
-    console.log('  最終 isAuthenticated:', isActuallyAuthenticated);
+    //console.log('  是否過期 (calculated):', !isActuallyAuthenticated && !!token); // More descriptive
+    //console.log('  最終 isAuthenticated:', isActuallyAuthenticated);
 
     return isActuallyAuthenticated;
   });
 
   function startInactivityTimer() {
-    console.log('[UserStore] Starting inactivity timer...');
+    //console.log('[UserStore] Starting inactivity timer...');
     clearInactivityTimer();
     inactivityTimer = setTimeout(() => {
-      console.log('[UserStore] Inactivity timer triggered. Logging out.');
+      //console.log('[UserStore] Inactivity timer triggered. Logging out.');
       logout();
       // No need to push here, logout already pushes
     }, INACTIVITY_TIMEOUT);
@@ -61,12 +61,12 @@ export const useUserStore = defineStore('user', () => {
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
-      console.log('[UserStore] Inactivity timer cleared.');
+      //onsole.log('[UserStore] Inactivity timer cleared.');
     }
   }
 
   function addActivityListeners() {
-      console.log('[UserStore] Adding activity listeners.');
+      //console.log('[UserStore] Adding activity listeners.');
       window.addEventListener('mousemove', resetInactivityTimer);
       window.addEventListener('keypress', resetInactivityTimer);
       window.addEventListener('click', resetInactivityTimer);
@@ -74,7 +74,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function removeActivityListeners() {
-      console.log('[UserStore] Removing activity listeners.');
+      //console.log('[UserStore] Removing activity listeners.');
       window.removeEventListener('mousemove', resetInactivityTimer);
       window.removeEventListener('keypress', resetInactivityTimer);
       window.removeEventListener('click', resetInactivityTimer);
@@ -82,24 +82,23 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function setToken(tokenValue, expireAtValue) {
-    console.log('[UserStore] setToken called. tokenValue type:', typeof tokenValue, 'expireAtValue type:', typeof expireAtValue, 'expireAtValue:', expireAtValue);
+    //console.log('[UserStore] setToken called. tokenValue type:', typeof tokenValue, 'expireAtValue type:', typeof expireAtValue, 'expireAtValue:', expireAtValue);
     admin_token.value = tokenValue;
     expire_at.value = expireAtValue;
-    console.log('[UserStore] admin_token.value after setToken:', admin_token.value);
-    console.log('[UserStore] expire_at.value after setToken:', expire_at.value);
+    //console.log('[UserStore] admin_token.value after setToken:', admin_token.value);
+    //console.log('[UserStore] expire_at.value after setToken:', expire_at.value);
     if (tokenValue) {
         addActivityListeners();
-        // Only reset timer if a route is already established. This prevents immediate logout on refresh if route isn't ready.
         if (route.value) {
-            console.log('[UserStore] setToken: route is present, resetting inactivity timer.');
+            //console.log('[UserStore] setToken: route is present, resetting inactivity timer.');
             resetInactivityTimer();
         } else {
-            console.log('[UserStore] setToken: route is not yet present, timer not reset.');
+            //console.log('[UserStore] setToken: route is not yet present, timer not reset.');
         }
         localStorage.setItem('admin_token', tokenValue);
         localStorage.setItem('expire_at', expireAtValue.toString());
     } else {
-        console.log('[UserStore] setToken: tokenValue is empty, clearing inactivity timer and removing listeners.');
+        //console.log('[UserStore] setToken: tokenValue is empty, clearing inactivity timer and removing listeners.');
         clearInactivityTimer();
         removeActivityListeners();
         localStorage.removeItem('admin_token');
@@ -109,7 +108,7 @@ export const useUserStore = defineStore('user', () => {
 
   function logout(source = 'unknown') {
     const now = new Date().toISOString();
-    console.log(`[UserStore] Logging out admin user. 來源: ${source}, 時間: ${now}`);
+    //console.log(`[UserStore] Logging out admin user. 來源: ${source}, 時間: ${now}`);
     admin_token.value = '';
     expire_at.value = null; // Set to null on explicit logout
     user.value = null;
@@ -125,25 +124,24 @@ export const useUserStore = defineStore('user', () => {
 
   // Initial setup on store creation
   if (admin_token.value && expire_at.value && Date.now() < expire_at.value) {
-      console.log('[UserStore] Admin authenticated on store load, starting timer and listeners.');
+      //console.log('[UserStore] Admin authenticated on store load, starting timer and listeners.');
       addActivityListeners();
   } else if (localStorage.getItem('admin_token') && (!expire_at.value || Date.now() >= expire_at.value)) {
-      console.log('[UserStore] Expired or invalid admin token found in localStorage on load. Performing explicit logout.');
+      //console.log('[UserStore] Expired or invalid admin token found in localStorage on load. Performing explicit logout.');
       logout(); // Perform an immediate logout to clear any lingering invalid state
   } else {
-      console.log('[UserStore] No valid admin token found on store load.');
+      //console.log('[UserStore] No valid admin token found on store load.');
   }
 
   watch(() => router.currentRoute.value, (newRoute) => {
     if (newRoute) {
       route.value = newRoute;
-      console.log('[UserStore] Route changed to:', newRoute.path);
-      // Only reset timer if current route is within admin paths AND authenticated
+      //console.log('[UserStore] Route changed to:', newRoute.path);
       if (newRoute.path.startsWith('/admin') && isAuthenticated.value) {
-        console.log('[UserStore] Route is admin path and authenticated, resetting inactivity timer.');
+        //console.log('[UserStore] Route is admin path and authenticated, resetting inactivity timer.');
         resetInactivityTimer();
       } else {
-        console.log('[UserStore] Route is not admin path or not authenticated, clearing inactivity timer.');
+        //console.log('[UserStore] Route is not admin path or not authenticated, clearing inactivity timer.');
         clearInactivityTimer();
       }
     }
