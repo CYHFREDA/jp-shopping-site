@@ -24,9 +24,9 @@
               <td>{{ order.order_id }}</td>
               <td><span class="price-currency">NT$</span> <span class="nowrap">{{ order.amount }}</span></td>
               <td>{{ order.item_names ? order.item_names : '無商品內容' }}</td>
-              <td>{{ order.status }}</td>
-              <td>{{ formatDateTime(order.created_at) }}</td>
-              <td>{{ order.paid_at ? formatDateTime(order.paid_at) : '尚未付款' }}</td>
+              <td>{{ statusText(order.status) }}</td>
+              <td class="nowrap">{{ formatDateTime(order.created_at) }}</td>
+              <td class="nowrap">{{ order.paid_at ? formatDateTime(order.paid_at) : '尚未付款' }}</td>
             </tr>
           </tbody>
         </table>
@@ -97,6 +97,13 @@ function formatDateTime(dt) {
   if (isNaN(d.getTime())) return dt;
   const pad = n => n.toString().padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function statusText(status) {
+  if (status === 'pending') return '待處理';
+  if (status === 'success') return '成功';
+  if (status === 'fail') return '失敗';
+  return status;
 }
 
 onMounted(() => {

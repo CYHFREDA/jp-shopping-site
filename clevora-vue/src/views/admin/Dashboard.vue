@@ -15,7 +15,7 @@
     <div class="card">
       <div class="card-body">
         <div class="d-flex flex-wrap align-items-center mb-3 justify-content-between">
-          <h5 class="card-title mb-0">近30日訂單數趨勢</h5>
+          <h5 class="card-title mb-0">訂單數趨勢</h5>
           <div class="d-flex flex-wrap align-items-center gap-2">
             <label class="me-1">起始日</label>
             <input type="date" v-model="startDate" class="form-control form-control-sm" style="width: 140px;">
