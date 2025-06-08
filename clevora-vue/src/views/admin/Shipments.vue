@@ -28,8 +28,11 @@
               <td>{{ statusText(shipment.status) }}</td>
               <td class="text-center">
                 <div class="action-btns flex-row gap-2">
-                  <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)">修改</button>
-                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)">模擬到店</button>
+                  <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)" :disabled="mockLoadingOrderId === shipment.order_id">修改</button>
+                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)" :disabled="mockLoadingOrderId === shipment.order_id">
+                    <span v-if="mockLoadingOrderId === shipment.order_id">處理中...</span>
+                    <span v-else>模擬到店</span>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -43,8 +46,11 @@
       <div class="d-block d-md-none">
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
-            <button class="btn btn-sm btn-brown" @click="openEditModal(item)">修改</button>
-            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)">模擬到店</button>
+            <button class="btn btn-sm btn-brown" @click="openEditModal(item)" :disabled="mockLoadingOrderId === item.order_id">修改</button>
+            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)" :disabled="mockLoadingOrderId === item.order_id">
+              <span v-if="mockLoadingOrderId === item.order_id">處理中...</span>
+              <span v-else>模擬到店</span>
+            </button>
           </template>
         </AdminCardList>
       </div>
@@ -101,6 +107,7 @@ const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 const isLoading = ref(true);
 const showEditModal = ref(false);
 const editShipmentData = ref({ shipment_id: '', recipient_name: '', address: '', status: '' });
+const mockLoadingOrderId = ref(null);
 
 const cardFields = [
   { key: 'shipment_id', label: '出貨單ID' },
@@ -185,12 +192,15 @@ async function mockDelivered(order_id) {
     displayErrorMessage.value = '❌ 請先登入！';
     return;
   }
+  mockLoadingOrderId.value = order_id;
   try {
     const res = await api.post('/api/admin/mock_delivered', { order_id });
     displayErrorMessage.value = res.data.message || '✅ 已模擬到店';
-    loadShipments();
+    await loadShipments();
   } catch (error) {
     displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 模擬到店失敗！';
+  } finally {
+    mockLoadingOrderId.value = null;
   }
 }
 
