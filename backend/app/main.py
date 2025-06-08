@@ -1246,7 +1246,8 @@ async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends
             UPDATE shipments
             SET status = '已完成'
             WHERE status = '已出貨'
-              AND created_at < NOW() - INTERVAL '7 days'
+              AND delivered_at IS NOT NULL
+              AND delivered_at < NOW() - INTERVAL '7 days'
             RETURNING order_id;
         """)
         updated = cursor.fetchall()
@@ -1259,7 +1260,20 @@ async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends
 @app.post("/api/admin/mock_delivered")
 async def mock_delivered(order_id: str, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     try:
-        cursor.execute("UPDATE shipments SET delivered_at = NOW() WHERE order_id = %s", (order_id,))
+        # 先檢查訂單狀態是否為已出貨
+        cursor.execute("SELECT status FROM shipments WHERE order_id = %s", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return {"error": "找不到出貨單"}
+        if row[0] != '已出貨':
+            return {"error": "只有已出貨狀態才能模擬到店"}
+            
+        # 更新 delivered_at
+        cursor.execute("""
+            UPDATE shipments 
+            SET delivered_at = NOW() 
+            WHERE order_id = %s
+        """, (order_id,))
         cursor.connection.commit()
         return {"message": f"已模擬到店，order_id: {order_id}"}
     except Exception as e:

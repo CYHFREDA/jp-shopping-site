@@ -60,6 +60,19 @@ SELECT cron.schedule(
   $$
 );
 
+-- 建立自動完成出貨單的排程任務（每天執行）
+SELECT cron.schedule(
+  'auto_complete_shipments',
+  '0 0 * * *',  -- 每天 00:00 執行
+  $$
+  UPDATE shipments
+  SET status = '已完成'
+  WHERE status = '已出貨'
+    AND delivered_at IS NOT NULL
+    AND delivered_at < NOW() - INTERVAL '7 days';
+  $$
+);
+
 -- 例行檢查 / 排錯指令
 -- 查看目前已排程的任務：
 SELECT jobid, jobname, schedule, command FROM cron.job;
