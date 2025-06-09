@@ -64,9 +64,9 @@ const menu = [
     label: '商品管理',
     icon: 'bi bi-box-seam',
     children: [
-      { name: 'AdminProductsList', label: '商品列表', path: '/admin/products' },
       { name: 'AdminProductCreate', label: '新增商品', path: '/admin/products/create' },
-      { name: 'AdminProductCategories', label: '商品分類', path: '/admin/product/categories' }
+      { name: 'AdminProductsList', label: '商品列表', path: '/admin/products' }
+
     ]
   },
   { name: 'AdminOrders', label: '訂單管理', path: '/admin/orders', icon: 'bi bi-receipt' },
