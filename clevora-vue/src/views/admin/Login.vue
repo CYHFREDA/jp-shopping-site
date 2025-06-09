@@ -56,9 +56,9 @@ const login = async () => {
     });
 
     if (res.status === 200) {
-      const { token, expire_at } = res.data;
-      // 登入成功，設置 token 和 expire_at
-      userStore.setToken(token, expire_at);
+      const { token } = res.data;
+      // 登入成功，設置 token
+      userStore.setToken(token);
       // 導向後台主控台頁面
       router.push('/admin');
     } else if (res.status === 401) {

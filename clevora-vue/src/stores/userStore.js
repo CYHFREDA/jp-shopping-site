@@ -84,7 +84,8 @@ export const useUserStore = defineStore('user', () => {
   function setToken(tokenValue, expireAtValue) {
     //console.log('[UserStore] setToken called. tokenValue type:', typeof tokenValue, 'expireAtValue type:', typeof expireAtValue, 'expireAtValue:', expireAtValue);
     admin_token.value = tokenValue;
-    expire_at.value = expireAtValue;
+    // 如果沒有提供 expireAtValue，則設定為 24 小時後過期
+    expire_at.value = expireAtValue || Date.now() + 24 * 60 * 60 * 1000;
     //console.log('[UserStore] admin_token.value after setToken:', admin_token.value);
     //console.log('[UserStore] expire_at.value after setToken:', expire_at.value);
     if (tokenValue) {
@@ -96,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
             //console.log('[UserStore] setToken: route is not yet present, timer not reset.');
         }
         localStorage.setItem('admin_token', tokenValue);
-        localStorage.setItem('expire_at', expireAtValue.toString());
+        localStorage.setItem('expire_at', expire_at.value.toString());
     } else {
         //console.log('[UserStore] setToken: tokenValue is empty, clearing inactivity timer and removing listeners.');
         clearInactivityTimer();

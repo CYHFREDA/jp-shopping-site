@@ -869,7 +869,6 @@ async def admin_reset_admin_password(request: Request, auth=Depends(verify_admin
         print(f"❌ 重置管理員密碼時出錯: {e}")
         raise HTTPException(status_code=500, detail="❌ 重置密碼失敗，請稍後再試！")
 
-# 後台管理員登入 (新增 JWT 認證)
 @app.post("/api/admin/login")
 async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
