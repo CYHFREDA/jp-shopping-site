@@ -875,23 +875,15 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
     username = data.get("username")
     password = data.get("password")
-
     if not username or not password:
-        return JSONResponse({"error": "❌ 帳號或密碼為必填！"}, status_code=400)
-
-    # conn = get_db_conn()
-    # cursor = conn.cursor()
+        return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
     cursor.execute("SELECT id, password FROM admin_users WHERE username=%s", (username,))
     row = cursor.fetchone()
-    # cursor.close()
-    # conn.close()
-
     if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
-        return JSONResponse({"error": "❌ 帳號或密碼錯誤！"}, status_code=401)
-    
+        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     admin_id = row["id"]
     token = jwt.encode({"username": username, "admin_id": admin_id, "exp": datetime.utcnow() + timedelta(days=1)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    cursor.execute("UPDATE admins SET current_token=%s WHERE id=%s", (token, admin_id))
+    cursor.execute("UPDATE admin_users SET current_token=%s WHERE id=%s", (token, admin_id))
     cursor.connection.commit()
     return {"token": token}
 
