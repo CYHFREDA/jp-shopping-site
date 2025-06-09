@@ -8,6 +8,7 @@ import axios from 'axios';
 import VueECharts from 'vue-echarts';
 import * as ECharts from 'echarts';
 import { useUserStore } from '@/stores/userStore';
+import { useCustomerStore } from '@/stores/customerStore';
 
 // 設定 axios 的基礎 URL
 axios.defaults.baseURL = '/';
@@ -20,10 +21,17 @@ axios.interceptors.response.use(
       // 如果是 401 錯誤且錯誤訊息是 "KICKED"，表示被其他登入踢出
       if (error.response.status === 401 && error.response.data.detail === "KICKED") {
         const userStore = useUserStore();
-        userStore.logout('kicked');  // 使用特殊的 'kicked' 來源
-        alert('您的帳號已在其他地方登入，請重新登入！');
+        const customerStore = useCustomerStore();
+        
+        // 根據當前路徑判斷是管理員還是會員
         if (window.location.pathname.startsWith('/admin')) {
+          userStore.logout('kicked');  // 使用特殊的 'kicked' 來源
+          alert('您的管理員帳號已在其他地方登入，請重新登入！');
           router.push('/admin/login');
+        } else {
+          customerStore.logout('kicked');  // 使用特殊的 'kicked' 來源
+          alert('您的會員帳號已在其他地方登入，請重新登入！');
+          router.push('/login');
         }
       }
     }

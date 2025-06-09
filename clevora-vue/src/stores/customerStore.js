@@ -82,6 +82,8 @@ export const useCustomerStore = defineStore('customer', () => {
     clearInactivityTimer();
     if (source === 'inactivity') {
       window.dispatchEvent(new CustomEvent('inactivity-logout', { detail: { type: 'customer' } }));
+    } else if (source === 'kicked') {
+      window.dispatchEvent(new CustomEvent('kicked-logout', { detail: { type: 'customer' } }));
     }
   }
 

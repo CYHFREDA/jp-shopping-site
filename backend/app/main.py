@@ -99,6 +99,24 @@ async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="無效的認證令牌")
 
+async def verify_customer_jwt(request: Request, cursor=Depends(get_db_cursor)):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="未提供有效的認證令牌")
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        customer_id = payload.get("customer_id")
+        cursor.execute("SELECT current_token FROM customers WHERE customer_id=%s", (customer_id,))
+        row = cursor.fetchone()
+        if not row or row["current_token"] != token:
+            raise HTTPException(status_code=401, detail="KICKED")
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="認證令牌已過期")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="無效的認證令牌")
+
 #CORS 設定
 app.add_middleware(
     CORSMiddleware,
@@ -496,22 +514,11 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     })
 
 @app.get("/api/customers/{customer_id}/orders")
-async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
+async def get_customer_orders(customer_id: int, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
     try:
-        # 從請求頭中獲取 token
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            return JSONResponse({"error": "未授權訪問"}, status_code=401)
-        
-        token = auth_header.split(' ')[1]
-        # 驗證 token 並獲取客戶 ID
-        try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-            token_customer_id = payload.get('customer_id')
-            if not token_customer_id or int(token_customer_id) != customer_id:
-                return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
-        except jwt.InvalidTokenError:
-            return JSONResponse({"error": "無效的認證令牌"}, status_code=401)
+        # 验证 token 中的 customer_id 是否匹配
+        if auth.get("customer_id") != customer_id:
+            return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
 
         cursor.execute("""
             SELECT order_id, amount, item_names, status, created_at, paid_at
