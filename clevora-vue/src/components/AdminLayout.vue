@@ -9,9 +9,24 @@
       <hr />
       <ul class="nav nav-pills flex-column mb-auto mt-2">
         <li v-for="item in menu" :key="item.name" class="nav-item">
-          <router-link :to="item.path" class="nav-link" :class="{ active: $route.name === item.name }">
-            <i :class="item.icon" style="margin-right: 8px;"></i>{{ item.label }}
-          </router-link>
+          <template v-if="item.children">
+            <div class="nav-link d-flex align-items-center justify-content-between" :class="{ active: $route.path.startsWith('/admin/products') }" @click="toggleExpand(item.name)" style="cursor:pointer;">
+              <span><i :class="item.icon" style="margin-right: 8px;"></i>{{ item.label }}</span>
+              <i :class="expanded[item.name] ? 'bi bi-chevron-down' : 'bi bi-chevron-right'" style="font-size: 1rem;"></i>
+            </div>
+            <ul v-show="expanded[item.name]" class="nav flex-column ms-3 submenu-list">
+              <li v-for="child in item.children" :key="child.name" class="nav-item">
+                <router-link :to="child.path" class="nav-link" :class="{ active: $route.path === child.path }">
+                  {{ child.label }}
+                </router-link>
+              </li>
+            </ul>
+          </template>
+          <template v-else>
+            <router-link :to="item.path" class="nav-link" :class="{ active: $route.name === item.name }">
+              <i :class="item.icon" style="margin-right: 8px;"></i>{{ item.label }}
+            </router-link>
+          </template>
         </li>
       </ul>
       <div class="mt-auto">
@@ -29,6 +44,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 
@@ -36,9 +52,20 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
+const expanded = ref({}); // 控制展開狀態
+
 const menu = [
   { name: 'AdminDashboard', label: '首頁總覽', path: '/admin', icon: 'bi bi-bar-chart' },
-  { name: 'AdminProducts', label: '商品管理', path: '/admin/products', icon: 'bi bi-box-seam' },
+  {
+    name: 'AdminProducts',
+    label: '商品管理',
+    icon: 'bi bi-box-seam',
+    children: [
+      { name: 'AdminProductsList', label: '商品列表', path: '/admin/products' },
+      { name: 'AdminProductCreate', label: '新增商品', path: '/admin/products/create' },
+      { name: 'AdminProductCategories', label: '商品分類', path: '/admin/product/categories' }
+    ]
+  },
   { name: 'AdminOrders', label: '訂單管理', path: '/admin/orders', icon: 'bi bi-receipt' },
   { name: 'AdminShipments', label: '出貨管理', path: '/admin/shipments', icon: 'bi bi-truck' },
   { name: 'AdminCustomers', label: '客戶管理', path: '/admin/customers', icon: 'bi bi-people' },
@@ -51,6 +78,10 @@ function handleLogout() {
     userStore.logout('manual')
     router.push('/admin/login')
   }
+}
+
+function toggleExpand(name) {
+  expanded.value[name] = !expanded.value[name];
 }
 </script>
 
@@ -73,6 +104,10 @@ function handleLogout() {
 .nav-link:hover {
   background: #c8a99a !important;
   color: #fff !important;
+}
+.submenu-list {
+  background: none;
+  padding-left: 0.5rem;
 }
 .main-content {
   min-width: 0;
