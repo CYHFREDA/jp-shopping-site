@@ -57,8 +57,9 @@ const login = async () => {
 
     // 登入成功
     const { token } = res.data;
-    // 登入成功，設置 token
-    userStore.setToken(token);
+    // 設置 token 和過期時間（24小時）
+    const expireAt = Date.now() + 24 * 60 * 60 * 1000;
+    userStore.setToken(token, expireAt);
     // 導向後台主控台頁面
     router.push('/admin');
   } catch (err) {

@@ -5,12 +5,7 @@ import { useRouter, useRoute } from 'vue-router';
 
 export const useUserStore = defineStore('user', () => {
   const admin_token = ref(localStorage.getItem('admin_token') || '');
-  console.log('[UserStore Init] localStorage admin_token:', localStorage.getItem('admin_token'));
-  console.log('[UserStore Init] admin_token.value initialized to:', admin_token.value);
-
   const expire_at = ref(parseInt(localStorage.getItem('expire_at')) || null);
-  console.log('[UserStore Init] expire_at.value initialized to:', expire_at.value);
-
   const user = ref(null);
 
   let inactivityTimer = null;
@@ -18,6 +13,24 @@ export const useUserStore = defineStore('user', () => {
 
   const router = useRouter();
   const route = ref(null);
+
+  // 初始化时检查是否需要自动登出
+  if (expire_at.value && Date.now() >= expire_at.value) {
+    console.log('[UserStore Init] 檢測到過期的登入狀態，執行自動登出');
+    admin_token.value = '';
+    expire_at.value = null;
+    user.value = null;
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('expire_at');
+  } else if (admin_token.value && expire_at.value) {
+    console.log('[UserStore Init] 檢測到有效的登入狀態，啟動活動監聽');
+    addActivityListeners();
+    startInactivityTimer();
+  }
+
+  console.log('[UserStore Init] localStorage admin_token:', localStorage.getItem('admin_token'));
+  console.log('[UserStore Init] admin_token.value initialized to:', admin_token.value);
+  console.log('[UserStore Init] expire_at.value initialized to:', expire_at.value);
 
   const isAuthenticated = computed(() => {
     const token = admin_token.value;
@@ -125,17 +138,6 @@ export const useUserStore = defineStore('user', () => {
     if (source !== 'kicked') {  // 如果不是被踢出，才自動導向登入頁
       router.push('/admin/login');
     }
-  }
-
-  // Initial setup on store creation
-  if (admin_token.value && expire_at.value && Date.now() < expire_at.value) {
-      //console.log('[UserStore] Admin authenticated on store load, starting timer and listeners.');
-      addActivityListeners();
-  } else if (localStorage.getItem('admin_token') && (!expire_at.value || Date.now() >= expire_at.value)) {
-      //console.log('[UserStore] Expired or invalid admin token found in localStorage on load. Performing explicit logout.');
-      logout(); // Perform an immediate logout to clear any lingering invalid state
-  } else {
-      //console.log('[UserStore] No valid admin token found on store load.');
   }
 
   watch(() => router.currentRoute.value, (newRoute) => {

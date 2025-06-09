@@ -2,9 +2,9 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 export const useCustomerStore = defineStore('customer', () => {
-  const customer = ref(null);
-  const token = ref(null);
-  const expireAt = ref(null);
+  const customer = ref(JSON.parse(localStorage.getItem('customer')) || null);
+  const token = ref(localStorage.getItem('customer_token') || null);
+  const expireAt = ref(parseInt(localStorage.getItem('customer_expire_at')) || null);
   let inactivityTimer = null;
   const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30分鐘
 
@@ -16,10 +16,22 @@ export const useCustomerStore = defineStore('customer', () => {
     customer.value = userData;
     token.value = authToken;
     expireAt.value = expireTime;
+    
+    // 保存到 localStorage
+    localStorage.setItem('customer', JSON.stringify(userData));
+    localStorage.setItem('customer_token', authToken);
+    localStorage.setItem('customer_expire_at', expireTime);
+    
     console.log('CustomerStore: setCustomer 被呼叫。');
     console.log('新 customer:', customer.value);
     console.log('新 token:', token.value);
     console.log('新 expireAt:', expireAt.value);
+    
+    // 如果有效的登录，启动活动监听和计时器
+    if (userData && authToken && expireTime) {
+      addActivityListeners();
+      startInactivityTimer();
+    }
   }
 
   function startInactivityTimer() {
@@ -85,6 +97,21 @@ export const useCustomerStore = defineStore('customer', () => {
     } else if (source === 'kicked') {
       window.dispatchEvent(new CustomEvent('kicked-logout', { detail: { type: 'customer' } }));
     }
+  }
+
+  // 初始化时检查是否需要自动登出
+  if (expireAt.value && Date.now() >= expireAt.value) {
+    console.log('CustomerStore: 檢測到過期的登入狀態，執行自動登出');
+    customer.value = null;
+    token.value = null;
+    expireAt.value = null;
+    localStorage.removeItem('customer');
+    localStorage.removeItem('customer_token');
+    localStorage.removeItem('customer_expire_at');
+  } else if (customer.value && token.value && expireAt.value) {
+    console.log('CustomerStore: 檢測到有效的登入狀態，啟動活動監聽');
+    addActivityListeners();
+    startInactivityTimer();
   }
 
   // 新增日誌用於偵錯
