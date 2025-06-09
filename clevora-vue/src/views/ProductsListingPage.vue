@@ -194,7 +194,7 @@ const filterCategory = (category) => {
 };
 
 const addToCart = (product) => {
-  cartStore.addItem(product);
+  cartStore.addItem({ ...product, quantity: 1 });
   alert('✅ 已加入購物車！');
 };
 
