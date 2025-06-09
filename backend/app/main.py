@@ -450,29 +450,21 @@ async def customer_register(request: Request, background_tasks: BackgroundTasks)
 @app.post("/api/customers/login")
 async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
-    email = data.get("email")
+    username = data.get("username")
     password = data.get("password")
 
-    print(f"[登入] 收到登入請求 - Email: {email}")
-
-    if not email or not password:
-        print("❌ [登入] 登入失敗: 缺少帳號或密碼")
+    if not username or not password:
         return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
 
-    cursor.execute("SELECT id, password FROM customers WHERE email=%s", (email,))
+    cursor.execute("SELECT customer_id, password FROM customers WHERE username=%s", (username,))
     row = cursor.fetchone()
-    
     if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
-        print(f"❌ [登入] 登入失敗: 使用者 '{email}' 密碼錯誤。")
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
-    
-    customer_id = row["id"]
-    print(f"✅ [登入] 使用者 '{email}' 密碼驗證成功。")
 
-    token = jwt.encode({"email": email, "customer_id": customer_id, "exp": datetime.utcnow() + timedelta(days=7)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    cursor.execute("UPDATE customers SET current_token=%s WHERE id=%s", (token, customer_id))
+    customer_id = row["customer_id"]
+    token = jwt.encode({"customer_id": customer_id, "exp": datetime.utcnow() + timedelta(days=7)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    cursor.execute("UPDATE customers SET current_token=%s WHERE customer_id=%s", (token, customer_id))
     cursor.connection.commit()
-    
     return JSONResponse({"message": "登入成功", "token": token})
 
 @app.get("/api/customers/{customer_id}/orders")
