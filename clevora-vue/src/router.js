@@ -125,6 +125,18 @@ const routes = [
         name: 'AdminSettings',
         component: Settings,
         meta: { title: 'Clevora 後台管理 - 系統設定' }
+      },
+      {
+        path: 'product/categories',
+        name: 'AdminProductCategories',
+        component: () => import('@/views/admin/ProductCategories.vue'),
+        meta: { title: 'Clevora 後台管理 - 商品分類' }
+      },
+      {
+        path: 'products/create',
+        name: 'AdminProductCreate',
+        component: () => import('@/views/admin/ProductCreate.vue'),
+        meta: { title: 'Clevora 後台管理 - 新增商品' }
       }
     ]
   },

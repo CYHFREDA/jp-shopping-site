@@ -8,27 +8,6 @@
         {{ displayMessage }}
       </div>
 
-      <!-- 新增商品表單 -->
-      <div class="row g-2 mb-3 align-items-end">
-        <div class="col-md-3">
-          <input v-model="newProduct.name" class="form-control search-input" placeholder="商品名稱">
-        </div>
-        <div class="col-md-2">
-          <input v-model="newProduct.price" type="number" class="form-control search-input" placeholder="價格">
-        </div>
-        <div class="col-md-4">
-          <input v-model="newProduct.description" class="form-control search-input" placeholder="商品描述">
-        </div>
-        <div class="col-md-3 d-flex align-items-center">
-          <input v-model="newProduct.image_url" class="form-control search-input me-2" placeholder="圖片網址 (可空)">
-          <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
-        </div>
-        <div class="category-checkboxes mb-3 col-12">
-          <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
-            <input type="checkbox" v-model="newProduct.categories" :value="key" />
-            <span>{{ label }}</span></label>
-        </div>
-      </div>
       <!-- 桌機版商品表格 -->
       <div class="table-responsive d-none d-md-block mt-4">
         <table class="table table-striped table-bordered">
@@ -146,14 +125,6 @@ const products = ref([]);
 const userStore = useUserStore();
 const displayMessage = ref(''); // 新增響應式變數用於顯示訊息
 
-const newProduct = ref({
-  name: '',
-  price: '',
-  description: '',
-  image_url: '',
-  categories: []
-});
-
 const cardFields = [
   { key: 'id', label: '商品ID' },
   { key: 'name', label: '名稱' },
@@ -232,59 +203,6 @@ async function loadProducts() {
       displayMessage.value = '❌ 認證失敗，請重新登入！';
     } else {
        displayMessage.value = '❌ 載入商品資料失敗！';
-    }
-  }
-}
-
-async function handleAddProduct() {
-  displayMessage.value = ''; // 清除之前的訊息
-  const { name, price, description, image_url, categories } = newProduct.value;
-
-  if (!name || !price) {
-    displayMessage.value = "❌ 請填寫完整商品名稱與價格！";
-    return;
-  }
-
-  const category = categories.join("#");
-  if (category.length > 255) {
-    displayMessage.value = "❌ 分類超過 255 字元限制，請刪減分類！";
-    return;
-  }
-
-  const token = userStore.admin_token;
-  if (!token) {
-     console.error('未找到認證 token！');
-     displayMessage.value = '❌ 請先登入！';
-     return;
-  }
-
-  try {
-    const res = await api.post('/api/admin/products', { name, price, description, image_url, category });
-
-    // 直接從 res.data 獲取結果，Axios 已自動解析
-    const result = res.data;
-
-    // 如果請求成功（Axios 狀態碼在 2xx），執行以下邏輯
-    displayMessage.value = result.message || '✅ 商品新增成功！'; // 彈出成功提示
-    // 清空表單
-    newProduct.value = {
-      name: '',
-      price: '',
-      description: '',
-      image_url: '',
-      categories: []
-    };
-    loadProducts(); // 重新載入商品資料
-
-  } catch (error) {
-    // 處理錯誤，包括非 2xx 狀態碼
-    console.error('新增商品時發生錯誤：', error);
-    if (error.response && error.response.status === 401) {
-      displayMessage.value = '❌ 認證失敗，請重新登入！';
-    } else {
-      // 嘗試從錯誤響應中獲取後端返回的錯誤信息
-      const errorMessage = error.response?.data?.error || error.message || '新增商品失敗！';
-      displayMessage.value = `❌ ${errorMessage}`;
     }
   }
 }
