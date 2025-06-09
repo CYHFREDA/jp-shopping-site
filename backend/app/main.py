@@ -89,10 +89,14 @@ async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         admin_id = payload.get("admin_id")
+        
+        # 檢查 token 是否與資料庫中的相符
         cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
         row = cursor.fetchone()
         if not row or row["current_token"] != token:
+            print(f"❌ [管理員驗證] 管理員 ID {admin_id} 的 token 不符或已在其他地方登入")
             raise HTTPException(status_code=401, detail="KICKED")
+            
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="認證令牌已過期")
@@ -917,8 +921,18 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     admin_id = row["id"]
     token = jwt.encode({"username": username, "admin_id": admin_id, "exp": datetime.utcnow() + timedelta(days=1)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    
+    # 先檢查是否有現有的 token
+    cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
+    current = cursor.fetchone()
+    if current and current["current_token"]:
+        print(f"✅ [管理員登入] 管理員 {username} 已在其他地方登入，將更新 token")
+    
+    # 更新 token
     cursor.execute("UPDATE admin_users SET current_token=%s WHERE id=%s", (token, admin_id))
     cursor.connection.commit()
+    print(f"✅ [管理員登入] 管理員 {username} 登入成功，token 已更新")
+    
     return {"token": token}
 
 # 發送驗證 Email 的輔助函式
