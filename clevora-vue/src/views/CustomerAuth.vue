@@ -228,40 +228,24 @@ watch(() => registerForm.value.address, validateAddress);
 watch(() => registerForm.value.password, validatePassword);
 
 async function handleLogin() {
-  loginApiErrorMessage.value = ''; // 清除之前的訊息
-
-  const { username, password } = loginForm.value;
-  if (!username || !password) {
-    loginApiErrorMessage.value = "❌ 請填寫完整使用者名稱和密碼！";
-    return;
-  }
-
   try {
-    const res = await fetch('/api/customers/login', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
-    });
+    const res = await axios.post('/api/customers/login', loginForm.value);
+    const { token, customer, expire_at } = res.data;
 
-    const data = await res.json();
+    // 使用 customerStore 更新客戶狀態
+    customerStore.setCustomer(customer, token, expire_at);
 
-    if (res.ok) {
-      loginApiErrorMessage.value = "✅ 登入成功！";
-      customerStore.setCustomer(
-        { customer_id: data.customer_id, name: data.name },
-        data.token,
-        data.expire_at
-      );
-
-      const redirectURL = localStorage.getItem("redirectAfterLogin") || "/";
-      localStorage.removeItem("redirectAfterLogin");
-      router.push(redirectURL);
+    // 檢查是否有重定向 URL
+    const redirectURL = localStorage.getItem('redirectAfterLogin') || '/';
+    localStorage.removeItem('redirectAfterLogin');
+    router.push(redirectURL);
+  } catch (err) {
+    console.error('登入時發生錯誤：', err);
+    if (err.response) {
+      loginApiErrorMessage.value = err.response.data.error || '❌ 登入失敗！';
     } else {
-      loginApiErrorMessage.value = data.error || '❌ 登入失敗！';
+      loginApiErrorMessage.value = '❌ 登入失敗！請檢查網路連線。';
     }
-  } catch (error) {
-    console.error('登入錯誤：', error);
-    loginApiErrorMessage.value = '❌ 登入失敗，請稍後再試。';
   }
 }
 

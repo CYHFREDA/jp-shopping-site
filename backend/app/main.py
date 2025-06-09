@@ -456,16 +456,44 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     if not username or not password:
         return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
 
-    cursor.execute("SELECT customer_id, password FROM customers WHERE username=%s", (username,))
+    cursor.execute("""
+        SELECT customer_id, username, name, email, phone, address, password, is_verified 
+        FROM customers 
+        WHERE username=%s
+    """, (username,))
     row = cursor.fetchone()
-    if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
+    
+    if not row:
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+    
+    if not bcrypt.checkpw(password.encode(), row["password"].encode()):
+        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
+        
+    if not row["is_verified"]:
+        return JSONResponse({"error": "請先驗證您的 Email"}, status_code=401)
 
     customer_id = row["customer_id"]
     token = jwt.encode({"customer_id": customer_id, "exp": datetime.utcnow() + timedelta(days=7)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    
+    # 更新 current_token 實現後踢前機制
     cursor.execute("UPDATE customers SET current_token=%s WHERE customer_id=%s", (token, customer_id))
     cursor.connection.commit()
-    return JSONResponse({"message": "登入成功", "token": token})
+
+    # 構建用戶資料（不包含密碼）
+    customer_data = {
+        "customer_id": row["customer_id"],
+        "username": row["username"],
+        "name": row["name"],
+        "email": row["email"],
+        "phone": row["phone"],
+        "address": row["address"]
+    }
+
+    return JSONResponse({
+        "token": token,
+        "customer": customer_data,
+        "expire_at": (datetime.utcnow() + timedelta(days=7)).timestamp() * 1000  # 轉換為毫秒
+    })
 
 @app.get("/api/customers/{customer_id}/orders")
 async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
