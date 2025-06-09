@@ -88,31 +88,30 @@ const login = async () => {
   }
 
   try {
-    const res = await axios.post('/customers/login', loginForm.value);
+    const res = await axios.post('/api/customers/login', loginForm.value);
     const data = res.data;
 
-    if (data.message) {
-      alert('✅ 登入成功！');
-      // 使用 customerStore 更新客戶狀態，傳遞從後端獲取的用戶數據、token 和過期時間
+    if (data.token) {  // 改為檢查 token 是否存在
+      // 使用 customerStore 更新客戶狀態
       customerStore.setCustomer(
-        {
-          id: data.customer_id,
-          name: data.name,
-          // 如果後端返回更多客戶相關屬性，請在此處添加
-        }, // 客戶數據
-        data.token,       // token
-        data.expire_at    // 過期時間
+        data.customer,  // 整個客戶資料物件
+        data.token,    // token
+        Date.now() + 24 * 60 * 60 * 1000  // 24小時後過期
       );
 
       const redirectURL = localStorage.getItem('redirectAfterLogin') || '/';
       localStorage.removeItem('redirectAfterLogin');
-      window.location.href = redirectURL; // 使用 window.location.href 進行全頁面跳轉以確保導覽列狀態更新
+      router.push(redirectURL);  // 使用 router.push 而不是 window.location.href
     } else {
-      alert(data.error);
+      alert(data.error || '登入失敗！');
     }
   } catch (error) {
     console.error('登入失敗：', error);
-    alert('登入失敗！請稍後再試。');
+    if (error.response && error.response.data && error.response.data.error) {
+      alert(error.response.data.error);
+    } else {
+      alert('登入失敗！請稍後再試。');
+    }
   }
 };
 
