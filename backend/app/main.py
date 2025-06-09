@@ -46,6 +46,40 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173") # 前端網址
 if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL]):
     print("⚠️ Email 設定不完整！請檢查 .env 中的 EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL。")
 
+# PostgreSQL 連線參數
+DB_NAME = os.getenv("POSTGRES_DB")
+DB_USER = os.getenv("POSTGRES_USER")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DB_HOST = os.getenv("POSTGRES_HOST")
+DB_PORT = "5432"
+
+# 全局連線池 minconn 建議根據應用程式的預期併發量設定，maxconn 避免耗盡資料庫資源
+# 可以根據實際情況調整這些值
+global_pool = SimpleConnectionPool(minconn=1, maxconn=10,
+                                    dbname=DB_NAME,
+                                    user=DB_USER,
+                                    password=DB_PASSWORD,
+                                    host=DB_HOST,
+                                    port=DB_PORT)
+
+# 從連線池中獲取連線
+def get_db_conn():
+    return global_pool.getconn()
+
+# FastAPI 依賴項：獲取游標並確保連線被歸還
+async def get_db_cursor():
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_conn()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        yield cursor
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            global_pool.putconn(conn)
+
 # JWT 認證依賴項 (取代 Basic Auth)
 async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
     auth_header = request.headers.get("Authorization")
@@ -80,40 +114,6 @@ ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")
 ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 ECPAY_API_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
-
-#PostgreSQL 連線參數
-DB_NAME = os.getenv("POSTGRES_DB")
-DB_USER = os.getenv("POSTGRES_USER")
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-DB_HOST = os.getenv("POSTGRES_HOST")
-DB_PORT = "5432"
-
-# 全局連線池 minconn 建議根據應用程式的預期併發量設定，maxconn 避免耗盡資料庫資源
-# 可以根據實際情況調整這些值
-global_pool = SimpleConnectionPool(minconn=1, maxconn=10,
-                                    dbname=DB_NAME,
-                                    user=DB_USER,
-                                    password=DB_PASSWORD,
-                                    host=DB_HOST,
-                                    port=DB_PORT)
-
-# 從連線池中獲取連線
-def get_db_conn():
-    return global_pool.getconn()
-
-# FastAPI 依賴項：獲取游標並確保連線被歸還
-async def get_db_cursor():
-    conn = None
-    cursor = None
-    try:
-        conn = get_db_conn()
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        yield cursor
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            global_pool.putconn(conn)
 
 # 產生 CheckMacValue
 def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
