@@ -20,10 +20,10 @@
           <input v-model="newProduct.image_url" class="form-control search-input me-2" placeholder="圖片網址 (可空)">
           <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
         </div>
-        <div class="col-md-3">
-          <select v-model="newProduct.categories" class="form-select" multiple>
-            <option v-for="(label, key) in categoryMap" :key="key" :value="key">{{ label }}</option>
-          </select>
+        <div class="category-checkboxes mb-3 col-12">
+          <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
+            <input type="checkbox" v-model="newProduct.categories" :value="key" />
+            <span>{{ label }}</span></label>
         </div>
       </div>
     </div>
@@ -99,5 +99,62 @@ async function handleAddProduct() {
   max-width: 900px;
   margin: 0 auto;
   padding-top: 24px;
+}
+.category-checkboxes {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  margin-top: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a18a7b #f3edea;
+}
+.category-checkboxes label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 13px;
+  background: #f3edea;
+  color: #38302e;
+  border: 1.5px solid #a18a7b;
+  padding: 4px 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
+  user-select: none;
+  position: relative;
+  box-shadow: 0 1px 4px rgba(161,138,123,0.07);
+}
+.category-checkboxes input[type='checkbox'] {
+  display: none;
+}
+.category-checkboxes input[type='checkbox']:checked + span,
+.category-checkboxes input[type='checkbox']:checked ~ span {
+  background: #a18a7b;
+  color: #fff;
+  border-color: #a18a7b;
+  box-shadow: 0 2px 8px rgba(161, 138, 123, 0.15);
+  padding: 4px 14px;
+  border-radius: 16px;
+}
+.category-checkboxes label:hover {
+  background: #e9e0d8;
+  border-color: #c8a99a;
+  color: #38302e;
+}
+.category-checkboxes input[type='checkbox']:checked + span:hover,
+.category-checkboxes input[type='checkbox']:checked ~ span:hover {
+  background: #38302e;
+  color: #fff;
+  border-color: #38302e;
+}
+.category-checkboxes span {
+  padding: 0 2px;
+  border-radius: 16px;
+  transition: background 0.2s, color 0.2s;
+  width: 100%;
+  text-align: center;
+  font-size: 0.92rem;
 }
 </style> 
