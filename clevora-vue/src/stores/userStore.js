@@ -119,8 +119,12 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('expire_at');
     if (source === 'inactivity') {
       window.dispatchEvent(new CustomEvent('inactivity-logout', { detail: { type: 'admin' } }));
+    } else if (source === 'kicked') {
+      window.dispatchEvent(new CustomEvent('kicked-logout', { detail: { type: 'admin' } }));
     }
-    router.push('/admin/login'); // Explicitly push to login on logout
+    if (source !== 'kicked') {  // 如果不是被踢出，才自動導向登入頁
+      router.push('/admin/login');
+    }
   }
 
   // Initial setup on store creation

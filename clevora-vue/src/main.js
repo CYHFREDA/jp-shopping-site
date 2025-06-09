@@ -7,9 +7,29 @@ import router from './router';
 import axios from 'axios';
 import VueECharts from 'vue-echarts';
 import * as ECharts from 'echarts';
+import { useUserStore } from '@/stores/userStore';
 
 // 設定 axios 的基礎 URL
 axios.defaults.baseURL = '/';
+
+// 添加響應攔截器
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      // 如果是 401 錯誤且錯誤訊息是 "KICKED"，表示被其他登入踢出
+      if (error.response.status === 401 && error.response.data.detail === "KICKED") {
+        const userStore = useUserStore();
+        userStore.logout('kicked');  // 使用特殊的 'kicked' 來源
+        alert('您的帳號已在其他地方登入，請重新登入！');
+        if (window.location.pathname.startsWith('/admin')) {
+          router.push('/admin/login');
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // 引入全局樣式
 import './assets/main.css';
@@ -18,7 +38,6 @@ import './assets/main.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { useUserStore } from '@/stores/userStore';
 
 const app = createApp(App);
 const pinia = createPinia();

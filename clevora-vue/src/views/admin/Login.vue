@@ -55,24 +55,24 @@ const login = async () => {
       password: password.value,
     });
 
-    if (res.status === 200) {
-      const { token } = res.data;
-      // 登入成功，設置 token
-      userStore.setToken(token);
-      // 導向後台主控台頁面
-      router.push('/admin');
-    } else if (res.status === 401) {
-      error.value = '❌ 帳號或密碼錯誤！';
-    } else {
-      error.value = `後台登入失敗！(${res.status})`;
-      console.error('後台登入請求失敗：', res.status, res.statusText);
-    }
+    // 登入成功
+    const { token } = res.data;
+    // 登入成功，設置 token
+    userStore.setToken(token);
+    // 導向後台主控台頁面
+    router.push('/admin');
   } catch (err) {
-    if (err.response && err.response.status === 401) {
-      error.value = '❌ 帳號或密碼錯誤！';
+    console.error('後台登入時發生錯誤：', err);
+    if (err.response) {
+      if (err.response.status === 401) {
+        error.value = err.response.data.error || '❌ 帳號或密碼錯誤！';
+      } else if (err.response.status === 400) {
+        error.value = err.response.data.error || '❌ 請輸入完整帳號密碼！';
+      } else {
+        error.value = err.response.data.error || `❌ 後台登入失敗！(${err.response.status})`;
+      }
     } else {
-      console.error('後台登入時發生網路錯誤：', err);
-    error.value = '後台登入失敗！請檢查網路連線。';
+      error.value = '❌ 後台登入失敗！請檢查網路連線。';
     }
   }
 };
