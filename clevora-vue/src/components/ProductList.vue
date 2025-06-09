@@ -24,7 +24,7 @@ export default {
   methods: {
     addToCart(product) {
       const cartStore = useCartStore();
-      cartStore.addToCart(product);
+      cartStore.addItem({ ...product, quantity: 1 });
       alert('✅ 已加入購物車！');
     }
   }
