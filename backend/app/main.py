@@ -89,12 +89,18 @@ async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         admin_id = payload.get("admin_id")
+        username = payload.get("username")  # 从 token 中获取用户名
         
-        # 檢查 token 是否與資料庫中的相符
-        cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
+        # 检查 token 是否与数据库中的相符（只检查同一用户名的 token）
+        cursor.execute("""
+            SELECT current_token 
+            FROM admin_users 
+            WHERE id=%s AND username=%s
+        """, (admin_id, username))
         row = cursor.fetchone()
+        
         if not row or row["current_token"] != token:
-            print(f"❌ [管理員驗證] 管理員 ID {admin_id} 的 token 不符或已在其他地方登入")
+            print(f"❌ [管理員驗證] 管理員 {username} (ID: {admin_id}) 的 token 不符或已在其他地方登入")
             raise HTTPException(status_code=401, detail="KICKED")
             
         return payload
@@ -111,10 +117,20 @@ async def verify_customer_jwt(request: Request, cursor=Depends(get_db_cursor)):
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         customer_id = payload.get("customer_id")
-        cursor.execute("SELECT current_token FROM customers WHERE customer_id=%s", (customer_id,))
+        username = payload.get("username")  # 从 token 中获取用户名
+        
+        # 检查 token 是否与数据库中的相符（只检查同一用户名的 token）
+        cursor.execute("""
+            SELECT current_token 
+            FROM customers 
+            WHERE customer_id=%s AND username=%s
+        """, (customer_id, username))
         row = cursor.fetchone()
+        
         if not row or row["current_token"] != token:
+            print(f"❌ [會員驗證] 會員 {username} (ID: {customer_id}) 的 token 不符或已在其他地方登入")
             raise HTTPException(status_code=401, detail="KICKED")
+            
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="認證令牌已過期")
@@ -495,7 +511,11 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
         return JSONResponse({"error": "請先驗證您的 Email"}, status_code=401)
 
     customer_id = row["customer_id"]
-    token = jwt.encode({"customer_id": customer_id, "exp": datetime.utcnow() + timedelta(days=7)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    token = jwt.encode({
+        "customer_id": customer_id, 
+        "username": username,  # 添加用户名到 token
+        "exp": datetime.utcnow() + timedelta(days=7)
+    }, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
     # 更新 current_token 實現後踢前機制
     cursor.execute("UPDATE customers SET current_token=%s WHERE customer_id=%s", (token, customer_id))
@@ -920,7 +940,11 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     admin_id = row["id"]
-    token = jwt.encode({"username": username, "admin_id": admin_id, "exp": datetime.utcnow() + timedelta(days=1)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    token = jwt.encode({
+        "username": username, 
+        "admin_id": admin_id, 
+        "exp": datetime.utcnow() + timedelta(days=1)
+    }, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
     # 先檢查是否有現有的 token
     cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
