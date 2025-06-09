@@ -37,13 +37,25 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const userStore = useUserStore();
       const customerStore = useCustomerStore();
-      
-      // 如果是管理員請求返回 401，清除管理員登錄狀態
-      if (error.config.url.startsWith('/api/admin')) {
-        userStore.logout('401');
+      const detail = error.response.data?.detail;
+      // 處理「後踢前」
+      if (detail === 'KICKED') {
+        // 彈窗提示
+        window.alert('您的帳號已在其他地方登入，請重新登入。');
+        if (error.config.url.startsWith('/api/admin')) {
+          userStore.logout('KICKED');
+          window.location.href = '/admin/login';
+        } else {
+          customerStore.logout('KICKED');
+          window.location.href = '/login';
+        }
       } else {
-        // 如果是客戶請求返回 401，清除客戶登錄狀態
-        customerStore.logout('401');
+        // 其他 401 處理
+        if (error.config.url.startsWith('/api/admin')) {
+          userStore.logout('401');
+        } else {
+          customerStore.logout('401');
+        }
       }
     }
     return Promise.reject(error);

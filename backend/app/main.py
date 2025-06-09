@@ -47,23 +47,23 @@ if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL]):
     print("⚠️ Email 設定不完整！請檢查 .env 中的 EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL。")
 
 # JWT 認證依賴項 (取代 Basic Auth)
-async def verify_admin_jwt(request: Request):
+async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未提供有效的認證令牌")
-    
+        raise HTTPException(status_code=401, detail="未提供有效的認證令牌")
     token = auth_header.split(" ")[1]
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        username = payload.get("username")
         admin_id = payload.get("admin_id")
-        if not username or not admin_id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="無效的認證令牌內容")
-        return {"username": username, "admin_id": admin_id}
+        cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
+        row = cursor.fetchone()
+        if not row or row["current_token"] != token:
+            raise HTTPException(status_code=401, detail="KICKED")
+        return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="認證令牌已過期")
+        raise HTTPException(status_code=401, detail="認證令牌已過期")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="無效的認證令牌")
+        raise HTTPException(status_code=401, detail="無效的認證令牌")
 
 #CORS 設定
 app.add_middleware(
@@ -450,45 +450,30 @@ async def customer_register(request: Request, background_tasks: BackgroundTasks)
 @app.post("/api/customers/login")
 async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     data = await request.json()
-    username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
 
-    print(f"[登入] 收到登入請求 - Username: {username}")
+    print(f"[登入] 收到登入請求 - Email: {email}")
 
-    if not username or not password:
+    if not email or not password:
         print("❌ [登入] 登入失敗: 缺少帳號或密碼")
         return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
 
-    cursor.execute("SELECT customer_id, name, password, is_verified FROM customers WHERE username=%s", (username,))
+    cursor.execute("SELECT id, password FROM customers WHERE email=%s", (email,))
     row = cursor.fetchone()
     
-    if not row:
-        print(f"❌ [登入] 登入失敗: 找不到使用者 '{username}'")
-        return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
-
-    customer_id, name, hashed_password, is_verified = row
-    print(f"[登入] 找到使用者 '{username}', is_verified: {is_verified}")
-
-    if not is_verified:
-        print(f"❌ [登入] 登入失敗: 使用者 '{username}' Email 尚未驗證。")
-        return JSONResponse({"error": "❌ 您的 Email 尚未驗證，請檢查 Email 收件箱。"}, status_code=401)
-
-    if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-        print(f"❌ [登入] 登入失敗: 使用者 '{username}' 密碼錯誤。")
+    if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
+        print(f"❌ [登入] 登入失敗: 使用者 '{email}' 密碼錯誤。")
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     
-    print(f"✅ [登入] 使用者 '{username}' 密碼驗證成功。")
+    customer_id = row["id"]
+    print(f"✅ [登入] 使用者 '{email}' 密碼驗證成功。")
 
-    expire_at = datetime.utcnow() + timedelta(hours=24)
-    payload = {
-        "customer_id": customer_id,
-        "name": name,
-        "exp": expire_at
-    }
-    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    print(f"✅ [登入] 使用者 '{username}' 登入成功，JWT Token 已生成。")
+    token = jwt.encode({"email": email, "customer_id": customer_id, "exp": datetime.utcnow() + timedelta(days=7)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    cursor.execute("UPDATE customers SET current_token=%s WHERE id=%s", (token, customer_id))
+    cursor.connection.commit()
     
-    return JSONResponse({"message": "登入成功", "customer_id": customer_id, "name": name, "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
+    return JSONResponse({"message": "登入成功", "token": token})
 
 @app.get("/api/customers/{customer_id}/orders")
 async def get_customer_orders(customer_id: int, request: Request, cursor=Depends(get_db_cursor)):
@@ -909,24 +894,14 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
     # cursor.close()
     # conn.close()
 
-    if not row:
+    if not row or not bcrypt.checkpw(password.encode(), row["password"].encode()):
         return JSONResponse({"error": "❌ 帳號或密碼錯誤！"}, status_code=401)
     
-    admin_id, hashed_password = row
-
-    if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-        return JSONResponse({"error": "❌ 帳號或密碼錯誤！"}, status_code=401)
-    
-    # 登入成功，生成 JWT Token
-    expire_at = datetime.utcnow() + timedelta(hours=24) # 設定 24 小時後過期
-    payload = {
-        "admin_id": admin_id,
-        "username": username,
-        "exp": expire_at
-    }
-    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    
-    return JSONResponse({"message": "登入成功", "token": token, "expire_at": int(expire_at.timestamp() * 1000)})
+    admin_id = row["id"]
+    token = jwt.encode({"username": username, "admin_id": admin_id, "exp": datetime.utcnow() + timedelta(days=1)}, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    cursor.execute("UPDATE admins SET current_token=%s WHERE id=%s", (token, admin_id))
+    cursor.connection.commit()
+    return {"token": token}
 
 # 發送驗證 Email 的輔助函式
 async def send_verification_email(recipient_email: str, username: str, verification_link: str):
