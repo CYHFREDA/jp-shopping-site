@@ -20,10 +20,10 @@
           <input v-model="newProduct.image_url" class="form-control search-input me-2" placeholder="圖片網址 (可空)">
           <button class="add-product-btn btn btn-success btn-sm" @click="handleAddProduct">新增商品</button>
         </div>
-        <div class="category-checkboxes mb-3 col-12">
-          <label v-for="(label, key) in categoryMap" :key="key" class="category-tag">
-            <input type="checkbox" v-model="newProduct.categories" :value="key" />
-            <span>{{ label }}</span></label>
+        <div class="col-md-3">
+          <select v-model="newProduct.categories" class="form-select" multiple>
+            <option v-for="(label, key) in categoryMap" :key="key" :value="key">{{ label }}</option>
+          </select>
         </div>
       </div>
     </div>

@@ -18,7 +18,9 @@
               <li v-for="child in item.children" :key="child.name" class="nav-item">
                 <router-link :to="child.path" class="nav-link" :class="{ active: $route.path === child.path }">
                   {{ child.label }}
-                  <i v-if="child.name === 'AdminProductCategories'" class="bi bi-chevron-right" style="margin-left: 6px; font-size: 0.9em;"></i>
+                  <span v-if="child.name === 'AdminProductCategories'" style="margin-left: 6px; font-size: 0.9em; display: inline-block; vertical-align: middle;">
+                    <i class="bi bi-chevron-right"></i>
+                  </span>
                 </router-link>
               </li>
             </ul>
