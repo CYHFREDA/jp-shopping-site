@@ -9,7 +9,10 @@ export const useCustomerStore = defineStore('customer', () => {
   const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30分鐘
 
   const isAuthenticated = computed(() => {
-    return !!customer.value && !!token.value && !!expireAt.value && Date.now() < expireAt.value;
+    const now = Date.now();
+    const hasValidToken = token.value && expireAt.value && now < expireAt.value;
+    const hasValidCustomer = customer.value && customer.value.customer_id;
+    return hasValidToken && hasValidCustomer;
   });
 
   function setCustomer(userData, authToken, expireTime) {
@@ -35,39 +38,37 @@ export const useCustomerStore = defineStore('customer', () => {
   }
 
   function startInactivityTimer() {
-    clearInactivityTimer();
-    inactivityTimer = setTimeout(() => {
-      logout('inactivity');
-    }, INACTIVITY_TIMEOUT);
+    if (isAuthenticated.value) {
+      inactivityTimer = setTimeout(() => {
+        console.log('CustomerStore: 檢測到 30 分鐘無活動，執行自動登出');
+        logout('inactivity');
+        window.alert('由於長時間未操作，系統已自動登出。');
+        window.location.href = '/login';
+      }, INACTIVITY_TIMEOUT);
+    }
   }
 
   function resetInactivityTimer() {
-    if (isAuthenticated.value) {
-      startInactivityTimer();
-    } else {
-      clearInactivityTimer();
-    }
-  }
-
-  function clearInactivityTimer() {
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
-      inactivityTimer = null;
     }
+    startInactivityTimer();
   }
 
   function addActivityListeners() {
-    window.addEventListener('mousemove', resetInactivityTimer);
-    window.addEventListener('keypress', resetInactivityTimer);
-    window.addEventListener('click', resetInactivityTimer);
-    window.addEventListener('scroll', resetInactivityTimer);
+    if (typeof window !== 'undefined') {
+      ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+    }
   }
 
   function removeActivityListeners() {
-    window.removeEventListener('mousemove', resetInactivityTimer);
-    window.removeEventListener('keypress', resetInactivityTimer);
-    window.removeEventListener('click', resetInactivityTimer);
-    window.removeEventListener('scroll', resetInactivityTimer);
+    if (typeof window !== 'undefined') {
+      ['mousemove', 'keydown', 'click', 'touchstart'].forEach(event => {
+        window.removeEventListener(event, resetInactivityTimer);
+      });
+    }
   }
 
   // 登入時呼叫
@@ -81,37 +82,38 @@ export const useCustomerStore = defineStore('customer', () => {
     }
   }, { immediate: true });
 
-  function logout(source = 'unknown') {
-    const now = new Date().toISOString();
-    console.log(`CustomerStore: logout 被呼叫。來源: ${source}, 時間: ${now}。狀態已清空。`);
-    customer.value = null;
-    token.value = '';
-    expireAt.value = '';
-    localStorage.removeItem('customer');
-    localStorage.removeItem('customer_token');
-    localStorage.removeItem('customer_expire_at');
-    removeActivityListeners();
-    clearInactivityTimer();
-    if (source === 'inactivity') {
-      window.dispatchEvent(new CustomEvent('inactivity-logout', { detail: { type: 'customer' } }));
-    } else if (source === 'kicked') {
-      window.dispatchEvent(new CustomEvent('kicked-logout', { detail: { type: 'customer' } }));
-    }
-  }
-
-  // 初始化时检查是否需要自动登出
-  if (expireAt.value && Date.now() >= expireAt.value) {
-    console.log('CustomerStore: 檢測到過期的登入狀態，執行自動登出');
+  function logout(reason = '') {
+    console.log(`CustomerStore: 執行登出，原因: ${reason}`);
     customer.value = null;
     token.value = null;
     expireAt.value = null;
+    
+    // 清除 localStorage
     localStorage.removeItem('customer');
     localStorage.removeItem('customer_token');
     localStorage.removeItem('customer_expire_at');
-  } else if (customer.value && token.value && expireAt.value) {
-    console.log('CustomerStore: 檢測到有效的登入狀態，啟動活動監聽');
-    addActivityListeners();
-    startInactivityTimer();
+    
+    // 移除活動監聽器
+    removeActivityListeners();
+    
+    // 清除計時器
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+  }
+
+  // 初始化時檢查登入狀態
+  if (token.value && expireAt.value) {
+    const now = Date.now();
+    if (now >= expireAt.value) {
+      console.log('CustomerStore: 檢測到過期的登入狀態，執行自動登出');
+      logout('expired');
+    } else {
+      console.log('CustomerStore: 檢測到有效的登入狀態，啟動活動監聽');
+      addActivityListeners();
+      startInactivityTimer();
+    }
   }
 
   // 新增日誌用於偵錯

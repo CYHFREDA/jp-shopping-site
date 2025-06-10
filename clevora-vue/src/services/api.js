@@ -14,11 +14,11 @@ api.interceptors.request.use(
     const userStore = useUserStore();
 
     // 優先使用管理員令牌（如果存在且已認證）
-    if (userStore.isAuthenticated) {
+    if (config.url.startsWith('/api/admin') && userStore.isAuthenticated) {
       config.headers.Authorization = `Bearer ${userStore.admin_token}`;
     }
-    // 否則檢查客戶令牌（如果存在且已認證）
-    else if (customerStore.isAuthenticated) {
+    // 否則使用客戶令牌（如果存在且已認證）
+    else if (!config.url.startsWith('/api/admin') && customerStore.isAuthenticated) {
       config.headers.Authorization = `Bearer ${customerStore.token}`;
     }
     // 如果兩者都不存在，則不附加 Authorization 頭
@@ -38,23 +38,37 @@ api.interceptors.response.use(
       const userStore = useUserStore();
       const customerStore = useCustomerStore();
       const detail = error.response.data?.detail;
+      
       // 處理「後踢前」
       if (detail === 'KICKED') {
-        // 彈窗提示
-        window.alert('您的帳號已在其他地方登入，請重新登入。');
         if (error.config.url.startsWith('/api/admin')) {
-          userStore.logout('KICKED');
+          userStore.logout('kicked');
+          window.alert('您的管理員帳號已在其他地方登入，請重新登入。');
           window.location.href = '/admin/login';
         } else {
-          customerStore.logout('KICKED');
+          customerStore.logout('kicked');
+          window.alert('您的會員帳號已在其他地方登入，請重新登入。');
           window.location.href = '/login';
         }
-      } else {
-        // 其他 401 處理
+      } 
+      // 處理令牌過期
+      else if (detail === '認證令牌已過期') {
         if (error.config.url.startsWith('/api/admin')) {
-          userStore.logout('401');
+          userStore.logout('expired');
+          window.alert('管理員登入已過期，請重新登入。');
+          window.location.href = '/admin/login';
         } else {
-          customerStore.logout('401');
+          customerStore.logout('expired');
+          window.alert('會員登入已過期，請重新登入。');
+          window.location.href = '/login';
+        }
+      }
+      // 處理其他 401 錯誤
+      else {
+        if (error.config.url.startsWith('/api/admin')) {
+          userStore.logout('unauthorized');
+        } else {
+          customerStore.logout('unauthorized');
         }
       }
     }
