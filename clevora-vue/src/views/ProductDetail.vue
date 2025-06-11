@@ -7,7 +7,15 @@
       <div class="col-md-6 product-info">
         <h1 class="product-title mb-3">{{ product.name }}</h1>
         <p class="product-price fs-4">NT$ {{ product.price }}</p>
-        <p class="product-description">{{ product.description || '無商品描述' }}</p>
+        
+        <div class="product-description-section">
+          <ul v-if="product.description && product.description.includes('|')" class="description-list">
+            <li v-for="(item, index) in product.description.split('|')" :key="index">
+              <i class="fas fa-check-circle me-2 text-success"></i> {{ item.trim() }}
+            </li>
+          </ul>
+          <p v-else class="product-description-paragraph">{{ product.description || '無商品描述' }}</p>
+        </div>
         
         <div v-if="errorMessage" class="alert alert-danger text-center mt-3 mb-3" role="alert">
           {{ errorMessage }}
@@ -147,6 +155,24 @@ onMounted(() => {
 .product-description {
     color: var(--disabled-text); /* 描述文字顏色 */
     margin-bottom: 20px;
+}
+
+.product-description-section {
+  margin-bottom: 20px;
+}
+
+.description-list {
+  list-style: none; /* 移除預設的項目符號 */
+  padding-left: 0;
+}
+
+.description-list li {
+  margin-bottom: 8px; /* 列表項目之間的間距 */
+  color: var(--dark-brown); /* 列表項目文字顏色 */
+}
+
+.product-description-paragraph {
+    color: var(--disabled-text); /* 段落文字顏色 */
 }
 
 .product-quantity-label {

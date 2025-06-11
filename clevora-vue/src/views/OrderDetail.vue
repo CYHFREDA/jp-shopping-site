@@ -10,7 +10,19 @@
           <div><strong>訂單編號：</strong>{{ order.order_id }}</div>
           <div><strong>訂單日期：</strong>{{ formatDateTime(order.created_at) }}</div>
           <div><strong>總金額：</strong>NT${{ order.amount }}</div>
-          <div><strong>狀態：</strong>{{ statusText(order.status) }}</div>
+          <div>
+            <strong>狀態：</strong>
+            <span 
+              class="badge"
+              :class="{
+                'bg-secondary': order.status === 'pending',
+                'bg-success': order.status === 'success',
+                'bg-danger': order.status === 'fail'
+              }"
+            >
+              {{ statusText(order.status) }}
+            </span>
+          </div>
           <div><strong>商品數量：</strong>{{ getOrderItemCount(order.item_names) }}</div>
         </div>
       </div>
@@ -30,10 +42,24 @@
           <div v-else-if="shipment">
             <div><strong>收件人：</strong>{{ shipment.recipient_name }}</div>
             <div><strong>地址：</strong>{{ shipment.address }}</div>
-            <div><strong>出貨狀態：</strong>{{ shipmentStatusText(shipment.status) }}</div>
+            <div>
+              <strong>出貨狀態：</strong>
+              <span 
+                class="badge"
+                :class="{
+                  'bg-info': shipment.status === 'pending',
+                  'bg-warning': shipment.status === 'out_of_stock',
+                  'bg-primary': shipment.status === 'shipped',
+                  'bg-success': shipment.status === 'arrived',
+                  'bg-success': shipment.status === 'completed'
+                }"
+              >
+                {{ shipmentStatusText(shipment.status) }}
+              </span>
+            </div>
             <div><strong>建立時間：</strong>{{ formatDateTime(shipment.created_at) }}</div>
-            <div v-if="shipment.status === 'shipped'">
-              <button class="btn btn-success mt-3" @click="confirmReceived" :disabled="confirming">{{ confirming ? '送出中...' : '確認收貨' }}</button>
+            <div v-if="shipment.status === 'arrived'">
+              <button class="btn btn-success mt-3" @click="completePickup" :disabled="confirming">{{ confirming ? '送出中...' : '完成取貨' }}</button>
               <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
               <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
             </div>
@@ -49,12 +75,14 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const route = useRoute();
 const order_id = route.params.order_id;
 const order = ref({});
 const loading = ref(true);
 const error = ref(null);
+const customerStore = useCustomerStore();
 
 const shipment = ref(null);
 const shipmentLoading = ref(true);
@@ -95,15 +123,25 @@ function shipmentStatusText(status) {
   return status;
 }
 
-async function confirmReceived() {
+async function completePickup() {
   confirming.value = true;
   confirmError.value = '';
   try {
-    await axios.post(`/api/orders/${order_id}/complete-shipment`);
+    const token = customerStore.customer_token;
+    if (!token) {
+      confirmError.value = '未找到認證 token！請重新登入。';
+      return;
+    }
+    await axios.post(`/api/orders/${order_id}/complete-shipment`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     shipment.value.status = 'completed';
     confirmSuccess.value = true;
   } catch (e) {
-    confirmError.value = '狀態更新失敗，請稍後再試';
+    console.error('完成取貨失敗：', e);
+    confirmError.value = e.response?.data?.error || e.message || '狀態更新失敗，請稍後再試';
   } finally {
     confirming.value = false;
   }
