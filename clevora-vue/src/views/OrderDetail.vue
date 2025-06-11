@@ -59,9 +59,32 @@
             </div>
             <div><strong>建立時間：</strong>{{ formatDateTime(shipment.created_at) }}</div>
             <div v-if="shipment.status === 'arrived'">
-              <button class="btn btn-success mt-3" @click="completePickup" :disabled="confirming">{{ confirming ? '送出中...' : '完成取貨' }}</button>
+              <button class="btn btn-success mt-3" @click="markPickedUp" :disabled="confirming">{{ confirming ? '送出中...' : '確認取貨' }}</button>
               <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
               <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
+            </div>
+            <div v-else-if="shipment.status === 'picked_up'">
+              <button class="btn btn-success mt-3" @click="completeOrder" :disabled="confirming">{{ confirming ? '送出中...' : '完成' }}</button>
+              <button class="btn btn-secondary mt-3 ms-2" @click="initiateReturn" :disabled="confirming">申請退貨</button>
+              <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
+              <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
+            </div>
+            <div v-else-if="shipment.status === 'returned_pending'">
+              <span class="text-muted mt-3">退貨申請已送出，等待管理員處理。</span>
+              <div v-if="!shipment.return_tracking_number" class="mt-3">
+                <h6 class="mb-2">請選擇 7-11 門市以完成退貨流程：</h6>
+                <input type="text" class="form-control mb-2" placeholder="輸入 7-11 門市名稱" v-model="returnStoreName">
+                <button class="btn btn-primary" @click="confirmReturnLogistics" :disabled="confirming">確認 7-11 門市</button>
+                <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
+              </div>
+              <div v-else class="mt-3">
+                <p><strong>退貨物流編號：</strong> {{ shipment.return_tracking_number }}</p>
+                <p><strong>退貨門市：</strong> {{ shipment.return_store_name }}</p>
+                <span class="text-success">請持退貨物流編號至 7-11 門市寄件。</span>
+              </div>
+            </div>
+            <div v-else-if="shipment.status === 'completed'">
+              <span class="text-muted mt-3">此訂單已完成。</span>
             </div>
           </div>
           <div v-else class="text-muted">尚未建立出貨單</div>
@@ -91,6 +114,8 @@ const shipmentError = ref(null);
 const confirming = ref(false);
 const confirmSuccess = ref(false);
 const confirmError = ref('');
+const returnStoreName = ref('');
+const returnTrackingNumber = ref('');
 
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
@@ -119,11 +144,13 @@ function shipmentStatusText(status) {
   if (status === 'out_of_stock') return '缺貨中';
   if (status === 'shipped') return '已出貨';
   if (status === 'arrived') return '已到店';
+  if (status === 'picked_up') return '已取貨';
   if (status === 'completed') return '已完成';
+  if (status === 'returned_pending') return '退貨申請中';
   return status;
 }
 
-async function completePickup() {
+async function markPickedUp() {
   confirming.value = true;
   confirmError.value = '';
   try {
@@ -132,16 +159,105 @@ async function completePickup() {
       confirmError.value = '未找到認證 token！請重新登入。';
       return;
     }
-    await axios.post(`/api/orders/${order_id}/complete-shipment`, {}, {
+    await axios.post(`/api/orders/${order_id}/mark-picked-up`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    shipment.value.status = 'picked_up';
+    confirmSuccess.value = true;
+    await loadShipmentDetail();
+  } catch (e) {
+    console.error('確認取貨失敗：', e);
+    confirmError.value = e.response?.data?.error || e.message || '狀態更新失敗，請稍後再試';
+  } finally {
+    confirming.value = false;
+  }
+}
+
+async function completeOrder() {
+  confirming.value = true;
+  confirmError.value = '';
+  try {
+    const token = customerStore.token;
+    if (!token) {
+      confirmError.value = '未找到認證 token！請重新登入。';
+      return;
+    }
+    await axios.post(`/api/orders/${order_id}/complete`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
     shipment.value.status = 'completed';
     confirmSuccess.value = true;
+    await loadShipmentDetail();
   } catch (e) {
-    console.error('完成取貨失敗：', e);
+    console.error('完成訂單失敗：', e);
     confirmError.value = e.response?.data?.error || e.message || '狀態更新失敗，請稍後再試';
+  } finally {
+    confirming.value = false;
+  }
+}
+
+async function initiateReturn() {
+  confirming.value = true;
+  confirmError.value = '';
+  try {
+    const token = customerStore.token;
+    if (!token) {
+      confirmError.value = '未找到認證 token！請重新登入。';
+      return;
+    }
+    await axios.post(`/api/orders/${order_id}/return`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    shipment.value.status = 'returned_pending';
+    confirmSuccess.value = true;
+    await loadShipmentDetail();
+  } catch (e) {
+    console.error('申請退貨失敗：', e);
+    confirmError.value = e.response?.data?.error || e.message || '申請退貨失敗，請稍後再試';
+  } finally {
+    confirming.value = false;
+  }
+}
+
+async function confirmReturnLogistics() {
+  confirming.value = true;
+  confirmError.value = '';
+  if (!returnStoreName.value) {
+    confirmError.value = '請輸入 7-11 門市名稱！';
+    confirming.value = false;
+    return;
+  }
+
+  try {
+    const token = customerStore.token;
+    if (!token) {
+      confirmError.value = '未找到認證 token！請重新登入。';
+      confirming.value = false;
+      return;
+    }
+    
+    const res = await axios.post(`/api/orders/${order_id}/set-return-logistics`, {
+      return_store_name: returnStoreName.value
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    confirmSuccess.value = true;
+    shipment.value.return_tracking_number = res.data.tracking_number;
+    shipment.value.return_store_name = returnStoreName.value;
+
+    confirmError.value = '';
+    await loadShipmentDetail();
+  } catch (e) {
+    console.error('確認 7-11 門市失敗：', e);
+    confirmError.value = e.response?.data?.error || e.message || '確認 7-11 門市失敗，請稍後再試！';
   } finally {
     confirming.value = false;
   }
@@ -149,7 +265,6 @@ async function completePickup() {
 
 onMounted(async () => {
   try {
-    // 查詢訂單基本資料
     const res = await axios.get(`/api/orders/${order_id}`);
     order.value = res.data;
     loading.value = false;
@@ -158,7 +273,10 @@ onMounted(async () => {
     loading.value = false;
   }
 
-  // 查詢出貨資料
+  await loadShipmentDetail();
+});
+
+async function loadShipmentDetail() {
   try {
     shipmentLoading.value = true;
     const res = await axios.get(`/api/orders/${order_id}/shipment`);
@@ -172,7 +290,7 @@ onMounted(async () => {
     shipmentError.value = '查詢出貨資料失敗';
     shipmentLoading.value = false;
   }
-});
+}
 </script>
 
 <style scoped>

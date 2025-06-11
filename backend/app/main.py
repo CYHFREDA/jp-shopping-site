@@ -1252,8 +1252,8 @@ async def get_order_shipment(order_id: str, cursor=Depends(get_db_cursor)):
         print(f"❌ 查詢出貨單錯誤：{e}")
         return JSONResponse({"error": "查詢出貨單失敗"}, status_code=500)
 
-@app.post("/api/orders/{order_id}/complete-shipment")
-async def complete_shipment(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+@app.post("/api/orders/{order_id}/mark-picked-up")
+async def mark_picked_up(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
     try:
         customer_id = auth.get("customer_id")
         if not customer_id:
@@ -1272,16 +1272,78 @@ async def complete_shipment(order_id: str, auth=Depends(verify_customer_jwt), cu
             return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
 
         if shipment_status != 'arrived':
-            return JSONResponse({"error": "只有已到店狀態才能完成取貨"}, status_code=400)
+            return JSONResponse({"error": "只有已到店狀態才能確認取貨"}, status_code=400)
         
-        cursor.execute("UPDATE shipments SET status='completed' WHERE order_id=%s", (order_id,))
+        # 更新狀態為 'picked_up' 並記錄取貨時間
+        cursor.execute("UPDATE shipments SET status='picked_up', picked_up_at = NOW() WHERE order_id=%s", (order_id,))
         cursor.connection.commit()
-        return JSONResponse({"message": "狀態已更新為已完成"})
+        return JSONResponse({"message": "狀態已更新為已取貨"})
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"❌ 完成出貨單錯誤：{e}")
+        print(f"❌ 確認取貨錯誤：{e}")
         return JSONResponse({"error": "狀態更新失敗"}, status_code=500)
+
+@app.post("/api/orders/{order_id}/complete")
+async def complete_order(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        customer_id = auth.get("customer_id")
+        if not customer_id:
+            raise HTTPException(status_code=401, detail="客戶認證失敗")
+
+        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
+        
+        shipment_status = row[0]
+        order_customer_id = row[1]
+
+        if order_customer_id != customer_id:
+            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
+
+        if shipment_status != 'picked_up':
+            return JSONResponse({"error": "只有已取貨狀態才能完成訂單"}, status_code=400)
+        
+        cursor.execute("UPDATE shipments SET status='completed' WHERE order_id=%s", (order_id,))
+        cursor.connection.commit()
+        return JSONResponse({"message": "訂單已完成"})
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"❌ 完成訂單錯誤：{e}")
+        return JSONResponse({"error": "訂單完成失敗"}, status_code=500)
+
+@app.post("/api/orders/{order_id}/return")
+async def request_return(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        customer_id = auth.get("customer_id")
+        if not customer_id:
+            raise HTTPException(status_code=401, detail="客戶認證失敗")
+
+        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
+        
+        shipment_status = row[0]
+        order_customer_id = row[1]
+
+        if order_customer_id != customer_id:
+            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
+
+        if shipment_status != 'picked_up':
+            return JSONResponse({"error": "只有已取貨狀態才能申請退貨"}, status_code=400)
+        
+        # 更新狀態為 'returned_pending'，表示退貨申請中
+        cursor.execute("UPDATE shipments SET status='returned_pending' WHERE order_id=%s", (order_id,))
+        cursor.connection.commit()
+        return JSONResponse({"message": "已成功申請退貨，等待管理員處理。"})
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"❌ 申請退貨錯誤：{e}")
+        return JSONResponse({"error": "申請退貨失敗"}, status_code=500)
 
 @app.post("/api/admin/auto_complete_shipments")
 async def auto_complete_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
@@ -1330,3 +1392,50 @@ async def mock_delivered(
     except Exception as e:
         print(f"❌ 模擬到店錯誤：{e}")
         return {"error": "模擬到店失敗"}
+
+@app.post("/api/orders/{order_id}/set-return-logistics")
+async def set_return_logistics(order_id: str, request: Request, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        customer_id = auth.get("customer_id")
+        if not customer_id:
+            raise HTTPException(status_code=401, detail="客戶認證失敗")
+
+        data = await request.json()
+        return_store_name = data.get("return_store_name")
+
+        if not return_store_name:
+            return JSONResponse({"error": "請提供 7-11 門市名稱！"}, status_code=400)
+
+        # 檢查出貨單狀態是否為 'returned_pending'，並確認是否為該客戶的訂單
+        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
+        
+        shipment_status = row[0]
+        order_customer_id = row[1]
+
+        if order_customer_id != customer_id:
+            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
+
+        if shipment_status != 'returned_pending':
+            return JSONResponse({"error": "只有退貨申請中的訂單才能設定退貨物流"}, status_code=400)
+
+        # 生成一個模擬的退貨物流編號
+        return_tracking_number = f"711-{order_id}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{random.randint(1000, 9999)}"
+
+        # 更新出貨單資料，新增 7-11 門市名稱和物流編號
+        cursor.execute("""
+            UPDATE shipments
+            SET return_store_name = %s, return_tracking_number = %s
+            WHERE order_id = %s
+        """, (return_store_name, return_tracking_number, order_id))
+        cursor.connection.commit()
+
+        return JSONResponse({"message": "7-11 退貨物流已設定成功！", "tracking_number": return_tracking_number})
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"❌ 設定 7-11 退貨物流錯誤：{e}")
+        return JSONResponse({"error": "設定 7-11 退貨物流失敗！"}, status_code=500)
