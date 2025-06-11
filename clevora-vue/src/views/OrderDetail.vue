@@ -127,7 +127,7 @@ async function completePickup() {
   confirming.value = true;
   confirmError.value = '';
   try {
-    const token = customerStore.customer_token;
+    const token = customerStore.token;
     if (!token) {
       confirmError.value = '未找到認證 token！請重新登入。';
       return;

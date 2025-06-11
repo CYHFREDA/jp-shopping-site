@@ -71,6 +71,13 @@ export const useCustomerStore = defineStore('customer', () => {
     }
   }
 
+  function clearInactivityTimer() {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+    }
+  }
+
   // 登入時呼叫
   watch(isAuthenticated, (val) => {
     if (val) {
