@@ -57,7 +57,14 @@
                 </template>
               </td>
               <td>
-                <router-link :to="`/orderDetail/${order.order_id}`" class="btn btn-outline-primary btn-sm">查看</router-link>
+                <router-link :to="`/orderDetail/${order.order_id}`" class="btn btn-outline-primary btn-sm me-1">查看</router-link>
+                <button 
+                  v-if="order.status === 'arrived'"
+                  class="btn btn-success btn-sm"
+                  @click="completePickup(order.order_id)"
+                >
+                  完成取貨
+                </button>
               </td>
             </tr>
           </tbody>
@@ -98,6 +105,16 @@
                   ...等{{ order.item_names.split('#').length }}項
                 </template>
               </template>
+            </div>
+            <div class="text-end mt-3">
+              <router-link :to="`/orderDetail/${order.order_id}`" class="btn btn-outline-primary btn-sm me-1">查看</router-link>
+              <button 
+                v-if="order.status === 'arrived'"
+                class="btn btn-success btn-sm"
+                @click="completePickup(order.order_id)"
+              >
+                完成取貨
+              </button>
             </div>
           </div>
         </div>
@@ -140,7 +157,35 @@ function statusText(status) {
   if (status === 'pending') return '待處理';
   if (status === 'success') return '成功';
   if (status === 'fail') return '失敗';
+  // 新增出貨狀態對應
+  if (status === 'out_of_stock') return '缺貨中';
+  if (status === 'shipped') return '已出貨';
+  if (status === 'arrived') return '已到店';
+  if (status === 'completed') return '已完成';
   return status;
+}
+
+async function completePickup(orderId) {
+  try {
+    // 確保客戶已登入且 customer_id 可用
+    if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
+      displayErrorMessage.value = '請先登入才能完成取貨。';
+      return;
+    }
+    const token = customerStore.customer_token;
+    if (!token) {
+      displayErrorMessage.value = '未找到認證 token！請重新登入。';
+      return;
+    }
+
+    const res = await ordersAPI.completeShipment(orderId, token);
+    displayErrorMessage.value = res.data.message || '✅ 完成取貨成功！';
+    // 重新載入訂單以更新狀態
+    await onMounted(); // 重新觸發 onMounted 中的 loadOrders 邏輯
+  } catch (error) {
+    console.error('完成取貨失敗：', error);
+    displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 完成取貨失敗！';
+  }
 }
 
 onMounted(async () => {

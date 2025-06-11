@@ -29,7 +29,7 @@
               <td class="text-center">
                 <div class="action-btns flex-row gap-2">
                   <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)" :disabled="mockLoadingOrderId === shipment.order_id">修改</button>
-                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'arrived' || shipment.status === 'completed'">
+                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending'">
                     <span v-if="mockLoadingOrderId === shipment.order_id">處理中...</span>
                     <span v-else>模擬到店</span>
                   </button>
@@ -47,7 +47,7 @@
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
             <button class="btn btn-sm btn-brown" @click="openEditModal(item)" :disabled="mockLoadingOrderId === item.order_id">修改</button>
-            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'arrived' || item.status === 'completed'">
+            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'arrived' || item.status === 'completed' || item.status === 'out_of_stock' || item.status === 'pending'">
               <span v-if="mockLoadingOrderId === item.order_id">處理中...</span>
               <span v-else>模擬到店</span>
             </button>
@@ -186,15 +186,22 @@ async function saveEditShipment() {
   }
 }
 
-async function mockDelivered(order_id) {
+async function mockDelivered(shipment) {
   const token = userStore.admin_token;
   if (!token) {
     displayErrorMessage.value = '❌ 請先登入！';
     return;
   }
-  mockLoadingOrderId.value = order_id;
+
+  // 在前端進行狀態檢查，避免不必要的後端請求
+  if (shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending') {
+    displayErrorMessage.value = '❌ 只有已出貨狀態的訂單才能模擬到店！';
+    return;
+  }
+
+  mockLoadingOrderId.value = shipment.order_id;
   try {
-    const res = await api.post('/api/admin/mock_delivered', { order_id });
+    const res = await api.post('/api/admin/mock_delivered', { order_id: shipment.order_id });
     displayErrorMessage.value = res.data.message || '✅ 已模擬到店';
     await loadShipments();
   } catch (error) {

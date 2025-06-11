@@ -1253,18 +1253,32 @@ async def get_order_shipment(order_id: str, cursor=Depends(get_db_cursor)):
         return JSONResponse({"error": "查詢出貨單失敗"}, status_code=500)
 
 @app.post("/api/orders/{order_id}/complete-shipment")
-async def complete_shipment(order_id: str, cursor=Depends(get_db_cursor)):
+async def complete_shipment(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
     try:
-        # 只允許已出貨的訂單可改為已完成
-        cursor.execute("SELECT status FROM shipments WHERE order_id=%s", (order_id,))
+        customer_id = auth.get("customer_id")
+        if not customer_id:
+            raise HTTPException(status_code=401, detail="客戶認證失敗")
+
+        # 先檢查出貨單狀態是否為已到店，並確認是否為該客戶的訂單
+        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
         row = cursor.fetchone()
         if not row:
-            return JSONResponse({"error": "找不到出貨單"}, status_code=404)
-        if row[0] != 'shipped':
-            return JSONResponse({"error": "只有已出貨狀態才能完成"}, status_code=400)
+            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
+        
+        shipment_status = row[0]
+        order_customer_id = row[1]
+
+        if order_customer_id != customer_id:
+            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
+
+        if shipment_status != 'arrived':
+            return JSONResponse({"error": "只有已到店狀態才能完成取貨"}, status_code=400)
+        
         cursor.execute("UPDATE shipments SET status='completed' WHERE order_id=%s", (order_id,))
         cursor.connection.commit()
         return JSONResponse({"message": "狀態已更新為已完成"})
+    except HTTPException as e:
+        raise e
     except Exception as e:
         print(f"❌ 完成出貨單錯誤：{e}")
         return JSONResponse({"error": "狀態更新失敗"}, status_code=500)
