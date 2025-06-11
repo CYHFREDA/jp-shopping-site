@@ -514,7 +514,7 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     token = jwt.encode({
         "customer_id": customer_id, 
         "username": username,  # 添加用户名到 token
-        "exp": datetime.utcnow() + timedelta(days=7)
+        "exp": datetime.utcnow() + timedelta(minutes=30)
     }, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
     # 更新 current_token 實現後踢前機制
@@ -534,7 +534,7 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     return JSONResponse({
         "token": token,
         "customer": customer_data,
-        "expire_at": (datetime.utcnow() + timedelta(days=7)).timestamp() * 1000  # 轉換為毫秒
+        "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000  # 轉換為毫秒
     })
 
 @app.get("/api/customers/{customer_id}/orders")
@@ -941,23 +941,21 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     admin_id = row["id"]
     token = jwt.encode({
-        "username": username, 
-        "admin_id": admin_id, 
-        "exp": datetime.utcnow() + timedelta(days=1)
+        "admin_id": admin_id,
+        "username": username, # 添加用户名到 token
+        "exp": datetime.utcnow() + timedelta(minutes=30)
     }, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
-    # 先檢查是否有現有的 token
-    cursor.execute("SELECT current_token FROM admin_users WHERE id=%s", (admin_id,))
-    current = cursor.fetchone()
-    if current and current["current_token"]:
-        print(f"✅ [管理員登入] 管理員 {username} 已在其他地方登入，將更新 token")
-    
-    # 更新 token
+    # 更新 current_token 實現後踢前機制
     cursor.execute("UPDATE admin_users SET current_token=%s WHERE id=%s", (token, admin_id))
     cursor.connection.commit()
-    print(f"✅ [管理員登入] 管理員 {username} 登入成功，token 已更新")
-    
-    return {"token": token}
+
+    return JSONResponse({
+        "message": "登入成功",
+        "token": token,
+        "admin_id": admin_id,
+        "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000 # 轉換為毫秒
+    })
 
 # 發送驗證 Email 的輔助函式
 async def send_verification_email(recipient_email: str, username: str, verification_link: str):

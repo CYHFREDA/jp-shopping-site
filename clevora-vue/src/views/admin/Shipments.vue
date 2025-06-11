@@ -29,7 +29,7 @@
               <td class="text-center">
                 <div class="action-btns flex-row gap-2">
                   <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)" :disabled="mockLoadingOrderId === shipment.order_id">修改</button>
-                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)" :disabled="mockLoadingOrderId === shipment.order_id">
+                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment.order_id)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'arrived' || shipment.status === 'completed'">
                     <span v-if="mockLoadingOrderId === shipment.order_id">處理中...</span>
                     <span v-else>模擬到店</span>
                   </button>
@@ -47,7 +47,7 @@
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
             <button class="btn btn-sm btn-brown" @click="openEditModal(item)" :disabled="mockLoadingOrderId === item.order_id">修改</button>
-            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)" :disabled="mockLoadingOrderId === item.order_id">
+            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item.order_id)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'arrived' || item.status === 'completed'">
               <span v-if="mockLoadingOrderId === item.order_id">處理中...</span>
               <span v-else>模擬到店</span>
             </button>
