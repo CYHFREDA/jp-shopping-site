@@ -693,12 +693,12 @@ async def admin_delete_product(id: int, auth=Depends(verify_admin_jwt), cursor=D
 async def admin_get_shipments(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
     print("🚚 準備查詢出貨資料")
     try:
-        cursor.execute("SELECT shipment_id, order_id, recipient_name, address, status, created_at FROM shipments ORDER BY created_at DESC")
+        cursor.execute("SELECT shipment_id, order_id, recipient_name, address, status, created_at, return_store_name, return_tracking_number FROM shipments ORDER BY created_at DESC")
         rows = cursor.fetchall()
         print("✅ 查詢結果：", rows)
     except Exception as e:
         print("❌ 出錯：", e)
-    shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5])} for r in rows]
+    shipments = [{"shipment_id": r[0], "order_id": r[1], "recipient_name": r[2], "address": r[3], "status": r[4], "created_at": str(r[5]), "return_store_name": r[6], "return_tracking_number": r[7]} for r in rows]
     return JSONResponse(shipments)
 
 # 後台出貨管理更新出貨單資料
