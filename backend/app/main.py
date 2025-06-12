@@ -695,35 +695,6 @@ async def admin_login(request: Request, cursor=Depends(get_db_cursor)):
         "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000 # 轉換為毫秒
     })
 
-# 發送驗證 Email 的輔助函式
-async def send_verification_email(recipient_email: str, username: str, verification_link: str):
-    if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD]):
-        print("❌ 無法發送 Email：Email 服務設定不完整。")
-        return False
-
-    sender_email = EMAIL_USERNAME
-    sender_password = EMAIL_PASSWORD
-
-    if not sender_email or not sender_password:
-        print("❌ [Email服務] 錯誤：SMTP 環境變數未完整設定。")
-        raise ValueError("SMTP environment variables are not fully set.")
-
-    # 使用 MIMEMultipart 來同時包含純文字和 HTML 內容
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "歡迎加入！請驗證您的 Email 以啟用帳戶"
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
-
-    # Email 的純文字內容 (重新加入)
-    text = f"""
-        哈囉 {username},
-        感謝您註冊我們的服務！
-        請點擊以下連結驗證您的 Email：
-        {verification_link}
-        此連結將於 5 分鐘內過期。
-        如果您沒有註冊，請忽略此 Email。
-        """
-
 # 儀表板統計 API
 @app.get("/api/admin/dashboard_summary")
 async def admin_dashboard_summary(
