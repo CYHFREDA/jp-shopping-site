@@ -374,22 +374,32 @@ function startCountdown() {
         const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
         console.log('驗證狀態檢查結果:', response.data); // debug 日誌
         if (response.data.verified) {
-          console.log('驗證成功，準備跳轉...'); // debug 日誌
+          console.log('驗證成功，準備切換到登入頁面...'); // debug 日誌
           clearInterval(countdownTimer);
-          registrationSuccessAndPendingVerification.value = false;
-          apiErrorMessage.value = '✅ 驗證成功！即將跳轉至登入頁面...';
           
-          // 確保清除所有計時器
+          // 清除所有計時器
           if (registrationTimer) {
             clearTimeout(registrationTimer);
           }
           
-          // 使用正確的路由名稱
-          nextTick(() => {
-            console.log('執行跳轉到登入頁面'); // debug 日誌
-            activeTab.value = 'login'; // 切換到登入頁籤
-            registrationSuccessAndPendingVerification.value = false;
-          });
+          // 清除註冊表單
+          registerForm.value = {
+            username: '',
+            name: '',
+            email: '',
+            phone: '',
+            address: '',
+            password: ''
+          };
+          
+          // 清除驗證狀態
+          registrationSuccessAndPendingVerification.value = false;
+          
+          // 切換到登入頁籤
+          activeTab.value = 'login';
+          
+          // 顯示成功訊息
+          loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
