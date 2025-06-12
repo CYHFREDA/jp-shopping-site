@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from typing import Optional
+from dependencies.auth import verify_customer_jwt
 import datetime
 
 router = APIRouter()
