@@ -126,3 +126,29 @@ COMMENT ON COLUMN "cleanup_logs"."id" IS '流水號';
 COMMENT ON COLUMN "cleanup_logs"."operation" IS '操作';
 COMMENT ON COLUMN "cleanup_logs"."records_affected" IS '影響筆數';
 COMMENT ON COLUMN "cleanup_logs"."executed_at" IS '執行時間';
+
+----
+
+-- 在 orders 表格中添加退貨相關欄位
+ALTER TABLE orders ADD COLUMN return_reason TEXT;
+
+-- 建立退貨物流表格
+CREATE TABLE IF NOT EXISTS return_logistics (
+    id SERIAL PRIMARY KEY,
+    order_id VARCHAR(50) NOT NULL,
+    store_id VARCHAR(20) NOT NULL, 
+    store_name VARCHAR(100) NOT NULL,  
+    status VARCHAR(20) NOT NULL DEFAULT 'pending', 
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id)
+);
+
+COMMENT ON TABLE "return_logistics" IS '退貨物流表格';
+COMMENT ON COLUMN "return_logistics"."id" IS '流水號';
+COMMENT ON COLUMN "return_logistics"."order_id" IS '訂單編號';
+COMMENT ON COLUMN "return_logistics"."store_id" IS '7-11 店號';
+COMMENT ON COLUMN "return_logistics"."store_name" IS '7-11 店名';
+COMMENT ON COLUMN "return_logistics"."status" IS '退貨狀態';
+COMMENT ON COLUMN "return_logistics"."created_at" IS '建立時間';
+COMMENT ON COLUMN "return_logistics"."updated_at" IS '更新時間';

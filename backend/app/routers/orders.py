@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from typing import Optional
 from config import verify_customer_jwt
-import datetime
+from datetime import datetime, timezone
+import random
 
 router = APIRouter()
 
@@ -186,80 +187,161 @@ def cancel_order(order_id: str, cursor=Depends(get_db_cursor)):
 
 # 顧客申請退貨
 @router.post("/api/orders/{order_id}/return")
-async def request_return(order_id: str, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+async def request_return(
+    order_id: str, 
+    request: Request,
+    auth=Depends(verify_customer_jwt), 
+    cursor=Depends(get_db_cursor)
+):
     try:
-        customer_id = auth.get("customer_id")
-        if not customer_id:
-            raise HTTPException(status_code=401, detail="客戶認證失敗")
-
-        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
-        row = cursor.fetchone()
-        if not row:
-            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
-        
-        shipment_status = row[0]
-        order_customer_id = row[1]
-
-        if order_customer_id != customer_id:
-            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
-
-        if shipment_status != 'picked_up':
-            return JSONResponse({"error": "只有已取貨狀態才能申請退貨"}, status_code=400)
-        
-        # 更新狀態為 'returned_pending'，表示退貨申請中
-        cursor.execute("UPDATE shipments SET status='returned_pending' WHERE order_id=%s", (order_id,))
-        cursor.connection.commit()
-        return JSONResponse({"message": "已成功申請退貨，等待管理員處理。"})
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        print(f"❌ 申請退貨錯誤：{e}")
-        return JSONResponse({"error": "申請退貨失敗"}, status_code=500)
-
-# 設定退貨物流
-@router.post("/api/orders/{order_id}/set-return-logistics")
-async def set_return_logistics(order_id: str, request: Request, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
-    try:
-        customer_id = auth.get("customer_id")
-        if not customer_id:
-            raise HTTPException(status_code=401, detail="客戶認證失敗")
-
         data = await request.json()
-        return_store_name = data.get("return_store_name")
+        customer_id = auth.get("customer_id")
+        return_reason = data.get("return_reason")
+        
+        if not customer_id:
+            return JSONResponse({"error": "客戶認證失敗"}, status_code=401)
 
-        if not return_store_name:
-            return JSONResponse({"error": "請提供 7-11 門市名稱！"}, status_code=400)
-
-        # 檢查出貨單狀態是否為 'returned_pending'，並確認是否為該客戶的訂單
-        cursor.execute("SELECT s.status, o.customer_id FROM shipments s JOIN orders o ON s.order_id = o.order_id WHERE s.order_id=%s", (order_id,))
+        # 檢查訂單是否存在且屬於該客戶
+        cursor.execute("""
+            SELECT o.status, o.created_at, s.status as shipment_status
+            FROM orders o
+            LEFT JOIN shipments s ON o.order_id = s.order_id
+            WHERE o.order_id = %s AND o.customer_id = %s
+        """, (order_id, customer_id))
+        
         row = cursor.fetchone()
         if not row:
-            return JSONResponse({"error": "找不到出貨單或訂單"}, status_code=404)
+            return JSONResponse({"error": "找不到訂單或訂單不屬於該客戶"}, status_code=404)
+            
+        order_status = row["status"]
+        shipment_status = row["shipment_status"]
+        created_at = row["created_at"]
         
-        shipment_status = row[0]
-        order_customer_id = row[1]
-
-        if order_customer_id != customer_id:
-            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
-
-        if shipment_status != 'returned_pending':
-            return JSONResponse({"error": "只有退貨申請中的訂單才能設定退貨物流"}, status_code=400)
-
-        # 生成一個模擬的退貨物流編號
-        return_tracking_number = f"711-{order_id}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{random.randint(1000, 9999)}"
-
-        # 更新出貨單資料，新增 7-11 門市名稱和物流編號
+        # 檢查訂單狀態是否允許退貨
+        if order_status not in ["shipped", "delivered", "completed"] or shipment_status not in ["delivered", "picked_up", "completed"]:
+            return JSONResponse({"error": "訂單狀態不允許退貨"}, status_code=400)
+            
+        # 檢查是否在退貨期限內（14天）
+        current_time = datetime.now(timezone.utc)
+        days_diff = (current_time - created_at).days
+        if days_diff > 14:
+            return JSONResponse({"error": "已超過退貨期限（14天）"}, status_code=400)
+            
+        # 更新訂單狀態為退貨申請中
         cursor.execute("""
-            UPDATE shipments
-            SET return_store_name = %s, return_tracking_number = %s
+            UPDATE orders 
+            SET status = 'return_requested', 
+                return_reason = %s,
+                updated_at = CURRENT_TIMESTAMP 
             WHERE order_id = %s
-        """, (return_store_name, return_tracking_number, order_id))
+        """, (return_reason, order_id))
+        
         cursor.connection.commit()
-
-        return JSONResponse({"message": "7-11 退貨物流已設定成功！", "tracking_number": return_tracking_number})
-
-    except HTTPException as e:
-        raise e
+        return JSONResponse({"message": "退貨申請已提交"})
+        
     except Exception as e:
-        print(f"❌ 設定 7-11 退貨物流錯誤：{e}")
-        return JSONResponse({"error": "設定 7-11 退貨物流失敗！"}, status_code=500)
+        cursor.connection.rollback()
+        print(f"❌ [退貨申請] 發生錯誤：{str(e)}")
+        return JSONResponse({"error": "退貨申請失敗"}, status_code=500)
+
+# 設定退貨物流（選擇 7-11 門市）
+@router.post("/api/orders/{order_id}/set-return-logistics")
+async def set_return_logistics(
+    order_id: str, 
+    request: Request,
+    auth=Depends(verify_customer_jwt), 
+    cursor=Depends(get_db_cursor)
+):
+    try:
+        data = await request.json()
+        customer_id = auth.get("customer_id")
+        store_id = data.get("store_id")      # 7-11 店號
+        store_name = data.get("store_name")  # 7-11 店名
+        
+        if not all([customer_id, store_id, store_name]):
+            return JSONResponse({"error": "缺少必要資訊"}, status_code=400)
+
+        # 檢查訂單狀態
+        cursor.execute("""
+            SELECT status 
+            FROM orders 
+            WHERE order_id = %s AND customer_id = %s
+        """, (order_id, customer_id))
+        
+        row = cursor.fetchone()
+        if not row or row["status"] != "return_requested":
+            return JSONResponse({"error": "訂單狀態不正確"}, status_code=400)
+
+        # 建立退貨物流記錄
+        cursor.execute("""
+            INSERT INTO return_logistics (
+                order_id, 
+                store_id,
+                store_name,
+                status,
+                created_at,
+                updated_at
+            ) VALUES (%s, %s, %s, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        """, (order_id, store_id, store_name))
+        
+        # 更新訂單狀態
+        cursor.execute("""
+            UPDATE orders 
+            SET status = 'returning',
+                updated_at = CURRENT_TIMESTAMP 
+            WHERE order_id = %s
+        """, (order_id,))
+        
+        cursor.connection.commit()
+        return JSONResponse({
+            "message": "退貨門市已設定",
+            "store_id": store_id,
+            "store_name": store_name
+        })
+        
+    except Exception as e:
+        cursor.connection.rollback()
+        print(f"❌ [設定退貨物流] 發生錯誤：{str(e)}")
+        return JSONResponse({"error": "設定退貨物流失敗"}, status_code=500)
+
+# 查詢退貨狀態
+@router.get("/api/orders/{order_id}/return-status")
+async def get_return_status(
+    order_id: str,
+    auth=Depends(verify_customer_jwt), 
+    cursor=Depends(get_db_cursor)
+):
+    try:
+        customer_id = auth.get("customer_id")
+        
+        cursor.execute("""
+            SELECT 
+                o.status as order_status,
+                o.return_reason,
+                rl.store_id,
+                rl.store_name,
+                rl.status as logistics_status,
+                rl.created_at,
+                rl.updated_at
+            FROM orders o
+            LEFT JOIN return_logistics rl ON o.order_id = rl.order_id
+            WHERE o.order_id = %s AND o.customer_id = %s
+        """, (order_id, customer_id))
+        
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse({"error": "找不到退貨記錄"}, status_code=404)
+            
+        return JSONResponse({
+            "order_status": row["order_status"],
+            "return_reason": row["return_reason"],
+            "store_id": row["store_id"],
+            "store_name": row["store_name"],
+            "logistics_status": row["logistics_status"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None
+        })
+        
+    except Exception as e:
+        print(f"❌ [查詢退貨狀態] 發生錯誤：{str(e)}")
+        return JSONResponse({"error": "查詢退貨狀態失敗"}, status_code=500)
