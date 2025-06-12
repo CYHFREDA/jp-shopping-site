@@ -15,6 +15,11 @@ export const useCustomerStore = defineStore('customer', () => {
     return hasValidToken && hasValidCustomer;
   });
 
+  // 新增：支付相關的狀態
+  const paymentInProgress = ref(false);
+  const paymentOrderId = ref(null);
+  const paymentToken = ref(null);
+
   function setCustomer(userData, authToken, expireTime) {
     customer.value = userData;
     token.value = authToken;
@@ -37,8 +42,62 @@ export const useCustomerStore = defineStore('customer', () => {
     }
   }
 
+  // 新增：開始支付流程
+  function startPayment(orderId) {
+    paymentInProgress.value = true;
+    paymentOrderId.value = orderId;
+    paymentToken.value = token.value;
+    
+    // 保存支付狀態到 sessionStorage（這樣重整頁面也不會遺失）
+    sessionStorage.setItem('payment_in_progress', 'true');
+    sessionStorage.setItem('payment_order_id', orderId);
+    sessionStorage.setItem('payment_token', token.value);
+  }
+
+  // 新增：結束支付流程
+  function endPayment() {
+    paymentInProgress.value = false;
+    paymentOrderId.value = null;
+    paymentToken.value = null;
+    
+    // 清除 sessionStorage 中的支付狀態
+    sessionStorage.removeItem('payment_in_progress');
+    sessionStorage.removeItem('payment_order_id');
+    sessionStorage.removeItem('payment_token');
+  }
+
+  // 新增：嘗試重新連接
+  async function tryReconnect() {
+    // 如果是支付過程中
+    if (sessionStorage.getItem('payment_in_progress') === 'true') {
+      const savedToken = sessionStorage.getItem('payment_token');
+      if (savedToken) {
+        try {
+          // 使用保存的 token 嘗試重新驗證
+          const response = await fetch('/api/customers/verify-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${savedToken}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setCustomer(data.customer, savedToken, Date.now() + 30 * 60 * 1000); // 重新設置 30 分鐘
+            return true;
+          }
+        } catch (error) {
+          console.error('重新連接失敗:', error);
+        }
+      }
+    }
+    return false;
+  }
+
   function startInactivityTimer() {
-    if (isAuthenticated.value) {
+    // 如果正在支付中，不啟動計時器
+    if (isAuthenticated.value && !paymentInProgress.value) {
       inactivityTimer = setTimeout(() => {
         console.log('CustomerStore: 檢測到 30 分鐘無活動，執行自動登出');
         logout('inactivity');
@@ -135,8 +194,13 @@ export const useCustomerStore = defineStore('customer', () => {
     token,
     expireAt,
     isAuthenticated,
+    paymentInProgress,
+    paymentOrderId,
     setCustomer,
     logout,
+    startPayment,
+    endPayment,
+    tryReconnect
   };
 }, {
   persist: {

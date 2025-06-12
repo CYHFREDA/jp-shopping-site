@@ -15,10 +15,12 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
+import { useCustomerStore } from '@/stores/customerStore';
 
 const route = useRoute();
 const router = useRouter();
 const cartStore = useCartStore();
+const customerStore = useCustomerStore();
 
 const message = ref('處理中...');
 const subMessage = ref('');
@@ -53,15 +55,27 @@ function goHome() {
 }
 
 onMounted(async () => {
-  // 從 localStorage 獲取 order_id
-  const orderId = localStorage.getItem('latest_order_id');
+  // 檢查用戶登入狀態
+  if (!customerStore.isAuthenticated) {
+    console.log('檢測到用戶未登入，嘗試重新連接...');
+    const reconnected = await customerStore.tryReconnect();
+    if (!reconnected) {
+      message.value = '登入狀態已失效！';
+      subMessage.value = '請重新登入後查看訂單狀態。';
+      status.value = 'failed';
+      return;
+    }
+  }
+
+  // 從 sessionStorage 獲取支付中的訂單 ID
+  const orderId = sessionStorage.getItem('payment_order_id');
+  console.log('從 sessionStorage 獲取的 orderId:', orderId);
 
   if (!orderId) {
-    // 如果沒有找到 order_id，顯示錯誤或導回首頁
     message.value = '無法獲取訂單資訊！';
     subMessage.value = '請直接前往首頁查詢訂單狀態或聯繫客服。';
     status.value = 'failed';
-    console.error('無法從 localStorage 獲取 order_id');
+    console.error('無法從 sessionStorage 獲取 order_id');
     return;
   }
 
@@ -71,16 +85,23 @@ onMounted(async () => {
 
   try {
     // 調用後端 API 查詢訂單狀態
-    const res = await fetch(apiUrl);
+    const res = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${customerStore.token}`,
+        'X-Payment-Process': 'true'
+      }
+    });
     const data = await res.json();
 
     if (res.ok) {
       // 根據後端回傳的狀態更新頁面
       updatePageBasedOnStatus(data.status);
-      // 清理 localStorage 中的 order_id
-      localStorage.removeItem('latest_order_id');
+      // 如果支付成功，清空購物車並結束支付流程
+      if (data.status === 'success') {
+        cartStore.clearCart();
+        customerStore.endPayment();
+      }
     } else {
-      // 處理 API 錯誤，例如訂單不存在
       console.error('查詢訂單狀態 API 錯誤：', data.error || res.statusText);
       message.value = '查詢訂單狀態失敗！';
       subMessage.value = data.error || '請稍後再試或聯繫客服。';
@@ -88,7 +109,6 @@ onMounted(async () => {
     }
 
   } catch (error) {
-    // 處理網路錯誤或其他異常
     console.error('調用查詢訂單狀態 API 時發生錯誤：', error);
     message.value = '連接錯誤！';
     subMessage.value = '無法查詢訂單狀態，請檢查網路或聯繫客服。';

@@ -109,10 +109,12 @@ function checkout() {
     return;
   }
 
-  // 參考 frontend/html/cart.html 中的 checkout 函數
   fetch("/pay", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${customerStore.token}`
+    },
     body: JSON.stringify({
       products: cartStore.items,
       customer_id: customerStore.customer?.customer_id
@@ -121,11 +123,10 @@ function checkout() {
   .then(res => res.json())
   .then(data => {
     if (data.ecpay_url && data.params) {
-      cartStore.clearCart(); // 呼叫 Store 中的 action 清空購物車
-      // 儲存 order_id 到 localStorage
-      if (data.order_id) {
-        localStorage.setItem('latest_order_id', data.order_id);
-      }
+      // 開始支付流程，保存相關資訊
+      customerStore.startPayment(data.order_id);
+      
+      // 建立表單並提交
       const form = document.createElement("form");
       form.action = data.ecpay_url;
       form.method = "post";

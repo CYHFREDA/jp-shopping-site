@@ -136,3 +136,56 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
         "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000  # 轉換為毫秒
     })
 
+#驗證 token
+@router.post("/verify-token")
+async def verify_token(request: Request, cursor=Depends(get_db_cursor)):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return JSONResponse({"error": "未提供有效的認證令牌"}, status_code=401)
+    
+    token = auth_header.split(" ")[1]
+    try:
+        # 解碼 token
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        customer_id = payload.get("customer_id")
+        username = payload.get("username")
+        
+        # 檢查 token 是否與資料庫中的相符
+        cursor.execute("""
+            SELECT customer_id, username, name, email, phone, address, current_token
+            FROM customers 
+            WHERE customer_id=%s AND username=%s
+        """, (customer_id, username))
+        row = cursor.fetchone()
+        
+        if not row:
+            return JSONResponse({"error": "找不到用戶"}, status_code=401)
+            
+        # 如果是支付過程中的 token 驗證，不檢查 current_token
+        is_payment = request.headers.get("X-Payment-Process") == "true"
+        if not is_payment and row["current_token"] != token:
+            return JSONResponse({"error": "Token 不符"}, status_code=401)
+            
+        # 構建用戶資料
+        customer_data = {
+            "customer_id": row["customer_id"],
+            "username": row["username"],
+            "name": row["name"],
+            "email": row["email"],
+            "phone": row["phone"],
+            "address": row["address"]
+        }
+        
+        return JSONResponse({
+            "message": "Token 驗證成功",
+            "customer": customer_data
+        })
+        
+    except jwt.ExpiredSignatureError:
+        return JSONResponse({"error": "認證令牌已過期"}, status_code=401)
+    except jwt.InvalidTokenError:
+        return JSONResponse({"error": "無效的認證令牌"}, status_code=401)
+    except Exception as e:
+        print(f"❌ [Token 驗證] 發生錯誤：{str(e)}")
+        return JSONResponse({"error": "驗證過程發生錯誤"}, status_code=500)
+
