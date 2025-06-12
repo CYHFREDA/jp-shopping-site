@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import psycopg2.extras
 import bcrypt
 import uuid
-from config import FRONTEND_URL, send_verification_email
+from utils.email import send_verification_email
 
 router = APIRouter(prefix="/api/customers")
 
