@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, Request, BackgroundTasks
 from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from datetime import datetime, timedelta
+from utils.email import send_verification_email
 import psycopg2.extras
 import bcrypt
 import uuid
-from utils.email import send_verification_email
+import jwt
+
 
 router = APIRouter(prefix="/api/customers")
 
