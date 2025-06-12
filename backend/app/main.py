@@ -5,22 +5,13 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from psycopg2 import errors
 from datetime import datetime, timedelta
+from routers import customers, verify
 import random
-import uvicorn
 import hashlib
 import urllib.parse
 import os
-import psycopg2
 import bcrypt
-import psycopg2.extras
-import jwt
 import pytz
-from psycopg2.pool import SimpleConnectionPool
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-import uuid
-from email.mime.multipart import MIMEMultipart
 from pydantic import BaseModel
 
 # FastAPI 實例宣告
@@ -38,31 +29,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 引入顧客 API 路由（如註冊、登入、查看自己資訊等）
-from routers import customers
 app.include_router(customers.router)
 
 # 引入 Email 驗證路由
-from routers import verify
 app.include_router(verify.router)
-
-# JWT 設定
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # 從環境變數讀取密鑰
-if not JWT_SECRET_KEY:
-    print("⚠️ JWT_SECRET_KEY 環境變數未設定，將使用預設值。請在生產環境中設定安全的密鑰！")
-    JWT_SECRET_KEY = "super-secret-jwt-key-for-development"
-
-JWT_ALGORITHM = "HS256"
-
-# 新增 Email 設定
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USERNAME = os.getenv("EMAIL_USERNAME")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173") # 前端網址，用於 Email 驗證連結
-
-# 檢查 Email 設定是否完整
-if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL]):
-    print("⚠️ Email 設定不完整！請檢查 .env 中的 EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD, FRONTEND_URL。")
 
 # PostgreSQL 連線參數
 DB_NAME = os.getenv("POSTGRES_DB")

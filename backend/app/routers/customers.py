@@ -6,7 +6,7 @@ from utils.email import send_verification_email
 import psycopg2.extras
 import bcrypt
 import uuid
-import jwt
+from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL
 
 
 router = APIRouter(prefix="/api/customers")
