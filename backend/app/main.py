@@ -24,6 +24,7 @@ import uuid
 from email.mime.multipart import MIMEMultipart
 from pydantic import BaseModel
 
+# .env 載入
 load_dotenv()
 app = FastAPI()
 

@@ -29,7 +29,7 @@
               <td class="text-center">
                 <div class="action-btns flex-row gap-2">
                   <button class="btn btn-sm btn-brown" @click="openEditModal(shipment)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'completed'">修改</button>
-                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending'">
+                  <button class="btn btn-sm btn-outline-success" @click="mockDelivered(shipment)" :disabled="mockLoadingOrderId === shipment.order_id || shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending' || shipment.status === 'picked_up'">
                     <span v-if="mockLoadingOrderId === shipment.order_id">處理中...</span>
                     <span v-else>模擬到店</span>
                   </button>
@@ -47,7 +47,7 @@
         <AdminCardList :items="shipments" :fields="cardFields" key-field="shipment_id">
           <template #actions="{ item }">
             <button class="btn btn-sm btn-brown" @click="openEditModal(item)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'completed'">修改</button>
-            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'arrived' || item.status === 'completed' || item.status === 'out_of_stock' || item.status === 'pending'">
+            <button class="btn btn-sm btn-outline-success ms-1" @click="mockDelivered(item)" :disabled="mockLoadingOrderId === item.order_id || item.status === 'arrived' || item.status === 'completed' || item.status === 'out_of_stock' || item.status === 'pending' || item.status === 'picked_up'">
               <span v-if="mockLoadingOrderId === item.order_id">處理中...</span>
               <span v-else>模擬到店</span>
             </button>
@@ -194,7 +194,7 @@ async function mockDelivered(shipment) {
   }
 
   // 在前端進行狀態檢查，避免不必要的後端請求
-  if (shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending') {
+  if (shipment.status === 'arrived' || shipment.status === 'completed' || shipment.status === 'out_of_stock' || shipment.status === 'pending' || shipment.status === 'picked_up') {
     displayErrorMessage.value = '❌ 只有已出貨狀態的訂單才能模擬到店！';
     return;
   }
