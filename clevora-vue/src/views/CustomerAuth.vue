@@ -374,7 +374,7 @@ function startCountdown() {
         const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
         console.log('驗證狀態檢查結果:', response.data); // debug 日誌
         if (response.data.verified) {
-          console.log('驗證成功，準備切換到登入頁面...'); // debug 日誌
+          console.log('驗證成功，準備重新載入頁面...'); // debug 日誌
           clearInterval(countdownTimer);
           
           // 清除所有計時器
@@ -382,24 +382,8 @@ function startCountdown() {
             clearTimeout(registrationTimer);
           }
           
-          // 清除註冊表單
-          registerForm.value = {
-            username: '',
-            name: '',
-            email: '',
-            phone: '',
-            address: '',
-            password: ''
-          };
-          
-          // 清除驗證狀態
-          registrationSuccessAndPendingVerification.value = false;
-          
-          // 切換到登入頁籤
-          activeTab.value = 'login';
-          
-          // 顯示成功訊息
-          loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
+          // 使用 window.location 重新載入頁面，並帶上成功訊息參數
+          window.location.href = '/login?verified=true';
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
@@ -413,6 +397,15 @@ function startCountdown() {
     }
   }, 1000);
 }
+
+// 在組件掛載時檢查 URL 參數
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('verified') === 'true') {
+    activeTab.value = 'login';
+    loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
+  }
+});
 
 // 在組件卸載時清除計時器，防止記憶體洩漏
 onUnmounted(() => {
