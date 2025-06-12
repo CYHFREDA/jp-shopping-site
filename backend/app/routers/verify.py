@@ -103,3 +103,26 @@ async def resend_verification_email_endpoint(request: Request, cursor=Depends(ge
     except Exception as e:
         print(f"❌ [重新發送驗證信] 發生錯誤：{e}")
         return JSONResponse({"error": "內部伺服器錯誤"}, status_code=500)
+
+# 檢查驗證狀態端點
+@router.get("/check-verification-status/{email}")
+async def check_verification_status(email: str, cursor=Depends(get_db_cursor)):
+    try:
+        cursor.execute("SELECT is_verified FROM customers WHERE email = %s", (email,))
+        result = cursor.fetchone()
+        
+        if not result:
+            return JSONResponse({"verified": False, "message": "找不到此 Email。"})
+            
+        is_verified = result[0]
+        return JSONResponse({
+            "verified": is_verified,
+            "message": "已驗證成功" if is_verified else "尚未驗證"
+        })
+        
+    except Exception as e:
+        print(f"❌ [檢查驗證狀態] 發生錯誤：{e}")
+        return JSONResponse(
+            {"error": "檢查驗證狀態時發生錯誤"},
+            status_code=500
+        )

@@ -407,9 +407,19 @@ const resendVerificationEmail = async () => {
 function startCountdown() {
   countdown.value = 300;
   if (countdownTimer) clearInterval(countdownTimer);
-  countdownTimer = setInterval(() => {
+  countdownTimer = setInterval(async () => {
     if (countdown.value > 0) {
       countdown.value--;
+      // 檢查驗證狀態
+      try {
+        const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
+        if (response.data.verified) {
+          clearInterval(countdownTimer);
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('檢查驗證狀態時發生錯誤:', error);
+      }
     } else {
       clearInterval(countdownTimer);
       registrationSuccessAndPendingVerification.value = false;
