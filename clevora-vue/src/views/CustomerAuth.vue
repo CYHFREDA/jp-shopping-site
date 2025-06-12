@@ -377,13 +377,25 @@ function startCountdown() {
           console.log('驗證成功，準備跳轉到首頁...'); // debug 日誌
           clearInterval(countdownTimer);
           
-          // 清除所有計時器
+          // 清除所有計時器和狀態
           if (registrationTimer) {
             clearTimeout(registrationTimer);
           }
           
-          // 跳轉到首頁
-          window.location.href = '/';
+          // 重置表單和狀態
+          registrationSuccessAndPendingVerification.value = false;
+          registerForm.value = {
+            username: '',
+            name: '',
+            email: '',
+            phone: '',
+            address: '',
+            password: '',
+          };
+          
+          // 使用 Vue Router 進行跳轉
+          await router.push('/');
+          window.location.reload(); // 重新載入頁面以確保狀態更新
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
