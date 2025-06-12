@@ -32,10 +32,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 引入顧客 API 路由（如註冊、登入、查看自己資訊等）
-app.include_router(customers.router)
+app.include_router(customers.router, prefix="/api")
 
 # 引入 Email 驗證路由
-app.include_router(verify.router)
+app.include_router(verify.router, prefix="/api")
 
 #綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
