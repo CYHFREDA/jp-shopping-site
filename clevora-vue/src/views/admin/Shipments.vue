@@ -79,6 +79,7 @@
                 <option value="out_of_stock">缺貨中</option>
                 <option value="shipped">已出貨</option>
                 <option value="arrived">已到店</option>
+                <option value="picked_up">已取貨</option>
                 <option value="completed">已完成</option>
               </select>
             </div>
