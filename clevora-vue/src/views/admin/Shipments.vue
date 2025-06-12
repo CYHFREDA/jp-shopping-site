@@ -216,6 +216,7 @@ function statusText(status) {
   if (status === 'out_of_stock') return '缺貨中';
   if (status === 'shipped') return '已出貨';
   if (status === 'arrived') return '已到店';
+  if (status === 'picked_up') return '已取貨';
   if (status === 'completed') return '已完成';
   return status;
 }
