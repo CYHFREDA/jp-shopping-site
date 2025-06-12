@@ -268,56 +268,15 @@ async function handleRegister() {
   }
 
   try {
-    const res = await axios.post('/api/customers/register', registerForm.value);
-    const data = res.data;
-
-    if (data.message) {
+    const response = await axios.post('/api/customers/register', registerForm.value);
+    if (response.status === 200) {
+      registrationEmail.value = registerForm.value.email; // 儲存註冊的 email
+      console.log('註冊 email:', registrationEmail.value); // 新增 debug 日誌
       registrationSuccessAndPendingVerification.value = true;
-      apiErrorMessage.value = '✅ 註冊成功！請到您的信箱進行驗證。';
-      
-      // 清除表單資料
-      registerForm.value = {
-        username: '',
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        password: '',
-      };
-      
-      // 清除錯誤訊息
-      usernameError.value = '';
-      nameError.value = '';
-      emailError.value = '';
-      phoneError.value = '';
-      addressError.value = '';
-      passwordError.value = '';
-
-      registrationEmail.value = registerForm.value.email;
-
-      // 啟動 5 分鐘的計時器
-      if (registrationTimer) {
-        clearTimeout(registrationTimer);
-      }
-      registrationTimer = setTimeout(() => {
-        if (registrationSuccessAndPendingVerification.value) {
-          registrationSuccessAndPendingVerification.value = false;
-          apiErrorMessage.value = '❌ 註冊失敗：Email 驗證連結已過期，請重新註冊。';
-        }
-      }, 5 * 60 * 1000);
-
       startCountdown();
-    } else if (data.error) {
-      if (data.error.includes('Email 已被使用')) {
-        emailError.value = '此 Email 已被註冊，請使用其他 Email 或嘗試登入。';
-      } else if (data.error.includes('使用者名稱已被使用')) {
-        usernameError.value = '此使用者名稱已被註冊，請使用其他名稱或嘗試登入。';
-      } else {
-        apiErrorMessage.value = data.error;
-      }
     }
-  } catch (err) {
-    console.error('註冊時發生錯誤：', err);
+  } catch (error) {
+    console.error('註冊時發生錯誤：', error);
 
     // 清除任何之前的重試計時器
     if (registerRetryTimer) {
@@ -327,9 +286,9 @@ async function handleRegister() {
     registerRetryCountdown.value = 0; // 重置倒數計時
     registrationSuccessAndPendingVerification.value = false; // Ensure this is false for error messages
 
-    if (err.response && err.response.data) {
-      if (err.response.data.error === "使用者名稱已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
-        let seconds = err.response.data.retry_after_seconds;
+    if (error.response && error.response.data) {
+      if (error.response.data.error === "使用者名稱已被使用且尚待驗證" && error.response.data.retry_after_seconds !== undefined) {
+        let seconds = error.response.data.retry_after_seconds;
         registerRetryCountdown.value = seconds;
 
         apiErrorMessage.value = `❌ 使用者名稱已被使用且尚待驗證，請在 ${Math.floor(seconds / 60)} 分 ${(seconds % 60).toString().padStart(2, '0')} 秒後再試。`;
@@ -346,8 +305,8 @@ async function handleRegister() {
             }
           }, 1000);
         }
-      } else if (err.response.data.error === "Email 已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
-        let seconds = err.response.data.retry_after_seconds;
+      } else if (error.response.data.error === "Email 已被使用且尚待驗證" && error.response.data.retry_after_seconds !== undefined) {
+        let seconds = error.response.data.retry_after_seconds;
         registerRetryCountdown.value = seconds;
 
         apiErrorMessage.value = `❌ Email 已被使用且尚待驗證，請在 ${Math.floor(seconds / 60)} 分 ${(seconds % 60).toString().padStart(2, '0')} 秒後再試。`;
@@ -365,7 +324,7 @@ async function handleRegister() {
           }, 1000);
         }
       } else {
-        apiErrorMessage.value = err.response.data.error || '❌ 註冊失敗！';
+        apiErrorMessage.value = error.response.data.error || '❌ 註冊失敗！';
       }
     } else {
       apiErrorMessage.value = '❌ 註冊失敗！請檢查網路連線。';
@@ -408,9 +367,9 @@ function startCountdown() {
   countdown.value = 300;
   if (countdownTimer) clearInterval(countdownTimer);
   countdownTimer = setInterval(async () => {
-    if (countdown.value > 0) {
-      countdown.value--;
-      // 檢查驗證狀態
+    countdown.value--;
+    // 每5秒檢查一次驗證狀態
+    if (countdown.value > 0 && countdown.value % 5 === 0) {
       try {
         const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
         if (response.data.verified) {
@@ -420,7 +379,9 @@ function startCountdown() {
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
       }
-    } else {
+    }
+    
+    if (countdown.value <= 0) {
       clearInterval(countdownTimer);
       registrationSuccessAndPendingVerification.value = false;
       apiErrorMessage.value = '❌ 驗證連結已過期，請重新註冊。';
