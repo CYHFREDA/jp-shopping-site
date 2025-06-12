@@ -372,9 +372,15 @@ function startCountdown() {
     if (countdown.value > 0 && countdown.value % 5 === 0) {
       try {
         const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
+        console.log('驗證狀態檢查結果:', response.data); // 新增 debug 日誌
         if (response.data.verified) {
           clearInterval(countdownTimer);
-          router.push('/login');
+          registrationSuccessAndPendingVerification.value = false;
+          apiErrorMessage.value = '✅ 驗證成功！即將跳轉至登入頁面...';
+          // 立即跳轉到登入頁面
+          setTimeout(() => {
+            router.push('/login');
+          }, 1000); // 延遲1秒讓用戶看到成功訊息
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
