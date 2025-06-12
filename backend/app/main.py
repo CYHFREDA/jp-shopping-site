@@ -7,8 +7,7 @@ from psycopg2 import errors
 from datetime import datetime, timedelta
 from routers import customers, verify, pay, orders, products, shipments, stores, admin
 from pydantic import BaseModel
-from config import verify_customer_jwt, verify_admin_jwt
-from config import JWT_SECRET_KEY, JWT_ALGORITHM
+from config import verify_customer_jwt, verify_admin_jwt,JWT_SECRET_KEY, JWT_ALGORITHM
 import jwt
 import random
 import hashlib
