@@ -36,13 +36,6 @@ app.include_router(customers.router)
 # 引入 Email 驗證路由
 app.include_router(verify.router)
 
-# PostgreSQL 連線參數
-DB_NAME = os.getenv("POSTGRES_DB")
-DB_USER = os.getenv("POSTGRES_USER")
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-DB_HOST = os.getenv("POSTGRES_HOST")
-DB_PORT = "5432"
-
 #綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
 ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")
