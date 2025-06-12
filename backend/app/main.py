@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from psycopg2 import errors
 from datetime import datetime, timedelta
-from routers import customers, verify, pay, orders, products, shipments, stores, admin
+from routers import customers, verify, pay, orders, admin
 from pydantic import BaseModel
 from config import verify_customer_jwt, verify_admin_jwt,JWT_SECRET_KEY, JWT_ALGORITHM
 import jwt
@@ -41,9 +41,6 @@ app.include_router(pay.router)
 
 # 引入訂單 API 路由
 app.include_router(orders.router)
-
-# 引入商品 API 路由
-app.include_router(products.router)
 
 # 引入出貨管理 API 路由
 app.include_router(shipments.router)
