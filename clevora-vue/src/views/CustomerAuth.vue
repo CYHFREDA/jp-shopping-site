@@ -123,6 +123,8 @@ const registrationEmail = ref(''); // 新增一個 ref 來儲存註冊成功的 
 let registrationTimer = null; // 用於儲存計時器 ID
 const countdown = ref(300); // 5分鐘=300秒
 let countdownTimer = null;
+const registerRetryCountdown = ref(0); // 新增用於錯誤訊息的倒數計時
+let registerRetryTimer = null; // 新增用於錯誤訊息計時器 ID
 
 // 驗證函式
 function validateUsername() {
@@ -314,13 +316,40 @@ async function handleRegister() {
         apiErrorMessage.value = data.error;
       }
     }
-  } catch (error) {
-    console.error('註冊錯誤：', error);
-    if (error.response) {
-      // 優先顯示後端回傳的 error 或 detail
-      apiErrorMessage.value = error.response.data.error || error.response.data.detail || '❌ 註冊失敗！請稍後再試。';
+  } catch (err) {
+    console.error('註冊時發生錯誤：', err);
+
+    // 清除任何之前的重試計時器
+    if (registerRetryTimer) {
+      clearInterval(registerRetryTimer);
+      registerRetryTimer = null;
+    }
+    registerRetryCountdown.value = 0; // 重置倒數計時
+
+    if (err.response && err.response.data) {
+      if (err.response.data.error === "使用者名稱已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
+        let seconds = err.response.data.retry_after_seconds;
+        registerRetryCountdown.value = seconds;
+
+        apiErrorMessage.value = `❌ 使用者名稱已被使用且尚待驗證，請在 ${Math.floor(seconds / 60)} 分 ${(seconds % 60).toString().padStart(2, '0')} 秒後再試。`;
+
+        if (seconds > 0) {
+          registerRetryTimer = setInterval(() => {
+            if (registerRetryCountdown.value > 0) {
+              registerRetryCountdown.value--;
+              apiErrorMessage.value = `❌ 使用者名稱已被使用且尚待驗證，請在 ${Math.floor(registerRetryCountdown.value / 60)} 分 ${(registerRetryCountdown.value % 60).toString().padStart(2, '0')} 秒後再試。`;
+            } else {
+              clearInterval(registerRetryTimer);
+              registerRetryTimer = null;
+              apiErrorMessage.value = `❌ 使用者名稱已被使用且尚待驗證，現在可以重試。`;
+            }
+          }, 1000);
+        }
+      } else {
+        apiErrorMessage.value = err.response.data.error || '❌ 註冊失敗！';
+      }
     } else {
-      apiErrorMessage.value = '❌ 註冊失敗！網路錯誤，請稍後再試。';
+      apiErrorMessage.value = '❌ 註冊失敗！請檢查網路連線。';
     }
   }
 }
@@ -377,6 +406,9 @@ onUnmounted(() => {
   }
   if (countdownTimer) {
     clearInterval(countdownTimer);
+  }
+  if (registerRetryTimer) {
+    clearInterval(registerRetryTimer);
   }
 });
 

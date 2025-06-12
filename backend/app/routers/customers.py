@@ -53,7 +53,8 @@ async def customer_register(request: Request, background_tasks: BackgroundTasks,
                 cursor.execute("DELETE FROM customers WHERE customer_id = %s", (customer_id_un,))
                 cursor.connection.commit()
             else:
-                return JSONResponse({"error": "使用者名稱已被使用且尚待驗證"}, status_code=400)
+                remaining_seconds = max(0, int((token_expiry_un.replace(tzinfo=None) - datetime.utcnow()).total_seconds()))
+                return JSONResponse({"error": "使用者名稱已被使用且尚待驗證", "retry_after_seconds": remaining_seconds}, status_code=400)
 
         # 註冊流程
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
