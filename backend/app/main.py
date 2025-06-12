@@ -23,10 +23,14 @@ from email.mime.text import MIMEText
 import uuid
 from email.mime.multipart import MIMEMultipart
 from pydantic import BaseModel
+from middleware import setup_cors
 
 # .env 載入
 load_dotenv()
 app = FastAPI()
+
+#CORS 設定
+setup_cors(app)
 
 # JWT 設定
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # 從環境變數讀取密鑰
@@ -137,15 +141,6 @@ async def verify_customer_jwt(request: Request, cursor=Depends(get_db_cursor)):
         raise HTTPException(status_code=401, detail="認證令牌已過期")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="無效的認證令牌")
-
-#CORS 設定
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://shop.wvwwcw.xyz"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 #綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
