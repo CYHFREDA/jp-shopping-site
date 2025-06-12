@@ -15,6 +15,7 @@ async def verify_email(token: str, cursor=Depends(get_db_cursor)):
     try:
         cursor.execute("SELECT customer_id, username, is_verified, token_expiry FROM customers WHERE verification_token = %s", (token,))
         customer = cursor.fetchone()
+        print(f"[Email 驗證] 資料庫查詢結果: {customer}")
 
         if not customer:
             print(f"❌ [Email 驗證] 驗證失敗: 無效或找不到 token: {token}")
