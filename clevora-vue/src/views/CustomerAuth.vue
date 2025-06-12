@@ -325,6 +325,7 @@ async function handleRegister() {
       registerRetryTimer = null;
     }
     registerRetryCountdown.value = 0; // 重置倒數計時
+    registrationSuccessAndPendingVerification.value = false; // Add this line to hide the success message and show error
 
     if (err.response && err.response.data) {
       if (err.response.data.error === "使用者名稱已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
