@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import random
 import bcrypt
 import uuid
-import jwt
+from jose import jwt
 
 router = APIRouter()
 
