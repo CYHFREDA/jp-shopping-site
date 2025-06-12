@@ -36,7 +36,10 @@ setup_cors(app)
 # .env 載入
 from dotenv import load_dotenv
 load_dotenv()
-print("目前的 POSTGRES_HOST:", os.getenv("POSTGRES_HOST"))
+
+# 引入顧客 API 路由（如註冊、登入、查看自己資訊等）
+from routers import customers
+app.include_router(customers.router)
 
 
 # JWT 設定
@@ -359,107 +362,6 @@ async def admin_get_products(auth=Depends(verify_admin_jwt), cursor=Depends(get_
     except Exception as e:
         print("❌ 後台載入商品資料錯誤：", str(e))
         return JSONResponse({"error": "無法載入商品資料"}, status_code=500)
-
-#客戶註冊（前台用）
-@app.post("/api/customers/register")
-async def customer_register(request: Request, background_tasks: BackgroundTasks):
-    data = await request.json()
-    username = data.get("username")
-    name = data.get("name")
-    email = data.get("email")
-    phone = data.get("phone")
-    password = data.get("password")
-    address = data.get("address")
-
-    conn = None
-    cursor = None
-
-    print(f"[註冊] 收到註冊請求 - Username: {username}, Email: {email}")
-
-    try:
-        conn = global_pool.getconn()
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-        print(f"[註冊] 嘗試註冊使用者: username={username}, name={name}, email={email}, phone={phone}, password_provided={bool(password)}, address_provided={bool(address)}") # Debugging line
-
-        if not (username and name and email and phone and address and password):
-            print("❌ [註冊] 註冊失敗: 缺少必要欄位") # Debugging line
-            return JSONResponse({"error": "缺少必要欄位"}, status_code=400)
-
-        # --- 檢查 Email 是否已存在並處理未驗證/過期情況 ---
-        cursor.execute("SELECT customer_id, username, is_verified, token_expiry FROM customers WHERE email = %s", (email,))
-        existing_email_record = cursor.fetchone()
-        if existing_email_record:
-            existing_customer_id, existing_username, is_verified_email, token_expiry_email = existing_email_record
-            if is_verified_email:
-                print(f"❌ [註冊] Email '{email}' 已被註冊且已驗證。")
-                return JSONResponse({"error": "Email 已被使用"}, status_code=400)
-            elif token_expiry_email and datetime.utcnow() > token_expiry_email.replace(tzinfo=None):
-                # Email 存在但未驗證且 Token 已過期：刪除舊記錄
-                print(f"⚠️ [註冊] Email '{email}' 已存在但未驗證且 Token 已過期，將刪除舊記錄。")
-                cursor.execute("DELETE FROM customers WHERE customer_id = %s", (existing_customer_id,))
-                conn.commit()
-                print(f"✅ [註冊] 已刪除過期的未驗證 Email '{email}' 的舊記錄。")
-                # 繼續執行，允許新註冊
-            else:
-                # Email 存在但未驗證，且 Token 仍有效：阻止註冊
-                print(f"❌ [註冊] Email '{email}' 已被使用且尚待驗證。")
-                return JSONResponse({"error": "Email 已被使用且尚待驗證，請檢查您的 Email 收件箱。"}, status_code=400)
-
-        # --- 檢查使用者名稱是否已存在並處理未驗證/過期情況 ---
-        cursor.execute("SELECT customer_id, email, is_verified, token_expiry FROM customers WHERE username = %s", (username,))
-        existing_username_record = cursor.fetchone()
-        if existing_username_record:
-            existing_customer_id_un, existing_email_un, is_verified_username, token_expiry_username = existing_username_record
-            if is_verified_username:
-                print(f"❌ [註冊] 使用者名稱 '{username}' 已被註冊且已驗證。")
-                return JSONResponse({"error": "使用者名稱已被使用"}, status_code=400)
-            elif token_expiry_username and datetime.utcnow() > token_expiry_username.replace(tzinfo=None):
-                # 使用者名稱存在但未驗證且 Token 已過期：刪除舊記錄
-                print(f"⚠️ [註冊] 使用者名稱 '{username}' 已存在但未驗證且 Token 已過期，將刪除舊記錄。")
-                cursor.execute("DELETE FROM customers WHERE customer_id = %s", (existing_customer_id_un,))
-                conn.commit()
-                print(f"✅ [註冊] 已刪除過期的未驗證使用者名稱 '{username}' 的舊記錄。")
-                # 繼續執行，允許新註冊
-            else:
-                # 使用者名稱存在但未驗證，且 Token 仍有效：阻止註冊
-                print(f"❌ [註冊] 使用者名稱 '{username}' 已被使用且尚待驗證。")
-                return JSONResponse({"error": "使用者名稱已被使用且尚待驗證。"}, status_code=400)
-
-        # --- 如果執行到這裡，表示 Email 和使用者名稱都可用於新註冊（舊的過期記錄已刪除）---
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        verification_token = str(uuid.uuid4())
-        token_expiry = datetime.utcnow() + timedelta(minutes=5)
-
-        cursor.execute(
-            """
-            INSERT INTO customers (username, email, password, name, phone, address,
-                                   is_verified, verification_token, token_expiry, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            """,
-            (username, email, hashed_password, name, phone, address,
-             False, verification_token, token_expiry)
-        )
-        conn.commit()
-
-        verification_link = f"{FRONTEND_URL}/verify-email?token={verification_token}"
-        # 改為背景寄信
-        background_tasks.add_task(send_verification_email, email, username, verification_link)
-
-        print(f"✅ [註冊] 使用者 '{username}' 註冊成功，驗證信已排入背景任務。")
-        return JSONResponse({"message": "註冊成功，請檢查您的 Email 以完成驗證"})
-
-    except Exception as e:
-        if conn:
-            conn.rollback()
-        print(f"❌ [註冊] 註冊時發生其他未知錯誤：{e}")
-        return JSONResponse({"error": "註冊失敗，請稍後再試！"}, status_code=500)
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            global_pool.putconn(conn)
-            print("[註冊] 資料庫連接已歸還連接池。")
 
 #客戶登入（前台用）
 @app.post("/api/customers/login")
