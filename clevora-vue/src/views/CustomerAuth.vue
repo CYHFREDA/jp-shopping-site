@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onUnmounted } from 'vue';
+import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCustomerStore } from '@/stores/customerStore';
 import axios from 'axios';
@@ -372,15 +372,24 @@ function startCountdown() {
     if (countdown.value > 0 && countdown.value % 5 === 0) {
       try {
         const response = await axios.get(`/api/check-verification-status/${registrationEmail.value}`);
-        console.log('驗證狀態檢查結果:', response.data); // 新增 debug 日誌
+        console.log('驗證狀態檢查結果:', response.data); // debug 日誌
         if (response.data.verified) {
+          console.log('驗證成功，準備跳轉...'); // debug 日誌
           clearInterval(countdownTimer);
           registrationSuccessAndPendingVerification.value = false;
           apiErrorMessage.value = '✅ 驗證成功！即將跳轉至登入頁面...';
-          // 立即跳轉到登入頁面
-          setTimeout(() => {
-            router.push('/login');
-          }, 1000); // 延遲1秒讓用戶看到成功訊息
+          
+          // 確保清除所有計時器
+          if (registrationTimer) {
+            clearTimeout(registrationTimer);
+          }
+          
+          // 使用正確的路由名稱
+          nextTick(() => {
+            console.log('執行跳轉到登入頁面'); // debug 日誌
+            activeTab.value = 'login'; // 切換到登入頁籤
+            registrationSuccessAndPendingVerification.value = false;
+          });
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
