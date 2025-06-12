@@ -1,13 +1,14 @@
 import os
 from dotenv import load_dotenv
-from fastapi import Request, HTTPException, Depends
+from fastapi import Request, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from db.db import get_db_cursor
 
 load_dotenv()
 
 # JWT 設定
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-default-secret")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 # JWT 認證依賴項 (取代 Basic Auth)

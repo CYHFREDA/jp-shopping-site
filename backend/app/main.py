@@ -7,7 +7,7 @@ from psycopg2 import errors
 from datetime import datetime, timedelta
 from routers import customers, verify
 from pydantic import BaseModel
-from config import JWT_SECRET_KEY, JWT_ALGORITHM
+from config import verify_customer_jwt, verify_admin_jwt
 import jwt
 import random
 import hashlib
@@ -42,64 +42,6 @@ DB_USER = os.getenv("POSTGRES_USER")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 DB_HOST = os.getenv("POSTGRES_HOST")
 DB_PORT = "5432"
-
-
-# JWT 認證依賴項 (取代 Basic Auth)
-async def verify_admin_jwt(request: Request, cursor=Depends(get_db_cursor)):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="未提供有效的認證令牌")
-    token = auth_header.split(" ")[1]
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        admin_id = payload.get("admin_id")
-        username = payload.get("username")  # 从 token 中获取用户名
-        
-        # 检查 token 是否与数据库中的相符（只检查同一用户名的 token）
-        cursor.execute("""
-            SELECT current_token 
-            FROM admin_users 
-            WHERE id=%s AND username=%s
-        """, (admin_id, username))
-        row = cursor.fetchone()
-        
-        if not row or row["current_token"] != token:
-            print(f"❌ [管理員驗證] 管理員 {username} (ID: {admin_id}) 的 token 不符或已在其他地方登入")
-            raise HTTPException(status_code=401, detail="KICKED")
-            
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="認證令牌已過期")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="無效的認證令牌")
-
-async def verify_customer_jwt(request: Request, cursor=Depends(get_db_cursor)):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="未提供有效的認證令牌")
-    token = auth_header.split(" ")[1]
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        customer_id = payload.get("customer_id")
-        username = payload.get("username")  # 从 token 中获取用户名
-        
-        # 检查 token 是否与数据库中的相符（只检查同一用户名的 token）
-        cursor.execute("""
-            SELECT current_token 
-            FROM customers 
-            WHERE customer_id=%s AND username=%s
-        """, (customer_id, username))
-        row = cursor.fetchone()
-        
-        if not row or row["current_token"] != token:
-            print(f"❌ [會員驗證] 會員 {username} (ID: {customer_id}) 的 token 不符或已在其他地方登入")
-            raise HTTPException(status_code=401, detail="KICKED")
-            
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="認證令牌已過期")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="無效的認證令牌")
 
 #綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
