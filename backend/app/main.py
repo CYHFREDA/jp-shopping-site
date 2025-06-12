@@ -23,6 +23,9 @@ import uuid
 from email.mime.multipart import MIMEMultipart
 from pydantic import BaseModel
 
+# FastAPI 實例宣告
+app = FastAPI()
+
 #DB
 from db.db import get_db_cursor
 
@@ -35,7 +38,6 @@ from dotenv import load_dotenv
 load_dotenv()
 print("目前的 POSTGRES_HOST:", os.getenv("POSTGRES_HOST"))
 
-app = FastAPI()
 
 # JWT 設定
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # 從環境變數讀取密鑰
