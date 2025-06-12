@@ -7,13 +7,14 @@ from psycopg2 import errors
 from datetime import datetime, timedelta
 from routers import customers, verify
 from pydantic import BaseModel
+from config import JWT_SECRET_KEY, JWT_ALGORITHM
+import jwt
 import random
 import hashlib
 import urllib.parse
 import os
 import bcrypt
-import pytz
-import jwt
+import pytz 
 
 # FastAPI 實例宣告
 app = FastAPI()
