@@ -382,8 +382,14 @@ function startCountdown() {
             clearTimeout(registrationTimer);
           }
           
-          // 使用 window.location 重新載入頁面，並帶上成功訊息參數
-          window.location.href = '/login?verified=true';
+          // 強制重新載入頁面
+          window.location.reload();
+          // 切換到登入頁籤
+          nextTick(() => {
+            activeTab.value = 'login';
+            registrationSuccessAndPendingVerification.value = false;
+            loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
+          });
         }
       } catch (error) {
         console.error('檢查驗證狀態時發生錯誤:', error);
@@ -402,8 +408,10 @@ function startCountdown() {
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('verified') === 'true') {
-    activeTab.value = 'login';
-    loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
+    nextTick(() => {
+      activeTab.value = 'login';
+      loginApiErrorMessage.value = '✅ 驗證成功！請立即登入。';
+    });
   }
 });
 
