@@ -33,6 +33,7 @@ setup_cors(app)
 # .env 載入
 from dotenv import load_dotenv
 load_dotenv()
+print("目前的 POSTGRES_HOST:", os.getenv("POSTGRES_HOST"))
 
 app = FastAPI()
 
