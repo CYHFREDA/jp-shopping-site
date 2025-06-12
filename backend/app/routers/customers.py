@@ -40,7 +40,8 @@ async def customer_register(request: Request, background_tasks: BackgroundTasks,
                 cursor.execute("DELETE FROM customers WHERE customer_id = %s", (customer_id,))
                 cursor.connection.commit()
             else:
-                return JSONResponse({"error": "Email 已被使用且尚待驗證"}, status_code=400)
+                remaining_seconds = max(0, int((token_expiry.replace(tzinfo=None) - datetime.utcnow()).total_seconds()))
+                return JSONResponse({"error": "Email 已被使用且尚待驗證", "retry_after_seconds": remaining_seconds}, status_code=400)
 
         # 檢查 Username 是否已存在
         cursor.execute("SELECT customer_id, email, is_verified, token_expiry FROM customers WHERE username = %s", (username,))

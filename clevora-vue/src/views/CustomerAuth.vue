@@ -325,7 +325,7 @@ async function handleRegister() {
       registerRetryTimer = null;
     }
     registerRetryCountdown.value = 0; // 重置倒數計時
-    registrationSuccessAndPendingVerification.value = false; // Add this line to hide the success message and show error
+    registrationSuccessAndPendingVerification.value = false; // Ensure this is false for error messages
 
     if (err.response && err.response.data) {
       if (err.response.data.error === "使用者名稱已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
@@ -343,6 +343,24 @@ async function handleRegister() {
               clearInterval(registerRetryTimer);
               registerRetryTimer = null;
               apiErrorMessage.value = `❌ 使用者名稱已被使用且尚待驗證，現在可以重試。`;
+            }
+          }, 1000);
+        }
+      } else if (err.response.data.error === "Email 已被使用且尚待驗證" && err.response.data.retry_after_seconds !== undefined) {
+        let seconds = err.response.data.retry_after_seconds;
+        registerRetryCountdown.value = seconds;
+
+        apiErrorMessage.value = `❌ Email 已被使用且尚待驗證，請在 ${Math.floor(seconds / 60)} 分 ${(seconds % 60).toString().padStart(2, '0')} 秒後再試。`;
+
+        if (seconds > 0) {
+          registerRetryTimer = setInterval(() => {
+            if (registerRetryCountdown.value > 0) {
+              registerRetryCountdown.value--;
+              apiErrorMessage.value = `❌ Email 已被使用且尚待驗證，請在 ${Math.floor(registerRetryCountdown.value / 60)} 分 ${(registerRetryCountdown.value % 60).toString().padStart(2, '0')} 秒後再試。`;
+            } else {
+              clearInterval(registerRetryTimer);
+              registerRetryTimer = null;
+              apiErrorMessage.value = `❌ Email 已被使用且尚待驗證，現在可以重試。`;
             }
           }, 1000);
         }
