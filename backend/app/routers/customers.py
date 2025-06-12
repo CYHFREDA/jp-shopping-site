@@ -188,4 +188,3 @@ async def verify_token(request: Request, cursor=Depends(get_db_cursor)):
     except Exception as e:
         print(f"❌ [Token 驗證] 發生錯誤：{str(e)}")
         return JSONResponse({"error": "驗證過程發生錯誤"}, status_code=500)
-
