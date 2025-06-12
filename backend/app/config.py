@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from utils.email import send_verification_email
 
 load_dotenv()
 
