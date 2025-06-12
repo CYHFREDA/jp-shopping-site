@@ -264,6 +264,19 @@ async function confirmReturnLogistics() {
 }
 
 onMounted(async () => {
+  // 如果不是已登入狀態，嘗試重新連接
+  if (!customerStore.isAuthenticated) {
+    const reconnected = await customerStore.tryReconnect();
+    if (!reconnected) {
+      error.value = '登入狀態已過期，請重新登入';
+      return;
+    }
+  }
+  await loadOrderDetail();
+  await loadShipmentDetail();
+});
+
+async function loadOrderDetail() {
   try {
     const res = await axios.get(`/api/orders/${order_id}`);
     order.value = res.data;
@@ -272,9 +285,7 @@ onMounted(async () => {
     error.value = '訂單資料載入失敗';
     loading.value = false;
   }
-
-  await loadShipmentDetail();
-});
+}
 
 async function loadShipmentDetail() {
   try {

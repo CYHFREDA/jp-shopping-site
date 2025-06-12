@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, Request, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from datetime import datetime, timedelta
 from utils.email import send_verification_email
-from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL
+from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL, verify_customer_jwt
 import psycopg2.extras
 import bcrypt
 import uuid
@@ -188,3 +188,36 @@ async def verify_token(request: Request, cursor=Depends(get_db_cursor)):
     except Exception as e:
         print(f"❌ [Token 驗證] 發生錯誤：{str(e)}")
         return JSONResponse({"error": "驗證過程發生錯誤"}, status_code=500)
+
+# 驗證 token
+@router.post("/api/customers/verify-token")
+async def verify_token(auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+    try:
+        customer_id = auth.get("customer_id")
+        if not customer_id:
+            raise HTTPException(status_code=401, detail="無效的 token")
+
+        # 查詢客戶資料
+        cursor.execute("""
+            SELECT customer_id, email, name, phone
+            FROM customers
+            WHERE customer_id = %s
+        """, (customer_id,))
+        
+        customer = cursor.fetchone()
+        if not customer:
+            raise HTTPException(status_code=404, detail="找不到客戶資料")
+
+        return {
+            "customer": {
+                "customer_id": customer[0],
+                "email": customer[1],
+                "name": customer[2],
+                "phone": customer[3]
+            }
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"❌ 驗證 token 錯誤：{e}")
+        return JSONResponse({"error": "驗證失敗"}, status_code=500)

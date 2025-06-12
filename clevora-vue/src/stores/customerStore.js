@@ -68,28 +68,30 @@ export const useCustomerStore = defineStore('customer', () => {
 
   // 新增：嘗試重新連接
   async function tryReconnect() {
-    // 如果是支付過程中
-    if (sessionStorage.getItem('payment_in_progress') === 'true') {
-      const savedToken = sessionStorage.getItem('payment_token');
-      if (savedToken) {
-        try {
-          // 使用保存的 token 嘗試重新驗證
-          const response = await fetch('/api/customers/verify-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${savedToken}`
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setCustomer(data.customer, savedToken, Date.now() + 30 * 60 * 1000); // 重新設置 30 分鐘
-            return true;
+    // 檢查是否有保存的 token
+    const savedToken = sessionStorage.getItem('payment_token') || localStorage.getItem('customer_token');
+    const savedCustomer = localStorage.getItem('customer');
+    
+    if (savedToken && savedCustomer) {
+      try {
+        // 使用保存的 token 嘗試重新驗證
+        const response = await fetch('/api/customers/verify-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${savedToken}`
           }
-        } catch (error) {
-          console.error('重新連接失敗:', error);
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // 設置 30 分鐘的過期時間
+          const expireTime = Date.now() + 30 * 60 * 1000;
+          setCustomer(data.customer, savedToken, expireTime);
+          return true;
         }
+      } catch (error) {
+        console.error('重新連接失敗:', error);
       }
     }
     return false;
