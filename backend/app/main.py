@@ -6,13 +6,14 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from psycopg2 import errors
 from datetime import datetime, timedelta
 from routers import customers, verify
+from pydantic import BaseModel
 import random
 import hashlib
 import urllib.parse
 import os
 import bcrypt
 import pytz
-from pydantic import BaseModel
+import jwt
 
 # FastAPI 實例宣告
 app = FastAPI()

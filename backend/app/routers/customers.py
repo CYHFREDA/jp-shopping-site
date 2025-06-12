@@ -3,11 +3,11 @@ from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from datetime import datetime, timedelta
 from utils.email import send_verification_email
+from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL
 import psycopg2.extras
 import bcrypt
 import uuid
-from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL
-
+import jwt
 
 router = APIRouter(prefix="/api/customers")
 
