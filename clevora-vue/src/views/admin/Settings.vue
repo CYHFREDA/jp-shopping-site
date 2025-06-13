@@ -46,63 +46,26 @@ onMounted(() => {
 });
 
 async function loadSettings() {
-  displayMessage.value = ''; // 清除之前的訊息
-  const token = userStore.admin_token; // 使用 userStore 中的 admin_token
-  if (!token) {
-    console.error('未找到認證 token！');
-    displayMessage.value = '❌ 請先登入！';
-    return;
-  }
-
   try {
-    // 使用 api 實例發送請求
-    const res = await api.get('/admin/settings');
-
-    const data = res.data; // axios 的響應數據在 res.data 中
-    settings.value = data;
-  } catch (error) {
-    console.error('載入設定資料時發生錯誤：', error);
-    // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
-    if (error.response && error.response.status === 401) {
-      displayMessage.value = '❌ 認證失敗，請重新登入！';
-      // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
+    const res = await api.get('/api/admin/settings');
+    if (res.data) {
+      settings.value = res.data;
     }
+  } catch (error) {
+    console.error('載入設定時發生錯誤：', error);
+    displayMessage.value = '❌ 載入設定失敗！';
   }
 }
 
 async function saveSettings() {
-  displayMessage.value = ''; // 清除之前的訊息
-  const token = userStore.admin_token; // 使用 userStore 中的 admin_token
-  if (!token) {
-     console.error('未找到認證 token！');
-     displayMessage.value = '❌ 請先登入！';
-     return;
-  }
-
-  if (!settings.value) return;
-
   try {
-    // 使用 api 實例發送請求
-    const res = await api.post('/admin/settings', settings.value); // 或者 PUT，根據後端 API 設計
-
-    const result = res.data; // axios 的響應數據在 res.data 中
-
-    if (res.status !== 200) { // 檢查響應狀態碼
-       console.error('保存設定失敗：', result);
-       displayMessage.value = result.error || '❌ 保存設定失敗！';
-    } else {
-       displayMessage.value = result.message || '✅ 設定保存成功！';
-       // 保存成功後可以選擇重新載入設定或更新本地狀態
-       loadSettings(); 
+    const res = await api.post('/api/admin/settings', settings.value);
+    if (res.data) {
+      displayMessage.value = '✅ 設定已儲存！';
     }
-
   } catch (error) {
-    console.error('保存設定時發生錯誤：', error);
-    // 檢查是否是 401 錯誤，如果是，可能需要導向登入頁面
-    if (error.response && error.response.status === 401) {
-      displayMessage.value = '❌ 認證失敗，請重新登入！';
-      // 這裡可以觸發 userStore 的 logout 或直接導向登入頁面
-    }
+    console.error('儲存設定時發生錯誤：', error);
+    displayMessage.value = '❌ 儲存設定失敗！';
   }
 }
 </script>

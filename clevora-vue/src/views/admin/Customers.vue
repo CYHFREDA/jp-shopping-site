@@ -112,7 +112,7 @@ async function editCustomer(customerId) {
   }
 
   try {
-    const res = await api.put('/admin/customers', { customer_id: customerId, name, phone, address });
+    const res = await api.put('/api/admin/customers', { customer_id: customerId, name, phone, address });
 
     const result = res.data;
 
@@ -145,7 +145,7 @@ async function resetPassword(customerId) {
   }
 
   try {
-    const res = await api.post('/admin/reset_customer_password', { customer_id: customerId, new_password });
+    const res = await api.post('/api/admin/reset_customer_password', { customer_id: customerId, new_password });
 
     const result = res.data;
 
