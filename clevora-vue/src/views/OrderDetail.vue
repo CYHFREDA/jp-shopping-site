@@ -128,6 +128,7 @@
                 key="return-reason-textarea"
                 ref="returnReasonTextarea"
                 @input="console.log('Return Reason updated:', returnReason)"
+                @keydown="console.log('Keydown event on returnReason textarea:', $event.key)"
               ></textarea>
             </div>
           </div>
