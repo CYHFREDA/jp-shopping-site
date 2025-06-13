@@ -81,6 +81,8 @@
                 <option value="arrived">已到店</option>
                 <option value="picked_up">已取貨</option>
                 <option value="completed">已完成</option>
+                <option value="return_requested">退貨申請中</option>
+                <option value="return_processing">退貨處理中</option>
               </select>
             </div>
           </div>
@@ -219,7 +221,8 @@ function statusText(status) {
   if (status === 'arrived') return '已到店';
   if (status === 'picked_up') return '已取貨';
   if (status === 'completed') return '已完成';
-  if (status === 'returned_pending') return '退貨申請中';
+  if (status === 'return_requested') return '退貨申請中';
+  if (status === 'return_processing') return '退貨處理中';
   return status;
 }
 

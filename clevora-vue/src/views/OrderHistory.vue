@@ -177,12 +177,13 @@ function statusText(status) {
   if (status === 'pending') return '待處理';
   if (status === 'success') return '成功';
   if (status === 'fail') return '失敗';
-  // 新增出貨狀態對應
   if (status === 'out_of_stock') return '缺貨中';
   if (status === 'shipped') return '已出貨';
   if (status === 'arrived') return '已到店';
+  if (status === 'picked_up') return '已取貨';
   if (status === 'completed') return '已完成';
-  if (status === 'returned_pending') return '退貨申請中';
+  if (status === 'return_requested') return '退貨申請中';
+  if (status === 'return_processing') return '退貨處理中';
   return status;
 }
 
