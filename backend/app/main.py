@@ -42,12 +42,6 @@ app.include_router(pay.router)
 # 引入訂單 API 路由
 app.include_router(orders.router)
 
-# 引入出貨管理 API 路由
-app.include_router(shipments.router)
-
-# 引入門市查詢 API 路由
-app.include_router(stores.router)
-
 # 引入後台 API 路由
 app.include_router(admin.router)
 
