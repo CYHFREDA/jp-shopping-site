@@ -22,9 +22,8 @@ def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
     sorted_params = sorted(params.items())
     encode_str = f"HashKey={hash_key}&" + '&'.join([f"{k}={v}" for k, v in sorted_params]) + f"&HashIV={hash_iv}"
     encode_str = urllib.parse.quote_plus(encode_str).lower()
-    sha256 = hashlib.sha256()
-    sha256.update(encode_str.encode('utf-8'))
-    return sha256.hexdigest().upper()
+    check_mac = hashlib.md5(encode_str.encode('utf-8')).hexdigest().upper()
+    return check_mac
 
 # 建立訂單並取得綠界付款參數
 @router.post("/pay")
