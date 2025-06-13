@@ -262,6 +262,24 @@ async def set_return_logistics(
         store_name = data.get("store_name")  # 門市名稱
         cvs_type = data.get("cvs_type")      # 超商類型（如 UNIMART, FAMI, HILIFE, OKMART）
 
+        # 超商類型代碼轉換
+        cvs_type_mapping = {
+            "全家": "FAMI",
+            "7-11": "UNIMART",
+            "萊爾富": "HILIFE",
+            "OK": "OKMART",
+            # 如果前端直接傳綠界代碼，保持原樣
+            "FAMI": "FAMI",
+            "UNIMART": "UNIMART",
+            "HILIFE": "HILIFE",
+            "OKMART": "OKMART"
+        }
+        
+        # 轉換超商類型代碼
+        ecpay_cvs_type = cvs_type_mapping.get(cvs_type)
+        if not ecpay_cvs_type:
+            return JSONResponse({"error": f"不支援的超商類型：{cvs_type}"}, status_code=400)
+
         if not all([customer_id, store_id, store_name, cvs_type]):
             return JSONResponse({"error": "缺少必要資訊"}, status_code=400)
 
@@ -291,7 +309,7 @@ async def set_return_logistics(
             "MerchantID": merchant_id,
             "MerchantTradeNo": f"TEST{order_id[-10:]}",
             "LogisticsType": "CVS",
-            "LogisticsSubType": cvs_type,  # 依據用戶選擇
+            "LogisticsSubType": ecpay_cvs_type,  # 使用轉換後的超商類型代碼
             "GoodsAmount": 100,
             "CollectionAmount": 0,
             "IsCollection": "N",
@@ -345,7 +363,7 @@ async def set_return_logistics(
                     cvs_type = EXCLUDED.cvs_type,
                     status = EXCLUDED.status,
                     updated_at = NOW()
-            """, (order_id, logistics_id, store_id, store_name, cvs_type, "created"))
+            """, (order_id, logistics_id, store_id, store_name, ecpay_cvs_type, "created"))
 
             # 更新訂單狀態為退貨處理中
             cursor.execute("""
@@ -368,7 +386,7 @@ async def set_return_logistics(
             "rtn_msg": rtn_msg,
             "store_id": store_id,
             "store_name": store_name,
-            "cvs_type": cvs_type,
+            "cvs_type": ecpay_cvs_type,
             "order_status": "return_processing"
         })
 

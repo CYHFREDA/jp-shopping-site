@@ -7,6 +7,13 @@ CREATE TABLE "orders" (
 	"created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
 	"paid_at" TIMESTAMP NULL DEFAULT NULL,
 	"customer_id" INTEGER NULL DEFAULT NULL,
+	"delivery_type" VARCHAR(20) NOT NULL DEFAULT 'home',
+	"store_id" VARCHAR(20) NULL,
+	"store_name" VARCHAR(100) NULL,
+	"cvs_type" VARCHAR(20) NULL,
+	"address" VARCHAR(200) NULL,
+	"recipient_name" VARCHAR(50) NULL,
+	"recipient_phone" VARCHAR(20) NULL,
 	PRIMARY KEY ("id"),
 	CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers" ("customer_id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
@@ -19,6 +26,13 @@ COMMENT ON COLUMN "orders"."status" IS '訂單狀態（預設 pending）';
 COMMENT ON COLUMN "orders"."created_at" IS '建立時間';
 COMMENT ON COLUMN "orders"."paid_at" IS '付款時間（可為空）';
 COMMENT ON COLUMN "orders"."customer_id" IS '客戶 ID';
+COMMENT ON COLUMN "orders"."delivery_type" IS '配送方式（home=宅配, cvs=超商取貨）';
+COMMENT ON COLUMN "orders"."store_id" IS '超商門市代號（超商取貨時使用）';
+COMMENT ON COLUMN "orders"."store_name" IS '超商門市名稱（超商取貨時使用）';
+COMMENT ON COLUMN "orders"."cvs_type" IS '超商類型（超商取貨時使用）';
+COMMENT ON COLUMN "orders"."address" IS '收件地址（宅配時使用）';
+COMMENT ON COLUMN "orders"."recipient_name" IS '收件人姓名';
+COMMENT ON COLUMN "orders"."recipient_phone" IS '收件人電話';
 
 -------------------------------------------------------------------------------------
 CREATE TABLE "products" (
@@ -74,7 +88,11 @@ CREATE TABLE "shipments" (
 	"shipment_id" SERIAL NOT NULL,
 	"order_id" VARCHAR(50) NOT NULL,
 	"recipient_name" VARCHAR(50) NOT NULL,
-	"address" VARCHAR(200) NOT NULL,
+	"delivery_type" VARCHAR(20) NOT NULL DEFAULT 'home',
+	"store_id" VARCHAR(20) NULL,
+	"store_name" VARCHAR(100) NULL,
+	"cvs_type" VARCHAR(20) NULL,
+	"address" VARCHAR(200) NULL,
 	"status" VARCHAR(20) NOT NULL,
 	"created_at" TIMESTAMP NULL DEFAULT now(),
 	PRIMARY KEY ("shipment_id")
@@ -83,7 +101,11 @@ COMMENT ON TABLE "shipments" IS '出貨單表格';
 COMMENT ON COLUMN "shipments"."shipment_id" IS '出貨單 ID，自動增加';
 COMMENT ON COLUMN "shipments"."order_id" IS '對應的訂單編號';
 COMMENT ON COLUMN "shipments"."recipient_name" IS '收件人姓名';
-COMMENT ON COLUMN "shipments"."address" IS '收件地址';
+COMMENT ON COLUMN "shipments"."delivery_type" IS '配送方式（home=宅配, cvs=超商取貨）';
+COMMENT ON COLUMN "shipments"."store_id" IS '超商門市代號（超商取貨時使用）';
+COMMENT ON COLUMN "shipments"."store_name" IS '超商門市名稱（超商取貨時使用）';
+COMMENT ON COLUMN "shipments"."cvs_type" IS '超商類型（超商取貨時使用）';
+COMMENT ON COLUMN "shipments"."address" IS '收件地址（宅配時使用）';
 COMMENT ON COLUMN "shipments"."status" IS '出貨狀態（例：pending、shipped...）';
 COMMENT ON COLUMN "shipments"."created_at" IS '建立時間';
 

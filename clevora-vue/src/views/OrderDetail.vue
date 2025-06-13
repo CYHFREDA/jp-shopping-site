@@ -41,7 +41,22 @@
           <div v-else-if="shipmentError" class="text-danger">{{ shipmentError }}</div>
           <div v-else-if="shipment">
             <div><strong>收件人：</strong>{{ shipment.recipient_name }}</div>
-            <div><strong>地址：</strong>{{ shipment.address }}</div>
+            <div>
+              <strong>配送方式：</strong>
+              <span class="badge" :class="{'bg-info': shipment.delivery_type === 'home', 'bg-warning': shipment.delivery_type === 'cvs'}">
+                {{ shipment.delivery_type === 'home' ? '宅配到府' : '超商取貨' }}
+              </span>
+            </div>
+            <!-- 超商取貨資訊 -->
+            <template v-if="shipment.delivery_type === 'cvs'">
+              <div><strong>取貨門市：</strong>{{ shipment.store_name }}</div>
+              <div><strong>門市代號：</strong>{{ shipment.store_id }}</div>
+              <div><strong>超商類型：</strong>{{ cvstypeText(shipment.cvs_type) }}</div>
+            </template>
+            <!-- 宅配資訊 -->
+            <template v-else>
+              <div><strong>配送地址：</strong>{{ shipment.address }}</div>
+            </template>
             <div>
               <strong>出貨狀態：</strong>
               <span 
@@ -149,6 +164,16 @@ function shipmentStatusText(status) {
   if (status === 'completed') return '已完成';
   if (status === 'returned_pending') return '退貨申請中';
   return status;
+}
+
+function cvstypeText(type) {
+  const mapping = {
+    'FAMI': '全家',
+    'UNIMART': '7-11',
+    'HILIFE': '萊爾富',
+    'OKMART': 'OK超商'
+  };
+  return mapping[type] || type;
 }
 
 function onStoreSelect(store) {
