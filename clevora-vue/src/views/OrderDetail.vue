@@ -291,7 +291,8 @@ async function confirmReturnLogistics() {
       cvs_type: selectedStore.value.type
     }, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     });
     
@@ -304,7 +305,13 @@ async function confirmReturnLogistics() {
     await loadShipmentDetail();
   } catch (e) {
     console.error('確認門市失敗：', e);
-    confirmError.value = e.response?.data?.error || e.message || '確認門市失敗，請稍後再試！';
+    if (e.response?.data?.error) {
+      confirmError.value = e.response.data.error;
+    } else if (e.message.includes('timeout')) {
+      confirmError.value = '請求超時，請稍後再試！';
+    } else {
+      confirmError.value = '確認門市失敗，請稍後再試！';
+    }
   } finally {
     confirming.value = false;
   }

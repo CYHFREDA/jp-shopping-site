@@ -230,6 +230,7 @@ async function checkout() {
   try {
     const orderData = {
       items: cart.value,
+      customer_id: customerStore.customer.customer_id,
       delivery_type: deliveryType.value,
       recipient_name: recipientName.value,
       recipient_phone: recipientPhone.value,
@@ -244,10 +245,50 @@ async function checkout() {
     };
     
     console.log('準備送出訂單資料：', orderData);
-    // ... 其他結帳邏輯 ...
+    
+    const response = await fetch('/api/pay', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${customerStore.token}`
+      },
+      body: JSON.stringify(orderData)
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '結帳失敗');
+    }
+
+    if (data.ecpay_url && data.params) {
+      // 儲存訂單ID到sessionStorage，以便支付完成後查詢狀態
+      sessionStorage.setItem('payment_order_id', data.params.MerchantTradeNo);
+      
+      // 清空購物車
+      cartStore.clearCart();
+      
+      // 建立並提交表單到綠界
+      const form = document.createElement('form');
+      form.method = 'post';
+      form.action = data.ecpay_url;
+      
+      Object.entries(data.params).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      
+      document.body.appendChild(form);
+      form.submit();
+    } else {
+      throw new Error('未收到付款資訊');
+    }
   } catch (e) {
     console.error('結帳失敗：', e);
-    checkoutErrorMessage.value = e.response?.data?.error || '結帳失敗，請稍後再試';
+    checkoutErrorMessage.value = e.response?.data?.error || e.message || '結帳失敗，請稍後再試';
   }
 }
 

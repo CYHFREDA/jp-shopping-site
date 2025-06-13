@@ -287,6 +287,18 @@ async def set_return_logistics(
         store_name = data.get("store_name")  # 門市名稱
         cvs_type = data.get("cvs_type")      # 超商類型（如 UNIMART, FAMI, HILIFE, OKMART）
 
+        print(f"收到的退貨物流資料：customer_id={customer_id}, store_id={store_id}, store_name={store_name}, cvs_type={cvs_type}")
+
+        # 檢查必要資訊
+        if not customer_id:
+            return JSONResponse({"error": "客戶認證失敗"}, status_code=401)
+        if not store_id:
+            return JSONResponse({"error": "缺少門市代號"}, status_code=400)
+        if not store_name:
+            return JSONResponse({"error": "缺少門市名稱"}, status_code=400)
+        if not cvs_type:
+            return JSONResponse({"error": "缺少超商類型"}, status_code=400)
+
         # 超商類型代碼轉換
         cvs_type_mapping = {
             "全家": "FAMI",
@@ -304,9 +316,6 @@ async def set_return_logistics(
         ecpay_cvs_type = cvs_type_mapping.get(cvs_type)
         if not ecpay_cvs_type:
             return JSONResponse({"error": f"不支援的超商類型：{cvs_type}"}, status_code=400)
-
-        if not all([customer_id, store_id, store_name, cvs_type]):
-            return JSONResponse({"error": "缺少必要資訊"}, status_code=400)
 
         # 檢查訂單狀態是否允許退貨
         cursor.execute("""
@@ -354,17 +363,24 @@ async def set_return_logistics(
         params["CheckMacValue"] = gen_check_mac_value(params, hash_key, hash_iv)
 
         url = "https://logistics-stage.ecpay.com.tw/Express/Create"
-        resp = requests.post(url, data=params)
-        result = resp.text
+        try:
+            resp = requests.post(url, data=params, timeout=10)  # 設置 10 秒超時
+            result = resp.text
+            print(f"綠界回應：{result}")
 
-        # 解析綠界回傳內容
-        ecpay_result = dict(item.split('=') for item in result.split('&') if '=' in item)
-        logistics_id = ecpay_result.get("AllPayLogisticsID")
-        rtn_code = ecpay_result.get("RtnCode")
-        rtn_msg = ecpay_result.get("RtnMsg")
+            # 解析綠界回傳內容
+            ecpay_result = dict(item.split('=') for item in result.split('&') if '=' in item)
+            logistics_id = ecpay_result.get("AllPayLogisticsID")
+            rtn_code = ecpay_result.get("RtnCode")
+            rtn_msg = ecpay_result.get("RtnMsg")
 
-        if rtn_code != "1" or not logistics_id:
-            return JSONResponse({"error": f"綠界建立物流單失敗: {rtn_msg}"}, status_code=400)
+            if rtn_code != "1" or not logistics_id:
+                return JSONResponse({"error": f"綠界建立物流單失敗: {rtn_msg}"}, status_code=400)
+
+        except requests.exceptions.Timeout:
+            return JSONResponse({"error": "綠界 API 請求超時"}, status_code=504)
+        except requests.exceptions.RequestException as e:
+            return JSONResponse({"error": f"綠界 API 請求失敗: {str(e)}"}, status_code=502)
 
         try:
             # 開始交易
@@ -404,7 +420,8 @@ async def set_return_logistics(
         except Exception as e:
             # 發生錯誤時回滾交易
             cursor.execute("ROLLBACK")
-            raise e
+            print(f"❌ 資料庫操作失敗：{str(e)}")
+            return JSONResponse({"error": "資料庫操作失敗"}, status_code=500)
 
         return JSONResponse({
             "logistics_id": logistics_id,

@@ -37,7 +37,7 @@ app.include_router(customers.router)
 app.include_router(verify.router, prefix="/api")
 
 # 引入綠界支付路由
-app.include_router(pay.router)
+app.include_router(pay.router, prefix="/api")
 
 # 引入訂單 API 路由
 app.include_router(orders.router)
