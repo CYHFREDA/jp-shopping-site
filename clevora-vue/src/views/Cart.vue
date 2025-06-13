@@ -229,7 +229,7 @@ async function checkout() {
 
   try {
     const orderData = {
-      items: cart.value,
+      products: cart.value,
       customer_id: customerStore.customer.customer_id,
       delivery_type: deliveryType.value,
       recipient_name: recipientName.value,
