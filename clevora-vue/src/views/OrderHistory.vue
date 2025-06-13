@@ -162,6 +162,7 @@ function statusText(status) {
   if (status === 'shipped') return '已出貨';
   if (status === 'arrived') return '已到店';
   if (status === 'completed') return '已完成';
+  if (status === 'returned_pending') return '退貨申請中';
   return status;
 }
 
