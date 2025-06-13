@@ -1,35 +1,22 @@
 <pre> 
 jp-shopping-site/
-├── README.md
-├── backend
-│   ├── Dockerfile
-│   ├── app              ← FastAPI 程式碼
-│   │   ├── main.py
-│   │   └── requirements.txt
-│   ├── body.json
-│   ├── deploy_backend.sh
-│   └── k8s
-│       ├── deployment.yaml
-│       ├── ingress.yaml     ← 指向 api.wvwwcw.xyz
-│       └── service.yaml
-├── clean_dockerhub_old_images.sh
-├── cloudflared-deployment.yaml
-├── frontend
-│   ├── Dockerfile
-│   ├── deploy_frontend.sh
-│   ├── html
-│   ├── k8s
-│   │   ├── deployment.yaml
-│   │   ├── ingress.yaml     ← 指向 shop.wvwwcw.xyz
-│   │   └── service.yaml
-│   └── nginx
-└── postgres
-    ├── init.sql   ← 資料表建立語法
-    └── k8s
-        ├── deployment.yaml
-        ├── pvc.yaml
-        ├── secret.yaml
-        └── service.yaml ← 密碼儲存
+├── README.md                        ← 說明文件
+├── clean_dockerhub_old_images.sh   ← Docker Hub 清理腳本
+├── cloudflared-deployment.yaml     ← Cloudflare Tunnel 部署
+├── frontend/                        ← 舊版 Nginx 前端部署
+│   └── k8s/                         ← 前端對應 Kubernetes 設定
+├── clevora-vue/                    ← 新版 Vue.js 前端 SPA 專案
+│   └── src/                         ← Vue 應用主要程式碼
+├── backend/                         ← FastAPI 後端專案
+│   │── k8s/                         ← 後端對應 Kubernetes 設定    
+│   └── app/                         ← FastAPI 主程式碼與模組
+│       ├── routers/                ← 路由模組
+│       ├── db/                     ← 資料庫操作模組
+│       ├── utils/                  ← 工具函式
+│       ├── services/               ← 業務邏輯模組
+│       └── config.py               ← 環境變數設定
+├── postgres/                        ← PostgreSQL 設定與部署
+│   └── k8s/                         ← 資料庫對應 Kubernetes 設定
 </pre>
 
 ## 專案結構說明
