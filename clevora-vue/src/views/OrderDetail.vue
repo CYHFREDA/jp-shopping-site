@@ -274,6 +274,7 @@ async function initiateReturn() {
   await nextTick(() => {
     if (returnReasonTextarea.value) {
       returnReasonTextarea.value.focus();
+      console.log('Return Reason Textarea disabled:', returnReasonTextarea.value.disabled);
     }
   });
 }
@@ -436,6 +437,15 @@ async function loadShipmentDetail() {
 }
 .modal {
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050; /* 確保模態框在最前面 */
+}
+
+.modal-backdrop {
+  z-index: 1040; /* 確保背景在模態框後面 */
+}
+
+.modal-body {
+  pointer-events: auto !important; /* 確保模態框內部元素可以互動 */
 }
 
 /* 確保退貨原因輸入框可互動 */
