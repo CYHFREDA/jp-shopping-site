@@ -16,7 +16,6 @@ import Orders from '@/views/admin/Orders.vue';
 import Shipments from '@/views/admin/Shipments.vue';
 import Customers from '@/views/admin/Customers.vue';
 import AdminUsers from '@/views/admin/Admins.vue';
-import Settings from '@/views/admin/Settings.vue';
 import ProductDetail from '@/views/ProductDetail.vue';
 import NotFound from '@/views/ErrorPage.vue';
 import ProductsListingPage from '@/views/ProductsListingPage.vue';
