@@ -234,7 +234,7 @@ async function confirmReturnLogistics() {
   confirming.value = true;
   confirmError.value = '';
   if (!returnStoreName.value) {
-    confirmError.value = '請輸入 7-11 門市名稱！';
+    confirmError.value = '請選擇超商門市！';
     confirming.value = false;
     return;
   }
@@ -261,8 +261,8 @@ async function confirmReturnLogistics() {
     confirmError.value = '';
     await loadShipmentDetail();
   } catch (e) {
-    console.error('確認 7-11 門市失敗：', e);
-    confirmError.value = e.response?.data?.error || e.message || '確認 7-11 門市失敗，請稍後再試！';
+    console.error('確認門市失敗：', e);
+    confirmError.value = e.response?.data?.error || e.message || '確認門市失敗，請稍後再試！';
   } finally {
     confirming.value = false;
   }
