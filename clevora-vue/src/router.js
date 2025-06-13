@@ -121,12 +121,6 @@ const routes = [
         meta: { title: 'Clevora 後台管理 - 使用者管理' }
       },
       {
-        path: 'settings',
-        name: 'AdminSettings',
-        component: Settings,
-        meta: { title: 'Clevora 後台管理 - 系統設定' }
-      },
-      {
         path: 'products/create',
         name: 'AdminProductCreate',
         component: () => import('@/views/admin/ProductCreate.vue'),

@@ -24,7 +24,7 @@
               <td>{{ order.order_id }}</td>
               <td class="nowrap"><span class="price-currency">NT$</span> <span class="nowrap">{{ order.amount }}</span></td>
               <td>{{ order.item_names ? order.item_names : '無商品內容' }}</td>
-              <td class="nowrap">{{ statusText(order.status) }}</td>
+              <td class="nowrap">{{ statusText(order) }}</td>
               <td class="nowrap">{{ formatDateTime(order.created_at) }}</td>
               <td class="nowrap">{{ order.paid_at ? formatDateTime(order.paid_at) : '尚未付款' }}</td>
             </tr>
@@ -98,13 +98,15 @@ function formatDateTime(dt) {
   return twDate.toLocaleString('zh-TW', { hour12: false });
 }
 
-function statusText(status) {
-  if (status === 'pending') return '待處理';
-  if (status === 'success') return '成功';
-  if (status === 'fail') return '失敗';
-  if (status === 'returned_pending') return '退貨申請中';
-  if (status === 'completed') return '已完成';
-  return status;
+function statusText(order) {
+  if (!order) return ''; // 處理空訂單物件的情況
+  if (order.status === 'pending' && !order.paid_at) return '待處理';
+  if (order.status === 'pending' && order.paid_at) return '失敗';
+  if (order.status === 'success') return '成功';
+  if (order.status === 'fail') return '失敗';
+  if (order.status === 'returned_pending') return '退貨申請中';
+  if (order.status === 'completed') return '已完成';
+  return order.status;
 }
 
 onMounted(() => {
