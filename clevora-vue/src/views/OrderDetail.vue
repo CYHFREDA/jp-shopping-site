@@ -126,6 +126,8 @@
                 placeholder="請填寫退貨原因..."
                 readonly="false" 
                 key="return-reason-textarea"
+                ref="returnReasonTextarea"
+                @input="console.log('Return Reason updated:', returnReason)"
               ></textarea>
             </div>
           </div>
@@ -143,7 +145,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -166,6 +168,7 @@ const confirmError = ref('');
 const selectedStore = ref(null);
 const returnReason = ref('');
 const showReturnDialog = ref(false);
+const returnReasonTextarea = ref(null);
 
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
@@ -268,6 +271,11 @@ async function completeOrder() {
 
 async function initiateReturn() {
   showReturnDialog.value = true;
+  await nextTick(() => {
+    if (returnReasonTextarea.value) {
+      returnReasonTextarea.value.focus();
+    }
+  });
 }
 
 async function submitReturn() {
@@ -275,6 +283,8 @@ async function submitReturn() {
     confirmError.value = '請填寫退貨原因';
     return;
   }
+  
+  console.log('Submitting return reason:', returnReason.value);
 
   confirming.value = true;
   confirmError.value = '';
@@ -426,5 +436,11 @@ async function loadShipmentDetail() {
 }
 .modal {
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* 確保退貨原因輸入框可互動 */
+.modal-body textarea#returnReason {
+  pointer-events: auto !important;
+  z-index: 9999 !important; /* 確保它在最上層 */
 }
 </style> 
