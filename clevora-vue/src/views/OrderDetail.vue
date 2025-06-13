@@ -124,7 +124,7 @@
                 class="form-control" 
                 rows="3" 
                 placeholder="請填寫退貨原因..."
-                :readonly="false" 
+                readonly="false" 
                 key="return-reason-textarea"
               ></textarea>
             </div>
