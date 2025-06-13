@@ -168,6 +168,7 @@ async def handle_ecpay_notification(request: Request, cursor=Depends(get_db_curs
         rtn_code = form_data.get("RtnCode")
         rtn_msg = form_data.get("RtnMsg")
         check_mac_value = form_data.get("CheckMacValue")
+        payment_date = form_data.get("PaymentDate")
 
         # 驗證資料完整性
         if not all([merchant_trade_no, rtn_code, rtn_msg, check_mac_value]):
@@ -177,17 +178,30 @@ async def handle_ecpay_notification(request: Request, cursor=Depends(get_db_curs
         # 更新訂單狀態
         if rtn_code == "1":  # 付款成功
             new_status = "success"
-        else:  # 付款失敗
+        elif rtn_code in ["10300066", "385"]:  # 付款等待中
+            new_status = "pending"
+            rtn_msg = "交易處理中，等待銀行回覆"
+        elif rtn_code in ["10100248", "10100252", "10100254", "10100251"]:  # 信用卡常見錯誤
+            new_status = "fail"
+            error_messages = {
+                "10100248": "信用卡交易被拒絕",
+                "10100252": "信用卡額度不足",
+                "10100254": "信用卡交易失敗，請確認交易限制",
+                "10100251": "信用卡過期"
+            }
+            rtn_msg = error_messages.get(rtn_code, rtn_msg)
+        else:  # 其他所有錯誤
             new_status = "fail"
 
         cursor.execute("""
             UPDATE orders
             SET status = %s,
                 payment_message = %s,
+                paid_at = CASE WHEN %s = 'success' THEN %s::timestamp ELSE NULL END,
                 updated_at = NOW()
             WHERE order_id = %s
-            RETURNING order_id
-        """, (new_status, rtn_msg, merchant_trade_no))
+            RETURNING order_id, status
+        """, (new_status, rtn_msg, new_status, payment_date, merchant_trade_no))
         
         updated_order = cursor.fetchone()
         cursor.connection.commit()
@@ -196,7 +210,42 @@ async def handle_ecpay_notification(request: Request, cursor=Depends(get_db_curs
             print(f"❌ 找不到訂單：{merchant_trade_no}")
             return JSONResponse({"error": "找不到訂單"}, status_code=404)
 
-        print(f"✅ 訂單 {merchant_trade_no} 已更新為 {new_status}")
+        print(f"✅ 訂單 {merchant_trade_no} 已更新為 {new_status}，原因：{rtn_msg}")
+
+        # 如果付款成功，建立出貨單
+        if new_status == "success":
+            try:
+                cursor.execute("""
+                    INSERT INTO shipments (
+                        order_id, 
+                        recipient_name,
+                        delivery_type,
+                        store_id,
+                        store_name,
+                        cvs_type,
+                        address,
+                        status,
+                        created_at
+                    )
+                    SELECT 
+                        order_id,
+                        recipient_name,
+                        delivery_type,
+                        store_id,
+                        store_name,
+                        cvs_type,
+                        address,
+                        'pending',
+                        NOW()
+                    FROM orders
+                    WHERE order_id = %s
+                """, (merchant_trade_no,))
+                cursor.connection.commit()
+                print(f"✅ 已為訂單 {merchant_trade_no} 建立出貨單")
+            except Exception as e:
+                print(f"❌ 建立出貨單時發生錯誤：{str(e)}")
+                # 不中斷處理，因為訂單狀態已更新成功
+
         return "1|OK"
 
     except Exception as e:
