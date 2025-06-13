@@ -4,7 +4,11 @@ from db.db import get_db_cursor
 from typing import Optional
 from config import verify_customer_jwt
 from datetime import datetime, timezone
+from flask import Blueprint, request, jsonify
 import random
+import requests
+import hashlib
+import urllib.parse
 
 router = APIRouter()
 
@@ -244,7 +248,7 @@ async def request_return(
         print(f"❌ [退貨申請] 發生錯誤：{str(e)}")
         return JSONResponse({"error": "退貨申請失敗"}, status_code=500)
 
-# 設定退貨物流（選擇 7-11 門市）
+# 設定退貨物流（選擇超商門市，並建立綠界物流單）
 @router.post("/api/orders/{order_id}/set-return-logistics")
 async def set_return_logistics(
     order_id: str, 
@@ -255,52 +259,121 @@ async def set_return_logistics(
     try:
         data = await request.json()
         customer_id = auth.get("customer_id")
-        store_id = data.get("store_id")      # 7-11 店號
-        store_name = data.get("store_name")  # 7-11 店名
-        
-        if not all([customer_id, store_id, store_name]):
+        store_id = data.get("store_id")      # 門市代號
+        store_name = data.get("store_name")  # 門市名稱
+        cvs_type = data.get("cvs_type")      # 超商類型（如 UNIMART, FAMI, HILIFE, OKMART）
+
+        if not all([customer_id, store_id, store_name, cvs_type]):
             return JSONResponse({"error": "缺少必要資訊"}, status_code=400)
 
-        # 檢查訂單狀態
+        # 檢查訂單狀態是否允許退貨
         cursor.execute("""
-            SELECT status 
+            SELECT status, customer_id 
             FROM orders 
-            WHERE order_id = %s AND customer_id = %s
-        """, (order_id, customer_id))
-        
-        row = cursor.fetchone()
-        if not row or row["status"] != "return_requested":
-            return JSONResponse({"error": "訂單狀態不正確"}, status_code=400)
-
-        # 建立退貨物流記錄
-        cursor.execute("""
-            INSERT INTO return_logistics (
-                order_id, 
-                store_id,
-                store_name,
-                status,
-                created_at,
-                updated_at
-            ) VALUES (%s, %s, %s, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        """, (order_id, store_id, store_name))
-        
-        # 更新訂單狀態
-        cursor.execute("""
-            UPDATE orders 
-            SET status = 'returning',
-                updated_at = CURRENT_TIMESTAMP 
             WHERE order_id = %s
         """, (order_id,))
+        order = cursor.fetchone()
         
-        cursor.connection.commit()
+        if not order:
+            return JSONResponse({"error": "找不到訂單"}, status_code=404)
+            
+        if order["customer_id"] != customer_id:
+            return JSONResponse({"error": "無權操作此訂單"}, status_code=403)
+            
+        if order["status"] not in ["shipped", "delivered", "completed"]:
+            return JSONResponse({"error": "訂單狀態不允許退貨"}, status_code=400)
+
+        # 呼叫綠界API建立物流單
+        merchant_id = "2000132"
+        hash_key = "5294y06JbISpM5x9"
+        hash_iv = "v77hoKGq4kWxNNIS"
+
+        params = {
+            "MerchantID": merchant_id,
+            "MerchantTradeNo": f"TEST{order_id[-10:]}",
+            "LogisticsType": "CVS",
+            "LogisticsSubType": cvs_type,  # 依據用戶選擇
+            "GoodsAmount": 100,
+            "CollectionAmount": 0,
+            "IsCollection": "N",
+            "GoodsName": "退貨商品",
+            "SenderName": "測試賣家",
+            "SenderPhone": "0223456789",
+            "ReceiverName": "測試買家",
+            "ReceiverPhone": "0912345678",
+            "ReceiverCellPhone": "0912345678",
+            "ReceiverEmail": "test@example.com",
+            "TradeDesc": "退貨測試",
+            "ServerReplyURL": "/api/ecpay/logistics_notify",
+            "ReceiverStoreID": store_id,
+            "ReturnStoreID": store_id,
+            "PlatformID": "",
+        }
+        params["CheckMacValue"] = gen_check_mac_value(params, hash_key, hash_iv)
+
+        url = "https://logistics-stage.ecpay.com.tw/Express/Create"
+        resp = requests.post(url, data=params)
+        result = resp.text
+
+        # 解析綠界回傳內容
+        ecpay_result = dict(item.split('=') for item in result.split('&') if '=' in item)
+        logistics_id = ecpay_result.get("AllPayLogisticsID")
+        rtn_code = ecpay_result.get("RtnCode")
+        rtn_msg = ecpay_result.get("RtnMsg")
+
+        if rtn_code != "1" or not logistics_id:
+            return JSONResponse({"error": f"綠界建立物流單失敗: {rtn_msg}"}, status_code=400)
+
+        try:
+            # 開始交易
+            cursor.execute("BEGIN")
+
+            # 寫入 return_logistics 資料表
+            cursor.execute("""
+                INSERT INTO return_logistics (
+                    order_id, 
+                    logistics_id, 
+                    store_id, 
+                    store_name, 
+                    cvs_type, 
+                    status, 
+                    created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                ON CONFLICT (order_id) DO UPDATE
+                SET logistics_id = EXCLUDED.logistics_id,
+                    store_id = EXCLUDED.store_id,
+                    store_name = EXCLUDED.store_name,
+                    cvs_type = EXCLUDED.cvs_type,
+                    status = EXCLUDED.status,
+                    updated_at = NOW()
+            """, (order_id, logistics_id, store_id, store_name, cvs_type, "created"))
+
+            # 更新訂單狀態為退貨處理中
+            cursor.execute("""
+                UPDATE orders 
+                SET status = 'return_processing',
+                    updated_at = NOW()
+                WHERE order_id = %s
+            """, (order_id,))
+
+            # 提交交易
+            cursor.execute("COMMIT")
+
+        except Exception as e:
+            # 發生錯誤時回滾交易
+            cursor.execute("ROLLBACK")
+            raise e
+
         return JSONResponse({
-            "message": "退貨門市已設定",
+            "logistics_id": logistics_id,
+            "rtn_msg": rtn_msg,
             "store_id": store_id,
-            "store_name": store_name
+            "store_name": store_name,
+            "cvs_type": cvs_type,
+            "order_status": "return_processing"
         })
-        
+
     except Exception as e:
-        cursor.connection.rollback()
         print(f"❌ [設定退貨物流] 發生錯誤：{str(e)}")
         return JSONResponse({"error": "設定退貨物流失敗"}, status_code=500)
 
@@ -345,3 +418,10 @@ async def get_return_status(
     except Exception as e:
         print(f"❌ [查詢退貨狀態] 發生錯誤：{str(e)}")
         return JSONResponse({"error": "查詢退貨狀態失敗"}, status_code=500)
+
+def gen_check_mac_value(params, hash_key, hash_iv):
+    sorted_params = sorted(params.items())
+    encode_str = f"HashKey={hash_key}&" + "&".join(f"{k}={v}" for k, v in sorted_params) + f"&HashIV={hash_iv}"
+    encode_str = urllib.parse.quote_plus(encode_str).lower()
+    check_mac = hashlib.md5(encode_str.encode('utf-8')).hexdigest().upper()
+    return check_mac
