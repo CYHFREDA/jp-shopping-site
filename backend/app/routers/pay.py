@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse, HTMLResponse
-from db.db import get_db_cursor, get_sync_db_cursor_and_conn
+from db.db import get_db_cursor, get_sync_db_cursor_and_conn, global_pool
 from datetime import datetime, timedelta
 import random
 import hashlib
