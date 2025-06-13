@@ -72,15 +72,15 @@
             <div v-else-if="shipment.status === 'returned_pending'">
               <span class="text-muted mt-3">退貨申請已送出，等待管理員處理。</span>
               <div v-if="!shipment.return_tracking_number" class="mt-3">
-                <h6 class="mb-2">請選擇 7-11 門市以完成退貨流程：</h6>
-                <input type="text" class="form-control mb-2" placeholder="輸入 7-11 門市名稱" v-model="returnStoreName">
-                <button class="btn btn-primary" @click="confirmReturnLogistics" :disabled="confirming">確認 7-11 門市</button>
+                <h6 class="mb-2">請選擇超商門市以完成退貨流程：</h6>
+                <MultiCvsStoreSelector @select="onStoreSelect" />
+                <button class="btn btn-primary" @click="confirmReturnLogistics" :disabled="confirming">確認門市</button>
                 <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
               </div>
               <div v-else class="mt-3">
                 <p><strong>退貨物流編號：</strong> {{ shipment.return_tracking_number }}</p>
                 <p><strong>退貨門市：</strong> {{ shipment.return_store_name }}</p>
-                <span class="text-success">請持退貨物流編號至 7-11 門市寄件。</span>
+                <span class="text-success">請持退貨物流編號至超商門市寄件。</span>
               </div>
             </div>
             <div v-else-if="shipment.status === 'completed'">
@@ -99,6 +99,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useCustomerStore } from '@/stores/customerStore';
+import MultiCvsStoreSelector from '@/components/MultiCvsStoreSelector.vue';
 
 const route = useRoute();
 const order_id = route.params.order_id;
@@ -148,6 +149,10 @@ function shipmentStatusText(status) {
   if (status === 'completed') return '已完成';
   if (status === 'returned_pending') return '退貨申請中';
   return status;
+}
+
+function onStoreSelect(store) {
+  returnStoreName.value = store.store;
 }
 
 async function markPickedUp() {
