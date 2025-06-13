@@ -92,3 +92,37 @@ jp-shopping-site/
     *   `pvc.yaml`: 定義 Persistent Volume Claim，用於持久化存儲資料庫數據，防止 Pod 重啟後數據丟失。
     *   `secret.yaml`: 存儲敏感資訊（如資料庫密碼）的 Kubernetes Secret。
     *   `service.yaml`: 定義 PostgreSQL 資料庫的 Kubernetes Service，用於集群內部服務發現。
+
+## 整體架構圖
+
+```mermaid
+graph TD
+    A[使用者] -->|HTTPS| B{Cloudflare Tunnel};
+    B -->|HTTPS (Tunnel)| C(Kubernetes Ingress Controller);
+
+    subgraph Kubernetes Cluster
+        C --> D{Ingress Rule: shop.wvwwcw.xyz};
+        C --> E{Ingress Rule: api.wvwwcw.xyz};
+
+        D --> F[clevora-vue Frontend <br/> (Nginx serving Vue.js)];
+        E --> G[Backend <br/> (FastAPI Application)];
+
+        F -->|API Calls (HTTPS)| G;
+        G -->|Database Connection| H[PostgreSQL Database];
+    end
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#ddf,stroke:#333,stroke-width:2px
+    style E fill:#eef,stroke:#333,stroke-width:2px
+    style F fill:#cfc,stroke:#333,stroke-width:2px
+    style G fill:#ffc,stroke:#333,stroke-width:2px
+    style H fill:#fcf,stroke:#333,stroke-width:2px
+
+    linkStyle 0 stroke-width:2px,fill:none,stroke:green;
+    linkStyle 1 stroke-width:2px,fill:none,stroke:green;
+    linkStyle 2 stroke-width:2px,fill:none,stroke:blue;
+    linkStyle 3 stroke-width:2px,fill:none,stroke:blue;
+    linkStyle 4 stroke-width:2px,fill:none,stroke:red;
+```

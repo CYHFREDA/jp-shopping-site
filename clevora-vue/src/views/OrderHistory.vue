@@ -45,7 +45,7 @@
                     'bg-danger': order.status === 'fail'
                   }"
                 >
-                  {{ statusText(order.status) }}
+                  {{ statusText(order) }}
                 </span>
               </td>
               <td>
@@ -85,7 +85,7 @@
                   'bg-danger': order.status === 'fail'
                 }"
               >
-                {{ statusText(order.status) }}
+                {{ statusText(order) }}
               </span>
             </div>
             <div class="mb-2">
@@ -173,18 +173,20 @@ function getOrderItemCount(itemNames) {
 }
 
 // 新增 statusText 函式
-function statusText(status) {
-  if (status === 'fail') return '交易失敗';
-  if (status === 'success') return '成功';
-  if (status === 'pending') return '待處理';
-  if (status === 'out_of_stock') return '缺貨中';
-  if (status === 'shipped') return '已出貨';
-  if (status === 'arrived') return '已到店';
-  if (status === 'picked_up') return '已取貨';
-  if (status === 'completed') return '已完成';
-  if (status === 'return_requested') return '退貨申請中';
-  if (status === 'return_processing') return '退貨處理中';
-  return status;
+function statusText(order) {
+  if (!order) return '';
+  if (order.status === 'fail') return '交易失敗';
+  if (order.status === 'success') return '成功';
+  if (order.status === 'pending' && order.paid_at) return '交易失敗'; // 已付款但仍在 pending，視為失敗
+  if (order.status === 'pending') return '待處理';
+  if (order.status === 'out_of_stock') return '缺貨中';
+  if (order.status === 'shipped') return '已出貨';
+  if (order.status === 'arrived') return '已到店';
+  if (order.status === 'picked_up') return '已取貨';
+  if (order.status === 'completed') return '已完成';
+  if (order.status === 'return_requested') return '退貨申請中';
+  if (order.status === 'return_processing') return '退貨處理中';
+  return order.status;
 }
 
 // 切換頁面

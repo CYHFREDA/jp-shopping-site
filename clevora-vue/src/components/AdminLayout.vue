@@ -73,7 +73,6 @@ const menu = [
   { name: 'AdminShipments', label: '出貨管理', path: '/admin/shipments', icon: 'bi bi-truck' },
   { name: 'AdminCustomers', label: '客戶管理', path: '/admin/customers', icon: 'bi bi-people' },
   { name: 'AdminAdmins', label: '管理員管理', path: '/admin/admins', icon: 'bi bi-person-badge' },
-  { name: 'AdminSettings', label: '系統設定', path: '/admin/settings', icon: 'bi bi-gear' },
 ]
 
 function handleLogout() {
