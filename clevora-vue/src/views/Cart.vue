@@ -41,6 +41,52 @@
       總金額：{{ totalAmount }} 元
     </div>
 
+    <!-- 收件人資訊表單 -->
+    <div class="card mb-4" v-if="cart.length">
+      <div class="card-body">
+        <h5 class="card-title mb-3">收件人資訊</h5>
+        <div class="mb-3">
+          <label class="form-label">配送方式</label>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" v-model="deliveryType" value="home" id="homeDelivery">
+            <label class="form-check-label" for="homeDelivery">宅配到府</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" v-model="deliveryType" value="cvs" id="cvsDelivery">
+            <label class="form-check-label" for="cvsDelivery">超商取貨</label>
+          </div>
+        </div>
+        
+        <!-- 宅配地址 -->
+        <div v-if="deliveryType === 'home'" class="mb-3">
+          <label class="form-label">配送地址</label>
+          <input type="text" class="form-control" v-model="address" placeholder="請輸入配送地址">
+          <div class="invalid-feedback" v-if="showValidation && !address">請填寫配送地址</div>
+        </div>
+
+        <!-- 超商取貨 -->
+        <div v-if="deliveryType === 'cvs'" class="mb-3">
+          <MultiCvsStoreSelector 
+            @select="handleStoreSelect"
+            :selected-store="selectedStore"
+          />
+          <div class="invalid-feedback" v-if="showValidation && !selectedStore">請選擇取貨門市</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">收件人姓名</label>
+          <input type="text" class="form-control" v-model="recipientName" placeholder="請輸入收件人姓名">
+          <div class="invalid-feedback" v-if="showValidation && !recipientName">請填寫收件人姓名</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">收件人電話</label>
+          <input type="tel" class="form-control" v-model="recipientPhone" placeholder="請輸入收件人電話">
+          <div class="invalid-feedback" v-if="showValidation && !recipientPhone">請填寫收件人電話</div>
+        </div>
+      </div>
+    </div>
+
     <div class="text-center mt-4" v-if="cart.length">
       <template v-if="customerStore.isAuthenticated">
         <button class="btn btn-success btn-lg px-5 checkout-btn" @click="checkout">
@@ -80,6 +126,7 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
 import { Modal } from 'bootstrap';
+import MultiCvsStoreSelector from '@/components/MultiCvsStoreSelector.vue';
 
 const router = useRouter();
 const cartStore = useCartStore();
@@ -88,6 +135,18 @@ const customerStore = useCustomerStore();
 const cart = computed(() => cartStore.items);
 const totalAmount = computed(() => cartStore.totalAmount);
 const checkoutErrorMessage = ref('');
+
+// 收件人資訊
+const deliveryType = ref('home');  // 預設宅配
+const address = ref('');
+const selectedStore = ref(null);
+const recipientName = ref('');
+const recipientPhone = ref('');
+const showValidation = ref(false);
+
+function handleStoreSelect(store) {
+  selectedStore.value = store;
+}
 
 function updateQuantity(index) {
   const item = cart.value[index];
@@ -103,10 +162,50 @@ function saveRedirect() {
   localStorage.setItem('redirectAfterLogin', '/cart');
 }
 
+function validateForm() {
+  showValidation.value = true;
+  
+  if (!recipientName.value || !recipientPhone.value) {
+    return false;
+  }
+
+  if (deliveryType.value === 'home' && !address.value) {
+    return false;
+  }
+
+  if (deliveryType.value === 'cvs' && !selectedStore.value) {
+    return false;
+  }
+
+  return true;
+}
+
 function checkout() {
   if (cartStore.items.length === 0) {
     checkoutErrorMessage.value = "❌ 購物車是空的！";
     return;
+  }
+
+  if (!validateForm()) {
+    checkoutErrorMessage.value = "❌ 請填寫完整的收件人資訊！";
+    return;
+  }
+
+  const payloadData = {
+    products: cartStore.items,
+    customer_id: customerStore.customer?.customer_id,
+    delivery_type: deliveryType.value,
+    recipient_name: recipientName.value,
+    recipient_phone: recipientPhone.value
+  };
+
+  // 根據配送方式加入不同的資訊
+  if (deliveryType.value === 'home') {
+    payloadData.address = address.value;
+  } else {
+    payloadData.store_id = selectedStore.value.id;
+    payloadData.store_name = selectedStore.value.name;
+    payloadData.cvs_type = selectedStore.value.type;
   }
 
   fetch("/pay", {
@@ -115,10 +214,7 @@ function checkout() {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${customerStore.token}`
     },
-    body: JSON.stringify({
-      products: cartStore.items,
-      customer_id: customerStore.customer?.customer_id
-    })
+    body: JSON.stringify(payloadData)
   })
   .then(res => res.json())
   .then(data => {
@@ -254,5 +350,26 @@ onMounted(() => {
   .page-title {
       font-size: 1.8rem; /* 小螢幕調整字體大小 */
   }
+}
+
+/* 表單樣式 */
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+}
+
+.invalid-feedback {
+  display: block;
+  color: var(--danger-color);
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-title {
+  color: var(--primary-color);
+  font-weight: bold;
 }
 </style> 

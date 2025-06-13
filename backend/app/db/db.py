@@ -12,13 +12,19 @@ def init_pool():
     global global_pool
     if not global_pool:
         global_pool = SimpleConnectionPool(
-            minconn=1,
-            maxconn=10,
+            minconn=5,      # 最小保持 5 個連線
+            maxconn=20,     # 最大允許 20 個連線
             dbname=os.getenv("POSTGRES_DB"),
             user=os.getenv("POSTGRES_USER"),
             password=os.getenv("POSTGRES_PASSWORD"),
             host=os.getenv("POSTGRES_HOST"),
-            port="5432"
+            port="5432",
+            # 加入連線參數
+            connect_timeout=3,        # 連線超時時間
+            keepalives=1,            # 啟用 TCP keepalive
+            keepalives_idle=30,      # 閒置 30 秒後發送 keepalive
+            keepalives_interval=10,   # 每 10 秒重試一次
+            keepalives_count=5        # 最多重試 5 次
         )
 
 # 從連線池中獲取連線

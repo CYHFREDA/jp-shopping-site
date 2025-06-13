@@ -34,6 +34,12 @@ COMMENT ON COLUMN "orders"."address" IS '收件地址（宅配時使用）';
 COMMENT ON COLUMN "orders"."recipient_name" IS '收件人姓名';
 COMMENT ON COLUMN "orders"."recipient_phone" IS '收件人電話';
 
+-- 建立索引以提升查詢效能
+	CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+	CREATE INDEX idx_orders_status ON orders(status);
+	CREATE INDEX idx_orders_created_at ON orders(created_at);
+	CREATE INDEX idx_orders_order_id ON orders(order_id);
+
 -------------------------------------------------------------------------------------
 CREATE TABLE "products" (
 	"id" SERIAL NOT NULL,
@@ -53,6 +59,13 @@ COMMENT ON COLUMN "products"."description" IS '商品描述，選填';
 COMMENT ON COLUMN "products"."image_url" IS '商品圖片網址，選填';
 COMMENT ON COLUMN "products"."created_at" IS '商品建立時間，預設為當下時間';
 COMMENT ON COLUMN "products"."category" IS '商品分類，可多分類用「#」分隔';
+
+-- 建立索引以提升查詢效能
+CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX idx_products_created_at ON products(created_at);
+
+-- 建立複合索引，用於商品搜尋
+CREATE INDEX idx_products_search ON products(name, description);
 
 -------------------------------------------------------------------------------------
 CREATE TABLE "customers" (
@@ -83,6 +96,10 @@ COMMENT ON COLUMN "customers"."is_verified" IS '是否驗證';
 COMMENT ON COLUMN "customers"."verification_token" IS '驗證令牌';
 COMMENT ON COLUMN "customers"."token_expiry" IS '驗證令牌過期時間';
 
+-- 建立客戶相關索引
+CREATE INDEX idx_customers_username ON customers(username);
+CREATE INDEX idx_customers_email ON customers(email);
+
 -------------------------------------------------------------------------------------
 CREATE TABLE "shipments" (
 	"shipment_id" SERIAL NOT NULL,
@@ -109,6 +126,11 @@ COMMENT ON COLUMN "shipments"."address" IS '收件地址（宅配時使用）';
 COMMENT ON COLUMN "shipments"."status" IS '出貨狀態（例：pending、shipped...）';
 COMMENT ON COLUMN "shipments"."created_at" IS '建立時間';
 
+-- 建立索引以提升查詢效能
+CREATE INDEX idx_shipments_order_id ON shipments(order_id);
+CREATE INDEX idx_shipments_status ON shipments(status);
+CREATE INDEX idx_shipments_created_at ON shipments(created_at);
+
 -------------------------------------------------------------------------------------
 CREATE TABLE "admin_users" (
     id SERIAL PRIMARY KEY,                              -- 流水號
@@ -126,6 +148,9 @@ COMMENT ON COLUMN "admin_users"."username" IS '管理員帳號';
 COMMENT ON COLUMN "admin_users"."password" IS '密碼（bcrypt 雜湊）';
 COMMENT ON COLUMN "admin_users"."created_at" IS '建立時間';
 COMMENT ON COLUMN "admin_users"."notes" IS '備註';
+
+-- 建立管理員相關索引
+CREATE INDEX idx_admin_users_username ON admin_users(username);
 
 -- 新增使用者管理員,帳號admin密碼1234
 -- 生成 python -c "import bcrypt; print(bcrypt.hashpw(b'1234', bcrypt.gensalt()).decode())"

@@ -130,8 +130,7 @@ const shipmentError = ref(null);
 const confirming = ref(false);
 const confirmSuccess = ref(false);
 const confirmError = ref('');
-const returnStoreName = ref('');
-const returnTrackingNumber = ref('');
+const selectedStore = ref(null);
 
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
@@ -177,7 +176,7 @@ function cvstypeText(type) {
 }
 
 function onStoreSelect(store) {
-  returnStoreName.value = store.store;
+  selectedStore.value = store;
 }
 
 async function markPickedUp() {
@@ -258,7 +257,7 @@ async function initiateReturn() {
 async function confirmReturnLogistics() {
   confirming.value = true;
   confirmError.value = '';
-  if (!returnStoreName.value) {
+  if (!selectedStore.value) {
     confirmError.value = '請選擇超商門市！';
     confirming.value = false;
     return;
@@ -273,15 +272,17 @@ async function confirmReturnLogistics() {
     }
     
     const res = await axios.post(`/api/orders/${order_id}/set-return-logistics`, {
-      return_store_name: returnStoreName.value
+      store_id: selectedStore.value.id,
+      store_name: selectedStore.value.name,
+      cvs_type: selectedStore.value.type
     }, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
     confirmSuccess.value = true;
-    shipment.value.return_tracking_number = res.data.tracking_number;
-    shipment.value.return_store_name = returnStoreName.value;
+    shipment.value.return_tracking_number = res.data.logistics_id;
+    shipment.value.return_store_name = selectedStore.value.name;
 
     confirmError.value = '';
     await loadShipmentDetail();
