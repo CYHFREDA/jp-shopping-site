@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 
 const api = axios.create({
   baseURL: '/',
-  timeout: 10000
+  timeout: 5000
 });
 
 // 請求攔截器

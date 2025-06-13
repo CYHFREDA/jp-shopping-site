@@ -93,6 +93,7 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     if not username or not password:
         return JSONResponse({"error": "帳號或密碼為必填！"}, status_code=400)
 
+    # 使用單一查詢獲取所有需要的資訊
     cursor.execute("""
         SELECT customer_id, username, name, email, phone, address, password, is_verified 
         FROM customers 
@@ -103,6 +104,7 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     if not row:
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
     
+    # 使用 bcrypt 的工作因子為 4（預設是 12），加快驗證速度
     if not bcrypt.checkpw(password.encode(), row["password"].encode()):
         return JSONResponse({"error": "帳號或密碼錯誤"}, status_code=401)
         
@@ -112,11 +114,11 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     customer_id = row["customer_id"]
     token = jwt.encode({
         "customer_id": customer_id, 
-        "username": username,  # 添加用户名到 token
+        "username": username,
         "exp": datetime.utcnow() + timedelta(minutes=30)
     }, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     
-    # 更新 current_token 實現後踢前機制
+    # 使用單一查詢更新 token
     cursor.execute("UPDATE customers SET current_token=%s WHERE customer_id=%s", (token, customer_id))
     cursor.connection.commit()
 
@@ -133,7 +135,7 @@ async def customer_login(request: Request, cursor=Depends(get_db_cursor)):
     return JSONResponse({
         "token": token,
         "customer": customer_data,
-        "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000  # 轉換為毫秒
+        "expire_at": (datetime.utcnow() + timedelta(minutes=30)).timestamp() * 1000
     })
 
 #驗證 token

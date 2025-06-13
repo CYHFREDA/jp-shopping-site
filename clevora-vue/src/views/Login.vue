@@ -80,28 +80,31 @@ const registerForm = ref({
   password: '',
 });
 
+// 檢查登入狀態，如果已登入則導向首頁 (避免重複登入)
+onMounted(() => {
+  if (customerStore.isAuthenticated) {
+    console.log('已偵測到登入狀態，導向首頁...');
+    router.push('/');
+  }
+});
+
 // 登入功能
 const login = async () => {
-  if (!loginForm.value.username || !loginForm.value.password) {
-    alert('請輸入完整帳號密碼！');
-    return;
-  }
-
   try {
     const res = await axios.post('/api/customers/login', loginForm.value);
     const data = res.data;
 
-    if (data.token) {  // 改為檢查 token 是否存在
+    if (data.token) {
       // 使用 customerStore 更新客戶狀態
       customerStore.setCustomer(
-        data.customer,  // 整個客戶資料物件
-        data.token,    // token
-        Date.now() + 24 * 60 * 60 * 1000  // 24小時後過期
+        data.customer,
+        data.token,
+        data.expire_at
       );
 
       const redirectURL = localStorage.getItem('redirectAfterLogin') || '/';
       localStorage.removeItem('redirectAfterLogin');
-      router.push(redirectURL);  // 使用 router.push 而不是 window.location.href
+      router.push(redirectURL);
     } else {
       alert(data.error || '登入失敗！');
     }
@@ -154,17 +157,6 @@ onMounted(() => {
       tabTrigger.show()
     })
   })
-});
-
-// 檢查登入狀態，如果已登入則導向首頁 (避免重複登入)
-onMounted(() => {
-  // 增加一個短暫的延遲，確保頁面渲染完成再檢查登入狀態和導向
-  setTimeout(() => {
-    if (customerStore.isAuthenticated) {
-      console.log('已偵測到登入狀態，導向首頁...'); // 添加日誌
-      router.push('/');
-    }
-  }, 100); // 延遲 100 毫秒，可根據需要調整
 });
 </script>
 
