@@ -176,6 +176,7 @@ function cvstypeText(type) {
 }
 
 function onStoreSelect(store) {
+  console.log('選擇的門市：', store);
   selectedStore.value = store;
 }
 
@@ -271,6 +272,19 @@ async function confirmReturnLogistics() {
       return;
     }
     
+    // 檢查必要資訊是否完整
+    if (!selectedStore.value.id || !selectedStore.value.name || !selectedStore.value.type) {
+      confirmError.value = '門市資訊不完整，請重新選擇！';
+      confirming.value = false;
+      return;
+    }
+
+    console.log('準備送出的門市資料：', {
+      store_id: selectedStore.value.id,
+      store_name: selectedStore.value.name,
+      cvs_type: selectedStore.value.type
+    });
+    
     const res = await axios.post(`/api/orders/${order_id}/set-return-logistics`, {
       store_id: selectedStore.value.id,
       store_name: selectedStore.value.name,
@@ -280,6 +294,8 @@ async function confirmReturnLogistics() {
         Authorization: `Bearer ${token}`
       }
     });
+    
+    console.log('綠界回應：', res.data);
     confirmSuccess.value = true;
     shipment.value.return_tracking_number = res.data.logistics_id;
     shipment.value.return_store_name = selectedStore.value.name;

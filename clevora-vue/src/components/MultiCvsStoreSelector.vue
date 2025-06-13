@@ -31,7 +31,8 @@
         style="cursor: pointer;"
       >
         <span class="badge bg-primary me-2">{{ store.cvs }}</span>
-        <strong>{{ store.store }}</strong>（{{ store.address }}）
+        <strong>{{ store.store }}</strong>
+        <small class="text-muted">（{{ store.address }}）</small>
       </li>
     </ul>
     <div v-else-if="keyword || selectedCvs" class="text-muted text-center my-2">
@@ -86,6 +87,7 @@ onMounted(async () => {
       throw new Error('載入門市資料失敗')
     }
     stores.value = await res.json()
+    searchStore()  // 初始化搜尋結果
   } catch (e) {
     console.error('載入門市資料錯誤：', e)
     error.value = '載入門市資料失敗，請重新整理頁面試試'
@@ -96,9 +98,13 @@ onMounted(async () => {
 
 function searchStore() {
   let result = stores.value
+  
+  // 根據選擇的超商類型過濾
   if (selectedCvs.value) {
     result = result.filter(s => s.cvs === selectedCvs.value)
   }
+  
+  // 根據關鍵字過濾（店名或地址）
   if (keyword.value) {
     const kw = keyword.value.trim().toLowerCase()
     result = result.filter(s =>
@@ -106,20 +112,28 @@ function searchStore() {
       s.address.toLowerCase().includes(kw)
     )
   }
-  filteredStores.value = result.slice(0, 30) // 最多顯示 30 筆
+  
+  // 最多顯示 30 筆結果
+  filteredStores.value = result.slice(0, 30)
+}
+
+// 超商類型代碼轉換
+const cvsTypeMapping = {
+  '7-11': 'UNIMART',
+  '全家': 'FAMI',
+  '萊爾富': 'HILIFE',
+  'OK超商': 'OKMART'
 }
 
 function selectStore(store) {
   selectedStore.value = store
   keyword.value = store.store
   filteredStores.value = []
+  
   emit('select', {
     id: store.id,
     name: store.store,
-    type: store.cvs === '7-11' ? 'UNIMART' :
-          store.cvs === '全家' ? 'FAMI' :
-          store.cvs === '萊爾富' ? 'HILIFE' :
-          store.cvs === 'OK超商' ? 'OKMART' : ''
+    type: cvsTypeMapping[store.cvs] || store.cvs
   })
 }
 </script>
@@ -130,5 +144,8 @@ function selectStore(store) {
 }
 .badge.bg-primary {
   background-color: #007bff !important;
+}
+.text-muted {
+  color: #6c757d !important;
 }
 </style> 

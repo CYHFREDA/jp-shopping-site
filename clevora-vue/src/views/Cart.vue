@@ -66,23 +66,49 @@
 
         <!-- 超商取貨 -->
         <div v-if="deliveryType === 'cvs'" class="mb-3">
+          <label class="form-label">選擇取貨門市</label>
           <MultiCvsStoreSelector 
             @select="handleStoreSelect"
             :selected-store="selectedStore"
           />
-          <div class="invalid-feedback" v-if="showValidation && !selectedStore">請選擇取貨門市</div>
+          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !selectedStore }">
+            請選擇取貨門市
+          </div>
+          <div v-if="selectedStore" class="alert alert-success mt-2">
+            已選擇：{{ selectedStore.type === 'UNIMART' ? '7-11' : 
+                      selectedStore.type === 'FAMI' ? '全家' :
+                      selectedStore.type === 'HILIFE' ? '萊爾富' :
+                      selectedStore.type === 'OKMART' ? 'OK超商' : '' }}
+            {{ selectedStore.name }}
+          </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">收件人姓名</label>
-          <input type="text" class="form-control" v-model="recipientName" placeholder="請輸入收件人姓名">
-          <div class="invalid-feedback" v-if="showValidation && !recipientName">請填寫收件人姓名</div>
+          <input 
+            type="text" 
+            class="form-control" 
+            :class="{ 'is-invalid': showValidation && !recipientName }"
+            v-model="recipientName" 
+            placeholder="請輸入收件人姓名"
+          >
+          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !recipientName }">
+            請填寫收件人姓名
+          </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">收件人電話</label>
-          <input type="tel" class="form-control" v-model="recipientPhone" placeholder="請輸入收件人電話">
-          <div class="invalid-feedback" v-if="showValidation && !recipientPhone">請填寫收件人電話</div>
+          <input 
+            type="tel" 
+            class="form-control" 
+            :class="{ 'is-invalid': showValidation && !recipientPhone }"
+            v-model="recipientPhone" 
+            placeholder="請輸入收件人電話"
+          >
+          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !recipientPhone }">
+            請填寫收件人電話
+          </div>
         </div>
       </div>
     </div>
@@ -157,6 +183,7 @@ watch(deliveryType, (newType) => {
 });
 
 function handleStoreSelect(store) {
+  console.log('選擇的門市：', store);
   if (store) {
     selectedStore.value = {
       id: store.id,
@@ -185,22 +212,22 @@ function saveRedirect() {
 function validateForm() {
   showValidation.value = true;
   
-  if (!recipientName.value || !recipientPhone.value) {
-    return false;
-  }
-
   if (deliveryType.value === 'home' && !address.value) {
     return false;
   }
-
+  
   if (deliveryType.value === 'cvs' && !selectedStore.value) {
     return false;
   }
-
+  
+  if (!recipientName.value || !recipientPhone.value) {
+    return false;
+  }
+  
   return true;
 }
 
-function checkout() {
+async function checkout() {
   if (cartStore.items.length === 0) {
     checkoutErrorMessage.value = "❌ 購物車是空的！";
     return;
@@ -211,58 +238,28 @@ function checkout() {
     return;
   }
 
-  const payloadData = {
-    products: cartStore.items,
-    customer_id: customerStore.customer?.customer_id,
-    delivery_type: deliveryType.value,
-    recipient_name: recipientName.value,
-    recipient_phone: recipientPhone.value
-  };
-
-  // 根據配送方式加入不同的資訊
-  if (deliveryType.value === 'home') {
-    payloadData.address = address.value;
-  } else {
-    payloadData.store_id = selectedStore.value.id;
-    payloadData.store_name = selectedStore.value.name;
-    payloadData.cvs_type = selectedStore.value.type;
+  try {
+    const orderData = {
+      items: cart.value,
+      delivery_type: deliveryType.value,
+      recipient_name: recipientName.value,
+      recipient_phone: recipientPhone.value,
+      ...(deliveryType.value === 'home' 
+        ? { address: address.value }
+        : { 
+            store_id: selectedStore.value.id,
+            store_name: selectedStore.value.name,
+            cvs_type: selectedStore.value.type
+          }
+      )
+    };
+    
+    console.log('準備送出訂單資料：', orderData);
+    // ... 其他結帳邏輯 ...
+  } catch (e) {
+    console.error('結帳失敗：', e);
+    checkoutErrorMessage.value = e.response?.data?.error || '結帳失敗，請稍後再試';
   }
-
-  fetch("/pay", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${customerStore.token}`
-    },
-    body: JSON.stringify(payloadData)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.ecpay_url && data.params) {
-      // 開始支付流程，保存相關資訊
-      customerStore.startPayment(data.order_id);
-      
-      // 建立表單並提交
-      const form = document.createElement("form");
-      form.action = data.ecpay_url;
-      form.method = "post";
-      Object.entries(data.params).forEach(([key, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
-      });
-      document.body.appendChild(form);
-      form.submit();
-    } else {
-      checkoutErrorMessage.value = "❌ 發起付款失敗！";
-    }
-  })
-  .catch(err => {
-    checkoutErrorMessage.value = "❌ 發起付款錯誤！";
-    console.error(err);
-  });
 }
 
 onMounted(() => {
