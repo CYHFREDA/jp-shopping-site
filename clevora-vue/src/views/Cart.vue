@@ -248,10 +248,10 @@ async function checkout() {
     
     const response = await fetch('/api/pay', {
       method: 'POST',
-      headers: {
+    headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${customerStore.token}`
-      },
+    },
       body: JSON.stringify(orderData)
     });
 

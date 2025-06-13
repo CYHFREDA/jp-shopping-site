@@ -3,9 +3,11 @@ CREATE TABLE "orders" (
 	"order_id" VARCHAR(50) NOT NULL,
 	"amount" INTEGER NOT NULL,
 	"item_names" TEXT NOT NULL,
-	"status" VARCHAR(20) NULL DEFAULT 'pending',
-	"created_at" TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-	"paid_at" TIMESTAMP NULL DEFAULT NULL,
+	"status" VARCHAR(20) NOT NULL DEFAULT 'pending',
+	"return_reason" TEXT,
+	"created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	"paid_at" TIMESTAMP WITH TIME ZONE,
+	"updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	"customer_id" INTEGER NULL DEFAULT NULL,
 	"delivery_type" VARCHAR(20) NOT NULL DEFAULT 'home',
 	"store_id" VARCHAR(20) NULL,
@@ -15,7 +17,22 @@ CREATE TABLE "orders" (
 	"recipient_name" VARCHAR(50) NULL,
 	"recipient_phone" VARCHAR(20) NULL,
 	PRIMARY KEY ("id"),
-	CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers" ("customer_id") ON UPDATE NO ACTION ON DELETE NO ACTION
+	CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers" ("customer_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT chk_order_status CHECK (
+		status IN (
+			'pending',      -- 待處理
+			'success',      -- 付款成功
+			'fail',         -- 付款失敗
+			'out_of_stock', -- 缺貨中
+			'shipped',      -- 已出貨
+			'arrived',      -- 已到店
+			'picked_up',    -- 已取貨
+			'completed',    -- 已完成
+			'return_requested',  -- 退貨申請中
+			'return_processing', -- 退貨處理中
+			'cancelled'     -- 已取消
+		)
+	)
 );
 COMMENT ON TABLE "orders" IS '訂單表格';
 COMMENT ON COLUMN "orders"."id" IS '訂單流水號，自動增加';
@@ -118,9 +135,26 @@ CREATE TABLE "shipments" (
 	"store_name" VARCHAR(100) NULL,
 	"cvs_type" VARCHAR(20) NULL,
 	"address" VARCHAR(200) NULL,
-	"status" VARCHAR(20) NOT NULL,
+	"status" VARCHAR(20) NOT NULL DEFAULT 'pending',
 	"created_at" TIMESTAMP NULL DEFAULT now(),
-	PRIMARY KEY ("shipment_id")
+	"updated_at" TIMESTAMP NULL DEFAULT now(),
+	"picked_up_at" TIMESTAMP WITH TIME ZONE,
+	"return_store_name" VARCHAR(100),
+	"return_tracking_number" VARCHAR(50),
+	PRIMARY KEY ("shipment_id"),
+	CONSTRAINT "shipments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders" ("order_id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT chk_shipment_status CHECK (
+		status IN (
+			'pending',      -- 待出貨
+			'out_of_stock', -- 缺貨中
+			'shipped',      -- 已出貨
+			'arrived',      -- 已到店
+			'picked_up',    -- 已取貨
+			'completed',    -- 已完成
+			'return_requested',  -- 退貨申請中
+			'return_processing'  -- 退貨處理中
+		)
+	)
 );
 COMMENT ON TABLE "shipments" IS '出貨單表格';
 COMMENT ON COLUMN "shipments"."shipment_id" IS '出貨單 ID，自動增加';
@@ -133,6 +167,10 @@ COMMENT ON COLUMN "shipments"."cvs_type" IS '超商類型（超商取貨時使�
 COMMENT ON COLUMN "shipments"."address" IS '收件地址（宅配時使用）';
 COMMENT ON COLUMN "shipments"."status" IS '出貨狀態（例：pending、shipped...）';
 COMMENT ON COLUMN "shipments"."created_at" IS '建立時間';
+COMMENT ON COLUMN "shipments"."updated_at" IS '更新時間';
+COMMENT ON COLUMN "shipments"."picked_up_at" IS '取貨時間（可為空）';
+COMMENT ON COLUMN "shipments"."return_store_name" IS '退貨店名（可為空）';
+COMMENT ON COLUMN "shipments"."return_tracking_number" IS '退貨追蹤號碼（可為空）';
 
 -- 建立索引以提升查詢效能
 CREATE INDEX idx_shipments_order_id ON shipments(order_id);

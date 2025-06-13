@@ -84,7 +84,7 @@
               <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
               <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
             </div>
-            <div v-else-if="shipment.status === 'returned_pending'">
+            <div v-else-if="shipment.status === 'return_requested'">
               <span class="text-muted mt-3">退貨申請已送出，等待管理員處理。</span>
               <div v-if="!shipment.return_tracking_number" class="mt-3">
                 <h6 class="mb-2">請選擇超商門市以完成退貨流程：</h6>
@@ -105,6 +105,37 @@
           <div v-else class="text-muted">尚未建立出貨單</div>
         </div>
       </div>
+    </div>
+
+    <!-- 退貨原因對話框 -->
+    <div v-if="showReturnDialog" class="modal fade show" style="display: block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">申請退貨</h5>
+            <button type="button" class="btn-close" @click="showReturnDialog = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="returnReason" class="form-label">退貨原因</label>
+              <textarea 
+                id="returnReason" 
+                v-model="returnReason" 
+                class="form-control" 
+                rows="3" 
+                placeholder="請填寫退貨原因..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showReturnDialog = false">取消</button>
+            <button type="button" class="btn btn-primary" @click="submitReturn" :disabled="confirming">
+              {{ confirming ? '送出中...' : '確認送出' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show"></div>
     </div>
   </main>
 </template>
@@ -131,6 +162,8 @@ const confirming = ref(false);
 const confirmSuccess = ref(false);
 const confirmError = ref('');
 const selectedStore = ref(null);
+const returnReason = ref('');
+const showReturnDialog = ref(false);
 
 function formatDateTime(dateTimeString) {
   if (!dateTimeString) return '';
@@ -161,7 +194,8 @@ function shipmentStatusText(status) {
   if (status === 'arrived') return '已到店';
   if (status === 'picked_up') return '已取貨';
   if (status === 'completed') return '已完成';
-  if (status === 'returned_pending') return '退貨申請中';
+  if (status === 'return_requested') return '退貨申請中';
+  if (status === 'return_processing') return '退貨處理中';
   return status;
 }
 
@@ -231,6 +265,15 @@ async function completeOrder() {
 }
 
 async function initiateReturn() {
+  showReturnDialog.value = true;
+}
+
+async function submitReturn() {
+  if (!returnReason.value.trim()) {
+    confirmError.value = '請填寫退貨原因';
+    return;
+  }
+
   confirming.value = true;
   confirmError.value = '';
   try {
@@ -239,13 +282,17 @@ async function initiateReturn() {
       confirmError.value = '未找到認證 token！請重新登入。';
       return;
     }
-    await axios.post(`/api/orders/${order_id}/return`, {}, {
+    await axios.post(`/api/orders/${order_id}/return`, {
+      return_reason: returnReason.value.trim()
+    }, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-    shipment.value.status = 'returned_pending';
+    shipment.value.status = 'return_requested';
     confirmSuccess.value = true;
+    showReturnDialog.value = false;
+    returnReason.value = '';
     await loadShipmentDetail();
   } catch (e) {
     console.error('申請退貨失敗：', e);
@@ -374,5 +421,8 @@ async function loadShipmentDetail() {
   margin-bottom: 20px;
   font-size: 2rem;
   font-weight: bold;
+}
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
 }
 </style> 
