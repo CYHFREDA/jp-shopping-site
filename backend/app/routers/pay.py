@@ -1,14 +1,17 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse, HTMLResponse
 from db.db import get_db_cursor
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import hashlib
 import urllib.parse
 import os
 import jwt
+from apscheduler.schedulers.background import BackgroundScheduler
 
 router = APIRouter()
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 #綠界測試環境設定
 ECPAY_MERCHANT_ID = os.getenv("ECPAY_MERCHANT_ID")
@@ -16,6 +19,30 @@ ECPAY_HASH_KEY = os.getenv("ECPAY_HASH_KEY")
 ECPAY_HASH_IV = os.getenv("ECPAY_HASH_IV")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN")
 ECPAY_API_URL = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
+
+# 檢查未收到回覆的訂單
+def check_pending_orders():
+    try:
+        with get_db_cursor() as cursor:
+            # 查找建立超過 20 分鐘但仍為 pending 的訂單
+            cursor.execute("""
+                UPDATE orders 
+                SET status = 'fail',
+                    payment_message = '付款逾時，未收到付款結果'
+                WHERE status = 'pending'
+                AND created_at < NOW() - INTERVAL '20 minutes'
+                RETURNING order_id
+            """)
+            updated_orders = cursor.fetchall()
+            cursor.connection.commit()
+            
+            if updated_orders:
+                print(f"✅ 已將以下逾時訂單更新為失敗狀態：{[order['order_id'] for order in updated_orders]}")
+    except Exception as e:
+        print(f"❌ 檢查逾時訂單時發生錯誤：{str(e)}")
+
+# 每 5 分鐘執行一次檢查
+scheduler.add_job(check_pending_orders, 'interval', minutes=5)
 
 # 產生 CheckMacValue
 def generate_check_mac_value(params: dict, hash_key: str, hash_iv: str) -> str:
@@ -116,6 +143,7 @@ async def pay(request: Request, cursor=Depends(get_db_cursor)):
             "ReturnURL": f"{YOUR_DOMAIN}/ecpay/notify",
             "ChoosePayment": "Credit",
             "ClientBackURL": f"{YOUR_DOMAIN}/pay/return",
+            "OrderResultURL": f"{YOUR_DOMAIN}/pay/result",  # 新增此參數
             "PlatformID": ECPAY_MERCHANT_ID
         }
         params["CheckMacValue"] = generate_check_mac_value(params, ECPAY_HASH_KEY, ECPAY_HASH_IV)
