@@ -4,7 +4,6 @@ from db.db import get_db_cursor
 from typing import Optional
 from config import verify_customer_jwt
 from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify
 import random
 import requests
 import hashlib
