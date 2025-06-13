@@ -76,11 +76,11 @@ jp-shopping-site/
 *   `deploy_clevora-vue.sh`: 用於部署前端應用程式到 Kubernetes 的腳本。
 *   `nginx.conf`: Nginx 的配置檔案，用於前端的靜態檔案服務和 API 請求轉發。
 
-### `frontend/` - Nginx 靜態檔案服務 (舊版或特定用途)
-*   這個目錄可能包含一個獨立的 Nginx 服務，用於提供靜態檔案。如果 `clevora-vue` 目錄中的 `nginx.conf` 已經涵蓋了這部分功能，這個目錄可能是一個較舊的版本或用於特定用途。
-*   `Dockerfile`: Nginx 服務的 Dockerfile。
-*   `deploy_frontend.sh`: 部署前端 Nginx 服務的腳本。
-*   `html/`: 包含 Nginx 提供服務的靜態 HTML、CSS、JavaScript 檔案。
+### `frontend/` - Nginx 靜態檔案服務 (舊版)
+*   這個目錄可能包含一個獨立的 Nginx 服務，用於提供靜態檔案。如果 `clevora-vue` 目錄中的 `nginx.conf` 已經涵蓋了這部分功能，這個目錄是一個較舊的版本。
+*   `Dockerfile`: Nginx 服務的 Dockerfile。old
+*   `deploy_frontend.sh`: 部署前端 Nginx 服務的腳本。old
+*   `html/`: 包含 Nginx 提供服務的靜態 HTML、CSS、JavaScript 檔案。old
 *   `k8s/`: 包含前端 Nginx 服務的 Kubernetes 部署配置檔。
     *   `deployment.yaml`, `ingress.yaml`, `service.yaml`: 類似後端，用於部署和管理前端 Nginx 服務。
 
@@ -104,11 +104,11 @@ graph TD
         C --> D{Ingress Rule: shop.wvwwcw.xyz};
         C --> E{Ingress Rule: api.wvwwcw.xyz};
 
-        D --> F[clevora-vue Frontend <br/> (Nginx serving Vue.js)];
-        E --> G[Backend <br/> (FastAPI Application)];
+        D --> F[前端應用];
+        E --> G[後端服務];
 
         F -->|API Calls (HTTPS)| G;
-        G -->|Database Connection| H[PostgreSQL Database];
+        G -->|Database Connection| H[資料庫];
     end
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
@@ -126,3 +126,13 @@ graph TD
     linkStyle 3 stroke-width:2px,fill:none,stroke:blue;
     linkStyle 4 stroke-width:2px,fill:none,stroke:red;
 ```
+
+### 圖例說明
+*   **使用者 (User)**：最終使用者。
+*   **CF Tunnel (Cloudflare Tunnel)**：Cloudflare 的安全隧道，將外部流量引入 Kubernetes 集群。
+*   **Ingress (Kubernetes Ingress Controller)**：Kubernetes 入口控制器，負責將外部 HTTP/HTTPS 請求路由到集群內部的服務。
+*   **Ingress Rule: shop.wvwwcw.xyz**：用於前端應用程式的 Ingress 規則。
+*   **Ingress Rule: api.wvwwcw.xyz**：用於後端服務 API 的 Ingress 規則。
+*   **前端應用 (clevora-vue Frontend / Nginx / Vue.js)**：基於 Vue.js 開發的單頁應用程式，透過 Nginx 服務。
+*   **後端服務 (Backend / FastAPI Application)**：基於 Python FastAPI 框架開發的後端服務。
+*   **資料庫 (PostgreSQL Database)**：PostgreSQL 資料庫，用於儲存所有應用程式資料。
