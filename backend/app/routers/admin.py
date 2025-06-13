@@ -301,48 +301,6 @@ async def admin_delete_admin(admin_id: int, auth=Depends(verify_admin_jwt), curs
     except Exception as e:
         print(f"❌ 刪除管理員時發生錯誤： {e}")
         raise HTTPException(status_code=500, detail="❌ 刪除管理員失敗，請稍後再試！")
-    
-# 獲取系統設定
-@router.get("/api/admin/settings")
-async def get_admin_settings(auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
-    try:
-        cursor.execute("SELECT site_title, contact_email, items_per_page FROM settings LIMIT 1")
-        settings = cursor.fetchone()
-        if settings:
-            return JSONResponse(dict(settings))
-        else:
-            # 如果資料庫中沒有設定，返回預設值或空物件
-            return JSONResponse({"site_title": "", "contact_email": "", "items_per_page": 10})
-    except Exception as e:
-        print(f"❌ 獲取系統設定時發生錯誤： {e}")
-        raise HTTPException(status_code=500, detail="❌ 獲取系統設定失敗！")
-
-# 更新系統設定
-@router.post("/api/admin/settings")
-async def update_admin_settings(request: Request, auth=Depends(verify_admin_jwt), cursor=Depends(get_db_cursor)):
-    try:
-        data = await request.json()
-        site_title = data.get("site_title")
-        contact_email = data.get("contact_email")
-        items_per_page = data.get("items_per_page")
-
-        # 檢查設定是否存在，如果不存在則插入，否則更新
-        cursor.execute("SELECT COUNT(*) FROM settings")
-        count = cursor.fetchone()[0]
-
-        if count == 0:
-            # 插入新設定
-            cursor.execute("INSERT INTO settings (site_title, contact_email, items_per_page) VALUES (%s, %s, %s)",
-                           (site_title, contact_email, items_per_page))
-        else:
-            # 更新現有設定
-            cursor.execute("UPDATE settings SET site_title=%s, contact_email=%s, items_per_page=%s",
-                           (site_title, contact_email, items_per_page))
-        cursor.connection.commit()
-        return JSONResponse({"message": "✅ 設定已成功保存！"})
-    except Exception as e:
-        print(f"❌ 保存系統設定時發生錯誤： {e}")
-        raise HTTPException(status_code=500, detail="❌ 保存設定失敗！")
 
 # 修改管理員資訊 (例如備註)
 @router.post("/api/admin/update_admin")

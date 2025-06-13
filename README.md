@@ -98,7 +98,7 @@ jp-shopping-site/
 ```mermaid
 graph TD
     A[使用者] -->|HTTPS| B{Cloudflare Tunnel};
-    B -->|HTTPS (Tunnel)| C(Kubernetes Ingress Controller);
+    B -->|HTTPS Tunnel| C(Kubernetes Ingress Controller);
 
     subgraph Kubernetes Cluster
         C --> D{Ingress Rule: shop.wvwwcw.xyz};
