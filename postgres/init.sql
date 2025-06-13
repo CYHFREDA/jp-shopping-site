@@ -35,10 +35,18 @@ COMMENT ON COLUMN "orders"."recipient_name" IS '收件人姓名';
 COMMENT ON COLUMN "orders"."recipient_phone" IS '收件人電話';
 
 -- 建立索引以提升查詢效能
-	CREATE INDEX idx_orders_customer_id ON orders(customer_id);
-	CREATE INDEX idx_orders_status ON orders(status);
-	CREATE INDEX idx_orders_created_at ON orders(created_at);
-	CREATE INDEX idx_orders_order_id ON orders(order_id);
+CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+CREATE INDEX idx_orders_order_id ON orders(order_id);
+
+-- 新增複合索引以優化訂單查詢
+CREATE INDEX idx_orders_customer_created ON orders(customer_id, created_at DESC);
+CREATE INDEX idx_orders_customer_status ON orders(customer_id, status);
+
+-- 優化現有索引
+DROP INDEX IF EXISTS idx_orders_created_at;  -- 移除單獨的 created_at 索引，因為已包含在複合索引中
+DROP INDEX IF EXISTS idx_orders_status;      -- 移除單獨的 status 索引，因為已包含在複合索引中
 
 -------------------------------------------------------------------------------------
 CREATE TABLE "products" (

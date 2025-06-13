@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 
 const api = axios.create({
   baseURL: '/',
-  timeout: 5000
+  timeout: 15000
 });
 
 // 請求攔截器
@@ -100,8 +100,10 @@ export const ordersAPI = {
   updateOrder(id, data) {
     return api.put(`/api/orders/${id}`, data);
   },
-  getCustomerOrders(customerId) {
-    return api.get(`/api/customers/${customerId}/orders`);
+  getCustomerOrders(customerId, page = 1, limit = 10) {
+    return api.get(`/api/customers/${customerId}/orders`, {
+      params: { page, limit }
+    });
   }
 };
 

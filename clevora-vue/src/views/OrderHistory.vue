@@ -119,6 +119,21 @@
           </div>
         </div>
       </div>
+
+      <!-- 分頁控制 -->
+      <nav v-if="totalPages > 1" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">上一頁</a>
+          </li>
+          <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+            <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">下一頁</a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </main>
 </template>
@@ -133,6 +148,11 @@ const loading = ref(true);
 const error = ref(null);
 const customerStore = useCustomerStore();
 const displayErrorMessage = ref(null);
+
+// 分頁相關
+const currentPage = ref(1);
+const totalPages = ref(1);
+const itemsPerPage = 10;
 
 // 格式化日期時間
 function formatDateTime(dateTimeString) {
@@ -166,59 +186,30 @@ function statusText(status) {
   return status;
 }
 
-async function completePickup(orderId) {
-  try {
-    // 確保客戶已登入且 customer_id 可用
-    if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
-      displayErrorMessage.value = '請先登入才能完成取貨。';
-      return;
-    }
-    const token = customerStore.customer_token;
-    if (!token) {
-      displayErrorMessage.value = '未找到認證 token！請重新登入。';
-      return;
-    }
-
-    const res = await ordersAPI.completeShipment(orderId, token);
-    displayErrorMessage.value = res.data.message || '✅ 完成取貨成功！';
-    // 重新載入訂單以更新狀態
-    await onMounted(); // 重新觸發 onMounted 中的 loadOrders 邏輯
-  } catch (error) {
-    console.error('完成取貨失敗：', error);
-    displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 完成取貨失敗！';
-  }
+// 切換頁面
+async function changePage(page) {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  await loadOrders();
 }
 
-onMounted(async () => {
-  console.log('OrderHistory.vue mounted.');
-  console.log('isAuthenticated:', customerStore.isAuthenticated);
-  console.log('customer_id:', customerStore.customer?.customer_id);
-  console.log('customerStore.customer:', customerStore.customer);
-  
-  // 確保客戶已登入且 customer_id 可用
-  if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
-    error.value = '請先登入以查看訂單記錄。';
-    loading.value = false;
-    return;
-  }
+// 載入訂單
+async function loadOrders() {
+  loading.value = true;
+  error.value = null;
+  displayErrorMessage.value = null;
 
   try {
     const customerId = customerStore.customer.customer_id;
     console.log('正在請求訂單資料，customerId:', customerId);
     
-    // 添加請求超時設置
-    const response = await Promise.race([
-      ordersAPI.getCustomerOrders(customerId),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('請求超時')), 10000)
-      )
-    ]);
-    
+    const response = await ordersAPI.getCustomerOrders(customerId, currentPage.value, itemsPerPage);
     console.log('訂單資料響應：', response);
-    console.log('訂單資料：', response.data);
     
-    if (Array.isArray(response.data)) {
-      orders.value = response.data;
+    if (response.data && Array.isArray(response.data.orders)) {
+      orders.value = response.data.orders;
+      totalPages.value = response.data.total_pages;
+      currentPage.value = response.data.page;
     } else {
       console.error('訂單資料格式不正確：', response.data);
       error.value = '訂單資料格式不正確，請聯繫客服。';
@@ -243,14 +234,51 @@ onMounted(async () => {
       } else {
         error.value = '載入訂單記錄失敗，請稍後再試。';
       }
-    } else if (err.message === '請求超時') {
-      error.value = '載入訂單記錄超時，請稍後再試。';
     } else {
       error.value = '發生未知錯誤，請稍後再試。';
     }
   } finally {
     loading.value = false;
   }
+}
+
+async function completePickup(orderId) {
+  try {
+    // 確保客戶已登入且 customer_id 可用
+    if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
+      displayErrorMessage.value = '請先登入才能完成取貨。';
+      return;
+    }
+    const token = customerStore.customer_token;
+    if (!token) {
+      displayErrorMessage.value = '未找到認證 token！請重新登入。';
+      return;
+    }
+
+    const res = await ordersAPI.completeShipment(orderId, token);
+    displayErrorMessage.value = res.data.message || '✅ 完成取貨成功！';
+    // 重新載入訂單以更新狀態
+    await loadOrders();
+  } catch (error) {
+    console.error('完成取貨失敗：', error);
+    displayErrorMessage.value = error.response?.data?.error || error.message || '❌ 完成取貨失敗！';
+  }
+}
+
+onMounted(async () => {
+  console.log('OrderHistory.vue mounted.');
+  console.log('isAuthenticated:', customerStore.isAuthenticated);
+  console.log('customer_id:', customerStore.customer?.customer_id);
+  console.log('customerStore.customer:', customerStore.customer);
+  
+  // 確保客戶已登入且 customer_id 可用
+  if (!customerStore.isAuthenticated || !customerStore.customer?.customer_id) {
+    error.value = '請先登入以查看訂單記錄。';
+    loading.value = false;
+    return;
+  }
+
+  await loadOrders();
 });
 
 </script>

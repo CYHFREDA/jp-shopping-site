@@ -13,18 +13,37 @@ router = APIRouter()
 
 # 顧客訂單
 @router.get("/api/customers/{customer_id}/orders")
-async def get_customer_orders(customer_id: int, auth=Depends(verify_customer_jwt), cursor=Depends(get_db_cursor)):
+async def get_customer_orders(
+    customer_id: int, 
+    page: int = 1, 
+    limit: int = 10,
+    auth=Depends(verify_customer_jwt), 
+    cursor=Depends(get_db_cursor)
+):
     try:
         # 验证 token 中的 customer_id 是否匹配
         if auth.get("customer_id") != customer_id:
             return JSONResponse({"error": "無權訪問此客戶的訂單"}, status_code=403)
 
+        # 計算總訂單數
+        cursor.execute("""
+            SELECT COUNT(*) as total
+            FROM orders
+            WHERE customer_id=%s
+        """, (customer_id,))
+        total = cursor.fetchone()["total"]
+
+        # 計算分頁
+        offset = (page - 1) * limit
+
+        # 使用 LIMIT 和 OFFSET 進行分頁查詢
         cursor.execute("""
             SELECT order_id, amount, item_names, status, created_at, paid_at
             FROM orders
             WHERE customer_id=%s
             ORDER BY created_at DESC
-        """, (customer_id,))
+            LIMIT %s OFFSET %s
+        """, (customer_id, limit, offset))
         orders = cursor.fetchall()
         
         # 將 datetime 物件轉換為字串以便 JSON 序列化
@@ -39,7 +58,13 @@ async def get_customer_orders(customer_id: int, auth=Depends(verify_customer_jwt
                 order_dict['paid_at'] = order_dict['paid_at'].isoformat()
             formatted_orders.append(order_dict)
 
-        return JSONResponse(formatted_orders)
+        return JSONResponse({
+            "orders": formatted_orders,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total + limit - 1) // limit
+        })
 
     except Exception as e:
         print(f"❌ 後端查詢客戶 {customer_id} 訂單錯誤： {e}")

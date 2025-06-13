@@ -71,15 +71,8 @@
             @select="handleStoreSelect"
             :selected-store="selectedStore"
           />
-          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !selectedStore }">
+          <div v-if="showValidation && !selectedStore" class="text-danger small mt-1">
             請選擇取貨門市
-          </div>
-          <div v-if="selectedStore" class="alert alert-success mt-2">
-            已選擇：{{ selectedStore.type === 'UNIMART' ? '7-11' : 
-                      selectedStore.type === 'FAMI' ? '全家' :
-                      selectedStore.type === 'HILIFE' ? '萊爾富' :
-                      selectedStore.type === 'OKMART' ? 'OK超商' : '' }}
-            {{ selectedStore.name }}
           </div>
         </div>
 
@@ -92,7 +85,7 @@
             v-model="recipientName" 
             placeholder="請輸入收件人姓名"
           >
-          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !recipientName }">
+          <div v-if="showValidation && !recipientName" class="text-danger small mt-1">
             請填寫收件人姓名
           </div>
         </div>
@@ -106,7 +99,7 @@
             v-model="recipientPhone" 
             placeholder="請輸入收件人電話"
           >
-          <div class="invalid-feedback" :class="{ 'd-block': showValidation && !recipientPhone }">
+          <div v-if="showValidation && !recipientPhone" class="text-danger small mt-1">
             請填寫收件人電話
           </div>
         </div>
@@ -184,15 +177,11 @@ watch(deliveryType, (newType) => {
 
 function handleStoreSelect(store) {
   console.log('選擇的門市：', store);
-  if (store) {
-    selectedStore.value = {
-      id: store.id,
-      name: store.name,
-      type: store.type
-    };
-  } else {
-    selectedStore.value = null;
-  }
+  selectedStore.value = store ? {
+    id: store.id,
+    name: store.name,
+    type: store.type
+  } : null;
 }
 
 function updateQuantity(index) {

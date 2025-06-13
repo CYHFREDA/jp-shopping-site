@@ -22,6 +22,9 @@
     <div v-else-if="error" class="alert alert-danger">
       {{ error }}
     </div>
+    <div v-else-if="selectedStore" class="alert alert-success mb-2">
+      已選擇：{{ selectedStore.cvs }} {{ selectedStore.store }}
+    </div>
     <ul v-else-if="filteredStores.length" class="list-group mb-2" style="max-height: 300px; overflow-y: auto;">
       <li
         v-for="store in filteredStores"
@@ -37,10 +40,6 @@
     </ul>
     <div v-else-if="keyword || selectedCvs" class="text-muted text-center my-2">
       找不到符合條件的門市
-    </div>
-    <div v-if="selectedStore" class="alert alert-success p-2">
-      已選擇：<span class="badge bg-primary me-2">{{ selectedStore.cvs }}</span>
-      <strong>{{ selectedStore.store }}</strong>（{{ selectedStore.address }}）
     </div>
   </div>
 </template>
@@ -70,7 +69,14 @@ const props = defineProps({
 // 監聽外部傳入的已選擇門市
 watch(() => props.selectedStore, (newStore) => {
   if (newStore) {
-    selectedStore.value = newStore
+    selectedStore.value = {
+      cvs: newStore.type === 'UNIMART' ? '7-11' :
+           newStore.type === 'FAMI' ? '全家' :
+           newStore.type === 'HILIFE' ? '萊爾富' :
+           newStore.type === 'OKMART' ? 'OK超商' : '',
+      store: newStore.name,
+      id: newStore.id
+    }
     keyword.value = newStore.name
   } else {
     selectedStore.value = null
