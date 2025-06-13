@@ -67,8 +67,10 @@ api.interceptors.response.use(
       else {
         if (error.config.url.startsWith('/api/admin')) {
           userStore.logout('unauthorized');
+          window.location.href = '/admin/login';
         } else {
           customerStore.logout('unauthorized');
+          window.location.href = '/login';
         }
       }
     }

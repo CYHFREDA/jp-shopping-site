@@ -80,7 +80,7 @@
             </div>
             <div v-else-if="shipment.status === 'picked_up'">
               <button class="btn btn-success mt-3" @click="completeOrder" :disabled="confirming">{{ confirming ? '送出中...' : '完成' }}</button>
-              <button class="btn btn-secondary mt-3 ms-2" @click="initiateReturn" :disabled="confirming">申請退貨</button>
+              <button class="btn btn-secondary mt-3 ms-2" @click="console.log('申請退貨按鈕被點擊！'); initiateReturn()" :disabled="confirming">申請退貨</button>
               <span v-if="confirmSuccess" class="text-success ms-3">已完成！</span>
               <span v-if="confirmError" class="text-danger ms-3">{{ confirmError }}</span>
             </div>
@@ -270,6 +270,7 @@ async function completeOrder() {
 }
 
 async function initiateReturn() {
+  console.log('Initiate Return function called.');
   showReturnDialog.value = true;
   await nextTick(() => {
     if (returnReasonTextarea.value) {
@@ -386,8 +387,10 @@ onMounted(async () => {
       return;
     }
   }
+  console.log('OrderDetail Mounted - Customer Authenticated:', customerStore.isAuthenticated);
   await loadOrderDetail();
   await loadShipmentDetail();
+  console.log('OrderDetail Mounted - Shipment Data:', shipment.value);
 });
 
 async function loadOrderDetail() {
