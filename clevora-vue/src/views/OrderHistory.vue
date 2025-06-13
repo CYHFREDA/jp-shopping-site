@@ -174,9 +174,9 @@ function getOrderItemCount(itemNames) {
 
 // 新增 statusText 函式
 function statusText(status) {
-  if (status === 'pending') return '待處理';
+  if (status === 'fail') return '交易失敗';
   if (status === 'success') return '成功';
-  if (status === 'fail') return '失敗';
+  if (status === 'pending') return '待處理';
   if (status === 'out_of_stock') return '缺貨中';
   if (status === 'shipped') return '已出貨';
   if (status === 'arrived') return '已到店';

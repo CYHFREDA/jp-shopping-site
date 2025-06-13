@@ -103,6 +103,7 @@ function statusText(status) {
   if (status === 'success') return '成功';
   if (status === 'fail') return '失敗';
   if (status === 'returned_pending') return '退貨申請中';
+  if (status === 'completed') return '已完成';
   return status;
 }
 
