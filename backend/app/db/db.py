@@ -33,6 +33,12 @@ def get_db_conn():
         init_pool()
     return global_pool.getconn()
 
+# 同步獲取游標和連線 (專為背景任務設計)
+def get_sync_db_cursor_and_conn():
+    conn = get_db_conn()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    return conn, cursor
+
 # FastAPI 依賴項：獲取游標並確保連線被歸還
 async def get_db_cursor():
     conn = None
