@@ -97,34 +97,19 @@ jp-shopping-site/
 
 ```mermaid
 graph TD
-    A[使用者] -->|HTTPS| B{Cloudflare Tunnel};
-    B -->|HTTPS Tunnel| C(Kubernetes Ingress Controller);
+    A[使用者] -->|HTTPS| B[Cloudflare Tunnel]
+    B -->|HTTPS Tunnel| C[Kubernetes Ingress Controller]
 
     subgraph Kubernetes Cluster
-        C --> D{Ingress Rule: shop.wvwwcw.xyz};
-        C --> E{Ingress Rule: api.wvwwcw.xyz};
-
-        D --> F[前端應用];
-        E --> G[後端服務];
-
-        F -->|"API Calls via HTTPS"| G;
-        G -->|"Connects to Database"| H[資料庫];
+        C --> D[Ingress Rule: shop.wvwwcw.xyz]
+        C --> E[Ingress Rule: api.wvwwcw.xyz]
+        D --> F[前端應用]
+        E --> G[後端服務]
+        F --> G
+        G --> H[資料庫]
     end
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#ccf,stroke:#333,stroke-width:2px
-    style D fill:#ddf,stroke:#333,stroke-width:2px
-    style E fill:#eef,stroke:#333,stroke-width:2px
-    style F fill:#cfc,stroke:#333,stroke-width:2px
-    style G fill:#ffc,stroke:#333,stroke-width:2px
-    style H fill:#fcf,stroke:#333,stroke-width:2px
 
-    linkStyle 0 stroke-width:2px,fill:none,stroke:green;
-    linkStyle 1 stroke-width:2px,fill:none,stroke:green;
-    linkStyle 2 stroke-width:2px,fill:none,stroke:blue;
-    linkStyle 3 stroke-width:2px,fill:none,stroke:blue;
-    linkStyle 4 stroke-width:2px,fill:none,stroke:red;
 ```
 
 ### 圖例說明
