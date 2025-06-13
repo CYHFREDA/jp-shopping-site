@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerStore } from '@/stores/customerStore';
@@ -144,8 +144,28 @@ const recipientName = ref('');
 const recipientPhone = ref('');
 const showValidation = ref(false);
 
+// 監聽配送方式變更
+watch(deliveryType, (newType) => {
+  // 清空相關欄位
+  if (newType === 'home') {
+    selectedStore.value = null;
+  } else {
+    address.value = '';
+  }
+  // 重置驗證狀態
+  showValidation.value = false;
+});
+
 function handleStoreSelect(store) {
-  selectedStore.value = store;
+  if (store) {
+    selectedStore.value = {
+      id: store.id,
+      name: store.name,
+      type: store.type
+    };
+  } else {
+    selectedStore.value = null;
+  }
 }
 
 function updateQuantity(index) {
