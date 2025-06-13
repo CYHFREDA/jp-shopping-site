@@ -107,8 +107,8 @@ graph TD
         D --> F[前端應用];
         E --> G[後端服務];
 
-        F -->|API Calls (HTTPS)| G;
-        G -->|Database Connection| H[資料庫];
+        F -->|"API Calls via HTTPS"| G;
+        G -->|"Connects to Database"| H[資料庫];
     end
 
     style A fill:#f9f,stroke:#333,stroke-width:2px
