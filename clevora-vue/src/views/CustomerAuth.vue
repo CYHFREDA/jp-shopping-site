@@ -29,6 +29,9 @@
           <div class="d-grid">
             <button class="btn btn-success" @click="handleLogin">登入</button>
           </div>
+          <p class="text-end mt-2">
+            <router-link to="/forgot-password">忘記密碼？</router-link>
+          </p>
         </div>
 
         <!-- 註冊 -->

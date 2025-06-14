@@ -91,3 +91,73 @@ async def send_verification_email(recipient_email: str, username: str, verificat
     except Exception as e:
         print(f"❌ [Email服務] 寄送驗證信失敗：{e}")
         return False
+
+async def send_reset_password_email(recipient_email: str, username: str, reset_link: str):
+    if not all([EMAIL_HOST, EMAIL_USERNAME, EMAIL_PASSWORD]):
+        print("❌ 無法發送 Email：Email 服務設定不完整。")
+        return False
+
+    sender_email = EMAIL_USERNAME
+    sender_password = EMAIL_PASSWORD
+
+    if not sender_email or not sender_password:
+        print("❌ [Email服務] 錯誤：SMTP 環境變數未完整設定。")
+        raise ValueError("SMTP environment variables are not fully set.")
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "重設您的 CleVora 密碼"
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+
+    text = f"""
+        哈囉 {username},
+        您申請了密碼重設。
+        請點擊以下連結重設您的密碼：
+        {reset_link}
+        此連結將於 30 分鐘內過期。
+        如果您沒有申請重設密碼，請忽略此 Email。
+        """
+
+    html = f"""
+        <!DOCTYPE html>
+        <html lang=\"zh-TW\">
+        <head><meta charset=\"UTF-8\"></head>
+        <body style=\"background:#f8f9fa;padding:32px 0;\">
+          <div style=\"max-width:480px;margin:0 auto;font-family:'Segoe UI','Arial','Microsoft JhengHei',sans-serif;\">
+            <h2 style=\"color:#38302e;text-align:center;margin-bottom:8px;\">重設您的密碼</h2>
+            <p style=\"text-align:center;color:#555;margin-bottom:24px;\">請點擊下方按鈕重設您的 CleVora 密碼：</p>
+            <div style=\"background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);padding:24px 20px 16px 20px;margin-bottom:24px;\">
+              <div style=\"display:flex;align-items:center;margin-bottom:12px;\">
+                <span style=\"font-size:20px;margin-right:10px;\">📧</span>
+                <span style=\"color:#a18a7b;font-weight:bold;width:80px;display:inline-block;\">信箱</span>
+                <span style=\"color:#38302e;\">{recipient_email}</span>
+              </div>
+              <div style=\"display:flex;align-items:center;margin-bottom:12px;\">
+                <span style=\"font-size:20px;margin-right:10px;\">⏰</span>
+                <span style=\"color:#a18a7b;font-weight:bold;width:80px;display:inline-block;\">有效時間</span>
+                <span style=\"color:#38302e;\">30 分鐘內</span>
+              </div>
+            </div>
+            <a href=\"{reset_link}\" style=\"display:block;width:100%;max-width:320px;margin:0 auto 24px auto;background:#a18a7b;color:#fff;text-align:center;padding:14px 0;border-radius:8px;font-size:1.15rem;font-weight:bold;text-decoration:none;\">立即重設密碼</a>
+            <p style=\"color:#888;font-size:0.95rem;text-align:center;margin-bottom:8px;\">如果你沒有申請重設密碼，請忽略此信件。</p>
+            <p style=\"color:#bbb;font-size:0.85rem;text-align:center;\">Clevora 日本代購 &nbsp;|&nbsp; <a href=\"mailto:clevora.service@gmail.com\" style=\"color:#bbb;\">客服信箱</a></p>
+          </div>
+        </body>
+        </html>
+        """
+
+    part1 = MIMEText(text, "plain")
+    part2 = MIMEText(html, "html")
+    msg.attach(part1)
+    msg.attach(part2)
+
+    try:
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, context=context) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+        print(f"✅ [Email服務] 重設密碼信成功寄送給 {recipient_email}")
+        return True
+    except Exception as e:
+        print(f"❌ [Email服務] 寄送重設密碼信失敗：{e}")
+        return False

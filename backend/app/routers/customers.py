@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from db.db import get_db_cursor
 from datetime import datetime, timedelta
-from utils.email import send_verification_email
+from utils.email import send_verification_email, send_reset_password_email
 from config import JWT_SECRET_KEY, JWT_ALGORITHM, FRONTEND_URL, verify_customer_jwt
 import psycopg2.extras
 import bcrypt
@@ -223,3 +223,41 @@ async def verify_token(auth=Depends(verify_customer_jwt), cursor=Depends(get_db_
     except Exception as e:
         print(f"❌ 驗證 token 錯誤：{e}")
         return JSONResponse({"error": "驗證失敗"}, status_code=500)
+
+@router.post("/forgot-password")
+async def forgot_password(request: Request, background_tasks: BackgroundTasks, cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    email = data.get("email")
+    if not email:
+        return JSONResponse({"error": "請輸入 Email"}, status_code=400)
+    cursor.execute("SELECT customer_id, username FROM customers WHERE email=%s", (email,))
+    row = cursor.fetchone()
+    if not row:
+        return JSONResponse({"message": "如果此 Email 有註冊，我們會寄送重設密碼信。"})
+    customer_id, username = row[0], row[1]
+    reset_token = str(uuid.uuid4())
+    expiry = datetime.utcnow() + timedelta(minutes=30)
+    cursor.execute("UPDATE customers SET reset_token=%s, reset_token_expiry=%s WHERE customer_id=%s", (reset_token, expiry, customer_id))
+    cursor.connection.commit()
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+    background_tasks.add_task(send_reset_password_email, email, username, reset_link)
+    return JSONResponse({"message": "如果此 Email 有註冊，我們會寄送重設密碼信。"})
+
+@router.post("/reset-password")
+async def reset_password(request: Request, cursor=Depends(get_db_cursor)):
+    data = await request.json()
+    token = data.get("token")
+    new_password = data.get("new_password")
+    if not token or not new_password:
+        return JSONResponse({"error": "缺少必要參數"}, status_code=400)
+    cursor.execute("SELECT customer_id, reset_token_expiry FROM customers WHERE reset_token=%s", (token,))
+    row = cursor.fetchone()
+    if not row:
+        return JSONResponse({"error": "重設連結無效，請重新申請。"}, status_code=400)
+    customer_id, expiry = row[0], row[1]
+    if not expiry or datetime.utcnow() > expiry.replace(tzinfo=None):
+        return JSONResponse({"error": "重設連結已過期，請重新申請。"}, status_code=400)
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    cursor.execute("UPDATE customers SET password=%s, reset_token=NULL, reset_token_expiry=NULL WHERE customer_id=%s", (hashed_password, customer_id))
+    cursor.connection.commit()
+    return JSONResponse({"message": "密碼已重設成功，請用新密碼登入。"})

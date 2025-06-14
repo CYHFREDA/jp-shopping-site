@@ -22,6 +22,8 @@ import ProductsListingPage from '@/views/ProductsListingPage.vue';
 import EmailVerificationResult from '@/views/EmailVerificationResult.vue';
 import AdminLayout from '@/components/AdminLayout.vue';
 import OrderDetail from '@/views/OrderDetail.vue';
+import ForgotPassword from '@/views/ForgotPassword.vue';
+import ResetPassword from '@/views/ResetPassword.vue';
 
 const routes = [
   {
@@ -144,6 +146,18 @@ const routes = [
     name: 'OrderDetail',
     component: OrderDetail,
     meta: { title: 'Clevora 訂單詳細' }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { title: 'Clevora 忘記密碼' }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword,
+    meta: { title: 'Clevora 重設密碼' }
   }
 ];
 
