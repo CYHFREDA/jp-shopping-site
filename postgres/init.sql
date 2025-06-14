@@ -105,8 +105,13 @@ CREATE TABLE "customers" (
 	"is_verified" BOOLEAN NULL DEFAULT false,
 	"verification_token" VARCHAR(255) NULL DEFAULT NULL,
 	"token_expiry" TIMESTAMPTZ NULL DEFAULT NULL,
+	"current_token" VARCHAR(255) NULL DEFAULT NULL,
+	"reset_token" VARCHAR(128) NULL DEFAULT NULL,
+	"reset_token_expiry" TIMESTAMP NULL DEFAULT NULL,
 	PRIMARY KEY ("customer_id"),
-	UNIQUE ("username")
+	UNIQUE ("username"),
+	KEY ("username"),
+	KEY ("email")
 );
 COMMENT ON TABLE "customers" IS '客戶表格';
 COMMENT ON COLUMN "customers"."customer_id" IS '客戶 ID，自動增加';
@@ -120,6 +125,9 @@ COMMENT ON COLUMN "customers"."address" IS '地址';
 COMMENT ON COLUMN "customers"."is_verified" IS '是否驗證';
 COMMENT ON COLUMN "customers"."verification_token" IS '驗證令牌';
 COMMENT ON COLUMN "customers"."token_expiry" IS '驗證令牌過期時間';
+COMMENT ON COLUMN "customers"."current_token" IS '當前令牌';
+COMMENT ON COLUMN "customers"."reset_token" IS '重置令牌';
+COMMENT ON COLUMN "customers"."reset_token_expiry" IS '重置令牌過期時間';
 
 -- 建立客戶相關索引
 CREATE INDEX idx_customers_username ON customers(username);

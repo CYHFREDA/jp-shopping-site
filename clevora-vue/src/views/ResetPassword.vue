@@ -12,10 +12,11 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 const token = route.query.token
 const password = ref('')
 const message = ref('')
@@ -29,6 +30,9 @@ const submitReset = async () => {
     const res = await axios.post('/api/customers/reset-password', { token, new_password: password.value })
     message.value = res.data.message || '密碼已重設成功，請用新密碼登入。'
     success.value = true
+    setTimeout(() => {
+      router.push('/login')
+    }, 1800)
   } catch (err) {
     message.value = err.response?.data?.error || '發生錯誤，請稍後再試'
     success.value = false

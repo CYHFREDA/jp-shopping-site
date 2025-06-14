@@ -233,7 +233,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks, c
     cursor.execute("SELECT customer_id, username FROM customers WHERE email=%s", (email,))
     row = cursor.fetchone()
     if not row:
-        return JSONResponse({"message": "如果此 Email 有註冊，我們會寄送重設密碼信。"})
+        return JSONResponse({"error": "查無此信箱"}, status_code=404)
     customer_id, username = row[0], row[1]
     reset_token = str(uuid.uuid4())
     expiry = datetime.utcnow() + timedelta(minutes=30)
@@ -241,7 +241,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks, c
     cursor.connection.commit()
     reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
     background_tasks.add_task(send_reset_password_email, email, username, reset_link)
-    return JSONResponse({"message": "如果此 Email 有註冊，我們會寄送重設密碼信。"})
+    return JSONResponse({"message": f"此信箱 {email} 有註冊，已寄送重設密碼信（帳號：{username}）"})
 
 @router.post("/reset-password")
 async def reset_password(request: Request, cursor=Depends(get_db_cursor)):
