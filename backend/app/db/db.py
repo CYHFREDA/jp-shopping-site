@@ -2,6 +2,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from psycopg2.pool import SimpleConnectionPool
+from contextlib import contextmanager
 
 global_pool = None  # 初始化為 None
 
@@ -52,3 +53,13 @@ async def get_db_cursor():
             cursor.close()
         if conn:
             global_pool.putconn(conn)
+
+@contextmanager
+def get_conn_and_cursor():
+    conn = get_db_conn()
+    try:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        yield conn, cursor
+    finally:
+        cursor.close()
+        global_pool.putconn(conn)
